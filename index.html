@@ -16,8 +16,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: tuning dial on top, a crate of station tiles (2 columns on the phone, first tile full width; 3 on wide screens),
-   and a fixed player bar at the bottom. One deliberate look: a dark night-listening ground under colour-coded stations. */
+/* Layout: on-air header with tuning dial and a live ticker, a crate of station tiles that show what is on air
+   (2 columns on the phone with the first tile full width, 3 on wide screens), and a fixed player bar.
+   One deliberate look: a dark night-listening ground under colour-coded stations. */
+@property --ph { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
 :root {
   color-scheme: dark;
   --bg: #0C0D11;
@@ -25,7 +28,7 @@
   --ink: #F3EFE6;
   --muted: #9B9BA8;
   --line: #2B2E39;
-  --live: #FF5A4E;
+  --live: #FF4D3F;
   --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", sans-serif;
   --f-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -34,6 +37,7 @@
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
 html { background: var(--bg); }
 body {
   margin: 0;
@@ -44,25 +48,36 @@ body {
   line-height: 1.45;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-top: calc(env(safe-area-inset-top, 0px) + 18px);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
+  padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 132px);
   -webkit-text-size-adjust: 100%;
 }
-.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 26px; }
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 22px; }
+button { font: inherit; color: inherit; }
 
-/* ---------- Hero ---------- */
-.hero { display: grid; gap: 16px; }
-.brand { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+/* ---------- Header ---------- */
+.hero { display: grid; gap: 14px; }
+.eyebrow { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 h1 {
   margin: 0;
   font-family: var(--f-display);
   font-weight: 900;
   font-stretch: 125%;
-  font-size: clamp(46px, 15vw, 84px);
-  line-height: .9;
-  letter-spacing: -.035em;
+  font-size: clamp(44px, 14.5vw, 84px);
+  line-height: .88;
+  letter-spacing: -.04em;
 }
-.count { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.onair {
+  flex: none;
+  font-family: var(--f-mono); font-size: 11px; font-weight: 500; letter-spacing: .16em;
+  padding: 8px 11px; border-radius: 6px;
+  border: 1.5px solid var(--line); color: #5B5E6B; background: var(--bg-2);
+  display: flex; align-items: center; gap: 7px;
+}
+.onair i { width: 8px; height: 8px; border-radius: 50%; background: #3A3D49; display: block; }
+body[data-state="live"] .onair { color: #FFE9E6; border-color: var(--live); background: #3A1210; box-shadow: 0 0 22px -4px var(--live); }
+body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px var(--live); }
 
 .dial {
   position: relative; height: 74px; border-radius: 16px;
@@ -93,31 +108,58 @@ h1 {
   box-shadow: 0 0 14px 2px var(--needle); border-radius: 2px;
 }
 
+/* live ticker */
+.ticker {
+  position: relative; overflow: hidden; height: 36px;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.ticker-track { display: flex; width: max-content; height: 100%; align-items: center; }
+.tick {
+  appearance: none; -webkit-appearance: none; border: 0; background: none; margin: 0; cursor: pointer;
+  padding: 0 26px 0 0; display: flex; align-items: center; gap: 8px; white-space: nowrap;
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted);
+}
+.tick b { color: var(--ink); font-weight: 500; }
+.tick i { width: 7px; height: 7px; border-radius: 50%; background: var(--dot); display: block; flex: none; }
+
 /* ---------- Tiles ---------- */
 .crate { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media (max-width: 899px) { .crate .tile:first-child { grid-column: span 2; aspect-ratio: 2.15 / 1; } }
+@media (max-width: 899px) { .crate .tile:first-child { grid-column: span 2; min-height: 214px; } }
 @media (min-width: 900px) { .crate { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
 
 .tile {
-  position: relative; aspect-ratio: 1 / 1.12; max-width: 100%;
+  position: relative; display: flex; min-height: 248px;
   border-radius: 20px; overflow: hidden; isolation: isolate;
   background: var(--c); color: var(--t); min-width: 0;
 }
+/* radio waves spreading from a different point on each tile; they ripple outward while the station plays */
 .tile::before {
   content: ""; position: absolute; inset: 0; z-index: -1;
   background: repeating-radial-gradient(circle at var(--ox) var(--oy),
-    transparent 0, transparent var(--gap), var(--ring) var(--gap), var(--ring) calc(var(--gap) + 1.5px));
+    transparent 0, transparent var(--ph),
+    var(--ring) var(--ph), var(--ring) calc(var(--ph) + 1.5px),
+    transparent calc(var(--ph) + 1.5px), transparent calc(var(--gap) + 1.5px));
 }
+/* print grain */
 .tile::after {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .22;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
+/* show artwork, printed in the station colour */
+.art {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2;
+  filter: grayscale(1) contrast(1.15); mix-blend-mode: multiply; opacity: var(--art-o, .5);
+}
+.shade { position: absolute; inset: 0; z-index: -1; pointer-events: none; display: none;
+  background: linear-gradient(to top, var(--c) 34%, transparent 82%); }
+.tile.has-art .shade { display: block; }
 
 .tune {
   appearance: none; -webkit-appearance: none; border: 0; background: none; margin: 0;
-  font: inherit; color: inherit; text-align: left; cursor: pointer;
-  position: absolute; inset: 0; width: 100%;
-  display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start;
+  text-align: left; cursor: pointer; flex: 1; width: 100%; min-width: 0;
+  display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; gap: 16px;
   padding: 14px; border-radius: 20px;
   -webkit-user-select: none; user-select: none;
 }
@@ -136,11 +178,24 @@ h1 {
 .eq i:nth-child(2) { transform: scaleY(1); }
 .eq i:nth-child(3) { transform: scaleY(.7); }
 
-.label { display: grid; grid-template-columns: minmax(0, 1fr); gap: 7px; min-width: 0; width: 100%; }
-.name { display: block; min-width: 0; }
+.label { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.now { display: grid; gap: 3px; padding-top: 10px; border-top: 1.5px solid var(--pill); min-width: 0; }
+.now-k {
+  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; opacity: .78;
+  display: flex; align-items: center; gap: 7px;
+}
+.now-k .rr { border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; letter-spacing: .08em; }
+.now-t {
+  font-size: 14px; font-weight: 600; line-height: 1.22;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.now-s { font-size: 12px; opacity: .78; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 .name {
+  display: block; min-width: 0;
   font-family: var(--f-display); font-weight: 850; font-stretch: 62%;
-  font-size: clamp(26px, 7.8vw, 40px); line-height: .86; letter-spacing: -.01em;
+  font-size: clamp(28px, 8vw, 42px); line-height: .86; letter-spacing: -.01em;
   text-transform: uppercase; text-wrap: balance;
 }
 .meta {
@@ -157,62 +212,63 @@ h1 {
 .sched:focus-visible { outline: 2px solid var(--t); outline-offset: 2px; }
 
 /* selected station */
-.tile.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--c); }
+.tile.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--c), 0 18px 50px -18px var(--c); }
 .tile.on .knob { background: var(--t); color: var(--c); border-color: var(--t); }
 .tile.on.live .knob .i-play, .tile.on.loading .knob .i-play { display: none; }
 .tile.on.live .knob .eq { display: flex; }
 .tile.on.loading .knob .i-stop { display: block; }
 
 /* station colours */
-[data-id="nts1"]     { --c:#2337D6; --t:#F4F1E8; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.17); --ox:100%; --oy:0%;   --gap:13px; }
-[data-id="nts2"]     { --c:#E8472C; --t:#1C0C08; --ring:rgba(0,0,0,.13);       --pill:rgba(0,0,0,.13);       --ox:0%;   --oy:100%; --gap:11px; }
-[data-id="refuge"]   { --c:#BBA6F2; --t:#17112A; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.11);       --ox:50%;  --oy:125%; --gap:15px; }
-[data-id="rinse"]    { --c:#CDE650; --t:#141B05; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.11);       --ox:0%;   --oy:0%;   --gap:9px;  }
-[data-id="wwfm"]     { --c:#F3A93A; --t:#1E1203; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.12);       --ox:100%; --oy:100%; --gap:17px; }
-[data-id="kiosk"]    { --c:#1D6847; --t:#EEF5EC; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.16); --ox:30%;  --oy:-20%; --gap:12px; }
-[data-id="raheem"]   { --c:#F07CB0; --t:#2A0A18; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.12);       --ox:115%; --oy:45%;  --gap:14px; }
-[data-id="cashmere"] { --c:#E4D2B1; --t:#2A2116; --ring:rgba(0,0,0,.10);       --pill:rgba(0,0,0,.10);       --ox:-15%; --oy:60%;  --gap:10px; }
-[data-id="noods"]    { --c:#2FB3BF; --t:#061A1D; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.12);       --ox:80%;  --oy:35%;  --gap:8px;  }
-
-footer { border-top: 1px solid var(--line); padding-top: 18px; display: grid; gap: 8px; color: var(--muted); font-size: 13.5px; max-width: 60ch; }
-footer p { margin: 0; }
-footer strong { color: var(--ink); font-weight: 600; }
+[data-id="nts1"]     { --c:#2337D6; --t:#F4F1E8; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:100%; --oy:0%;   --gap:13px; --art-o:.62; }
+[data-id="nts2"]     { --c:#E8472C; --t:#1C0C08; --ring:rgba(0,0,0,.13);       --pill:rgba(0,0,0,.16);       --ox:0%;   --oy:100%; --gap:11px; --art-o:.42; }
+[data-id="refuge"]   { --c:#BBA6F2; --t:#17112A; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.14);       --ox:50%;  --oy:125%; --gap:15px; }
+[data-id="rinse"]    { --c:#CDE650; --t:#141B05; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.14);       --ox:0%;   --oy:0%;   --gap:9px;  }
+[data-id="wwfm"]     { --c:#F3A93A; --t:#1E1203; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:100%; --oy:100%; --gap:17px; }
+[data-id="kiosk"]    { --c:#1D6847; --t:#EEF5EC; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.2);  --ox:30%;  --oy:-20%; --gap:12px; }
+[data-id="raheem"]   { --c:#F07CB0; --t:#2A0A18; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:115%; --oy:45%;  --gap:14px; }
+[data-id="cashmere"] { --c:#E4D2B1; --t:#2A2116; --ring:rgba(0,0,0,.10);       --pill:rgba(0,0,0,.13);       --ox:-15%; --oy:60%;  --gap:10px; }
+[data-id="noods"]    { --c:#2FB3BF; --t:#061A1D; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:80%;  --oy:35%;  --gap:8px;  }
 
 /* ---------- Player bar ---------- */
 .player {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  padding-top: 10px;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  padding-top: 12px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  background: rgba(12, 13, 17, .88);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
+  background: rgba(12, 13, 17, .86);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(20px) saturate(150%);
   border-top: 1px solid var(--line);
 }
-.player-inner { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 46px 1fr 54px; gap: 12px; align-items: center; }
+.progress { position: absolute; left: 0; right: 0; top: -1px; height: 2px; }
+.progress i { display: block; height: 100%; width: 0; background: var(--pc, transparent); box-shadow: 0 0 10px var(--pc, transparent); }
+.player-inner { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 54px 1fr 54px; gap: 12px; align-items: center; }
 .swatch {
-  width: 46px; height: 46px; border-radius: 12px;
+  position: relative; width: 54px; height: 54px; border-radius: 12px; overflow: hidden;
   background: var(--pc, var(--bg-2)); color: var(--pt, var(--muted));
   border: 1px solid var(--line);
   display: grid; place-items: center;
 }
-.swatch .eq { display: flex; height: 16px; }
+.swatch img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.swatch .eq { position: relative; display: flex; height: 16px; }
 .swatch .eq i { width: 3.5px; }
-.np { min-width: 0; display: grid; gap: 3px; }
-.np-name {
-  font-family: var(--f-display); font-weight: 850; font-stretch: 62%;
-  font-size: 23px; line-height: 1; text-transform: uppercase; letter-spacing: -.005em;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
+.swatch.has-art .eq { color: #fff; filter: drop-shadow(0 1px 3px rgba(0,0,0,.6)); }
+.np { min-width: 0; display: grid; gap: 2px; }
 .np-status {
-  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase;
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
   color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   display: flex; align-items: center; gap: 6px;
 }
-.np-status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex: none; }
+.np-status .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex: none; }
+.np-name {
+  font-family: var(--f-display); font-weight: 850; font-stretch: 62%;
+  font-size: 22px; line-height: 1.02; text-transform: uppercase; letter-spacing: -.005em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.np-show { font-size: 13px; color: var(--ink); opacity: .82; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body[data-state="live"] .np-status { color: var(--ink); }
-body[data-state="live"] .np-status .dot { background: var(--live); box-shadow: 0 0 0 3px rgba(255, 90, 78, .25); }
+body[data-state="live"] .np-status .dot { background: var(--live); box-shadow: 0 0 0 3px rgba(255, 77, 63, .25); }
 body[data-state="error"] .np-status { color: var(--live); }
 body[data-state="error"] .np-status .dot { background: var(--live); }
 
@@ -233,14 +289,23 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 @media (prefers-reduced-motion: no-preference) {
   .needle { transition: left .7s cubic-bezier(.2,.8,.2,1), background .4s, box-shadow .4s; }
   .tune { transition: transform .15s ease; }
-  .tune:active { transform: scale(.97); }
+  .tile:active .tune { transform: scale(.98); }
   .pp:active { transform: scale(.94); }
+  .progress i { transition: width 1s linear; }
+  .ticker-track.run { animation: ticker var(--dur, 60s) linear infinite; }
   body[data-state="live"] .eq i { animation: bounce 1s ease-in-out infinite; }
   body[data-state="live"] .eq i:nth-child(2) { animation-delay: -.35s; }
   body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
+  body[data-state="live"] .tile.on::before { animation: ripple 1.4s linear infinite; }
   body[data-state="loading"] .tile.on .knob, body[data-state="loading"] .swatch { animation: pulse 1.1s ease-in-out infinite; }
+  body[data-state="live"] .onair i { animation: pulse 2.4s ease-in-out infinite; }
   @keyframes bounce { 0%,100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+  @keyframes ripple { from { --ph: 0px; } to { --ph: var(--gap); } }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker { overflow-x: auto; }
 }
 </style>
 </head>
@@ -248,9 +313,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
 <div class="wrap">
   <header class="hero">
+    <div class="eyebrow">9 radio indipendenti</div>
     <div class="brand">
       <h1>Sintonia</h1>
-      <span class="count">9 radio indipendenti</span>
+      <div class="onair" aria-hidden="true"><i></i>ON AIR</div>
     </div>
 
     <div class="dial" aria-hidden="true">
@@ -268,94 +334,102 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span data-for="noods" style="--dot:#2FB3BF"><i></i>P9</span>
       </div>
     </div>
+
+    <div class="ticker" id="ticker" hidden><div class="ticker-track" id="ticker-track"></div></div>
   </header>
 
   <ol class="crate" id="crate">
-    <li class="tile" data-id="nts1" data-city="Londra" data-src="https://stream-relay-geo.ntslive.net/stream">
+    <li class="tile" data-id="nts1" data-city="Londra" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream">
+      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Ascolta NTS 1">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="name">NTS 1</span><span class="meta"><span>P1 · Londra</span><span class="clock" data-tz="Europe/London"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 1</span><span class="meta"><span>P1 · Londra</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://www.nts.live/" target="_blank" rel="noopener">Palinsesto ↗</a>
     </li>
 
-    <li class="tile" data-id="nts2" data-city="Londra" data-src="https://stream-relay-geo.ntslive.net/stream2">
+    <li class="tile" data-id="nts2" data-city="Londra" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream2">
+      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Ascolta NTS 2">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="name">NTS 2</span><span class="meta"><span>P2 · Londra</span><span class="clock" data-tz="Europe/London"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 2</span><span class="meta"><span>P2 · Londra</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://www.nts.live/" target="_blank" rel="noopener">Palinsesto ↗</a>
     </li>
 
-    <li class="tile" data-id="refuge" data-city="Berlino" data-src="https://streaming.radio.co/s3699c5e49/listen">
+    <li class="tile" data-id="refuge" data-city="Berlino" data-tz="Europe/Berlin" data-src="https://streaming.radio.co/s3699c5e49/listen">
+      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Ascolta Refuge Worldwide">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="name">Refuge Worldwide</span><span class="meta"><span>P3 · Berlino</span><span class="clock" data-tz="Europe/Berlin"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Refuge Worldwide</span><span class="meta"><span>P3 · Berlino</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://refugeworldwide.com/radio" target="_blank" rel="noopener">Palinsesto ↗</a>
     </li>
 
-    <li class="tile" data-id="rinse" data-city="Londra" data-src="https://admin.stream.rinse.fm/proxy/rinse_uk/stream">
+    <li class="tile" data-id="rinse" data-city="Londra" data-tz="Europe/London" data-src="https://admin.stream.rinse.fm/proxy/rinse_uk/stream">
+      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Ascolta Rinse FM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="name">Rinse FM</span><span class="meta"><span>P4 · Londra</span><span class="clock" data-tz="Europe/London"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rinse FM</span><span class="meta"><span>P4 · Londra</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://www.rinse.fm/" target="_blank" rel="noopener">Palinsesto ↗</a>
     </li>
 
-    <li class="tile" data-id="wwfm" data-city="Londra" data-src="https://worldwide-fm.radiocult.fm/stream">
+    <li class="tile" data-id="wwfm" data-city="Londra" data-tz="Europe/London" data-src="https://worldwide-fm.radiocult.fm/stream">
+      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Ascolta Worldwide FM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="name">Worldwide FM</span><span class="meta"><span>P5 · Londra</span><span class="clock" data-tz="Europe/London"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Worldwide FM</span><span class="meta"><span>P5 · Londra</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://www.worldwidefm.net/schedule" target="_blank" rel="noopener">Palinsesto ↗</a>
     </li>
 
-    <li class="tile" data-id="kiosk" data-city="Bruxelles" data-src="https://kioskradiobxl.out.airtime.pro/kioskradiobxl_b">
+    <li class="tile" data-id="kiosk" data-city="Bruxelles" data-tz="Europe/Brussels" data-src="https://kioskradiobxl.out.airtime.pro/kioskradiobxl_b">
+      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Ascolta Kiosk Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="name">Kiosk Radio</span><span class="meta"><span>P6 · Bruxelles</span><span class="clock" data-tz="Europe/Brussels"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Kiosk Radio</span><span class="meta"><span>P6 · Bruxelles</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://www.kioskradio.com/schedule" target="_blank" rel="noopener">Palinsesto ↗</a>
     </li>
 
-    <li class="tile" data-id="raheem" data-city="Milano" data-src="https://radioraheem.out.airtime.pro/radioraheem_a">
+    <li class="tile" data-id="raheem" data-city="Milano" data-tz="Europe/Rome" data-src="https://radioraheem.out.airtime.pro/radioraheem_a">
+      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Ascolta Radio Raheem">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="name">Radio Raheem</span><span class="meta"><span>P7 · Milano</span><span class="clock" data-tz="Europe/Rome"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Raheem</span><span class="meta"><span>P7 · Milano</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://www.radioraheem.it/" target="_blank" rel="noopener">Palinsesto ↗</a>
     </li>
 
-    <li class="tile" data-id="cashmere" data-city="Berlino" data-src="https://cashmereradio.out.airtime.pro/cashmereradio_b">
+    <li class="tile" data-id="cashmere" data-city="Berlino" data-tz="Europe/Berlin" data-src="https://cashmereradio.out.airtime.pro/cashmereradio_b">
+      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Ascolta Cashmere Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="name">Cashmere Radio</span><span class="meta"><span>P8 · Berlino</span><span class="clock" data-tz="Europe/Berlin"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Cashmere Radio</span><span class="meta"><span>P8 · Berlino</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://cashmereradio.com/" target="_blank" rel="noopener">Palinsesto ↗</a>
     </li>
 
-    <li class="tile" data-id="noods" data-city="Bristol" data-src="https://noods-radio.radiocult.fm/stream">
+    <li class="tile" data-id="noods" data-city="Bristol" data-tz="Europe/London" data-src="https://noods-radio.radiocult.fm/stream">
+      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Ascolta Noods Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="name">Noods Radio</span><span class="meta"><span>P9 · Bristol</span><span class="clock" data-tz="Europe/London"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Noods Radio</span><span class="meta"><span>P9 · Bristol</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://www.noodsradio.com/" target="_blank" rel="noopener">Palinsesto ↗</a>
     </li>
   </ol>
-
-  <footer>
-    <p><strong>Come app sull'iPhone:</strong> apri questa pagina in Safari, tocca Condividi, poi Aggiungi alla schermata Home.</p>
-    <p>Dalla schermata di blocco puoi mettere in pausa e saltare alla radio successiva o precedente.</p>
-  </footer>
 </div>
 
 <div class="player" role="region" aria-label="Player">
+  <div class="progress" aria-hidden="true"><i id="prog"></i></div>
   <div class="player-inner">
-    <div class="swatch" id="swatch"><span class="eq"><i></i><i></i><i></i></span></div>
+    <div class="swatch" id="swatch"><img id="np-art" alt="" hidden><span class="eq"><i></i><i></i><i></i></span></div>
     <div class="np">
-      <div class="np-name" id="np-name">Sintonia</div>
       <div class="np-status"><span class="dot"></span><span id="np-status">Tocca una radio per ascoltarla</span></div>
+      <div class="np-name" id="np-name">Sintonia</div>
+      <div class="np-show" id="np-show" hidden></div>
     </div>
     <button class="pp" id="pp" type="button" aria-label="Riproduci" disabled>
       <svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg>
@@ -367,60 +441,218 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 <audio id="audio" preload="none" playsinline></audio>
 
 <script>
-(function () {
-  var KEY = "sintonia:last";
-  var audio = document.getElementById("audio");
-  var crate = document.getElementById("crate");
-  var marks = document.getElementById("marks");
-  var swatch = document.getElementById("swatch");
-  var npName = document.getElementById("np-name");
-  var npStatus = document.getElementById("np-status");
-  var pp = document.getElementById("pp");
-  var tiles = Array.prototype.slice.call(crate.querySelectorAll(".tile"));
+(() => {
+  const KEY = "sintonia:last";
+  const $ = (id) => document.getElementById(id);
+  const audio = $("audio"), crate = $("crate"), marks = $("marks"), swatch = $("swatch");
+  const npName = $("np-name"), npStatus = $("np-status"), npShow = $("np-show"), npArt = $("np-art");
+  const pp = $("pp"), prog = $("prog"), ticker = $("ticker"), tickerTrack = $("ticker-track");
+  const tiles = Array.from(crate.querySelectorAll(".tile"));
 
-  var stations = tiles.map(function (el, i) {
-    var cs = getComputedStyle(el);
+  const stations = tiles.map((el, index) => {
+    const cs = getComputedStyle(el);
     return {
-      id: el.getAttribute("data-id"),
-      index: i,
-      el: el,
+      id: el.dataset.id, index, el,
       name: el.querySelector(".name").textContent,
-      city: el.getAttribute("data-city"),
-      src: el.getAttribute("data-src"),
-      c: cs.getPropertyValue("--c").trim(),
-      t: cs.getPropertyValue("--t").trim()
+      city: el.dataset.city, tz: el.dataset.tz, src: el.dataset.src,
+      c: cs.getPropertyValue("--c").trim(), t: cs.getPropertyValue("--t").trim()
     };
   });
-  var byId = {};
-  stations.forEach(function (s) { byId[s.id] = s; });
+  const byId = Object.fromEntries(stations.map((s) => [s.id, s]));
 
-  var current = null;
-  var state = "idle"; // idle | loading | live | paused | error
+  /* ---------- time helpers ---------- */
+  const fmtCache = {};
+  const hhmm = (ms, tz) => {
+    if (!isFinite(ms)) return "";
+    try {
+      fmtCache[tz] = fmtCache[tz] || new Intl.DateTimeFormat("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: tz });
+      return fmtCache[tz].format(new Date(ms));
+    } catch (e) { return ""; }
+  };
 
-  function setState(s) {
-    state = s;
-    document.body.setAttribute("data-state", s);
-    render();
+  /* ---------- live programme data ---------- */
+  const live = {};
+  const clean = (s) => (s || "").replace(/^\s*[-–]\s*/, "").replace(/\s+/g, " ").trim();
+  const RERUN = /\s*\((r|repeat|restream|replay)\)\s*$/i;
+
+  function fromNts(ch) {
+    const now = ch && ch.now;
+    if (!now) return null;
+    const d = (now.embeds && now.embeds.details) || {};
+    const raw = clean(d.name || now.broadcast_title);
+    if (!raw) return null;
+    const rerun = RERUN.test(now.broadcast_title || "") || RERUN.test(raw);
+    const media = d.media || {};
+    const genres = (d.genres || []).map((g) => g && g.value).filter(Boolean).slice(0, 2).join(" · ");
+    return {
+      title: raw.replace(RERUN, ""),
+      sub: genres,
+      art: media.picture_medium_large || media.picture_medium || media.background_medium || "",
+      start: Date.parse(now.start_timestamp), end: Date.parse(now.end_timestamp), rerun
+    };
   }
 
-  function render() {
-    var st = current ? byId[current] : null;
-    tiles.forEach(function (el) {
-      var on = st && el.getAttribute("data-id") === st.id;
-      el.classList.toggle("on", !!on);
-      el.classList.toggle("live", !!on && state === "live");
-      el.classList.toggle("loading", !!on && state === "loading");
-    });
-    Array.prototype.forEach.call(marks.children, function (m) {
-      m.classList.toggle("on", !!st && m.getAttribute("data-for") === st.id);
-    });
+  function fromRadioCo(j) {
+    const tr = j && j.current_track;
+    const raw = clean(tr && tr.title);
+    if (!raw) return null;
+    const rerun = /\((r|repeat)\)/i.test(raw);
+    const t = raw.replace(/\s*\((r|repeat)\)/ig, "");
+    const cut = t.indexOf(" - ");
+    return {
+      title: cut > 0 ? t.slice(0, cut) : t,
+      sub: cut > 0 ? t.slice(cut + 3) : "",
+      start: Date.parse(tr.start_time), end: NaN, rerun
+    };
+  }
 
-    var root = document.documentElement.style;
+  function fromAirtime(j) {
+    if (!j) return null;
+    const sched = j.station && j.station.schedulerTime;
+    // station times come in station-local time: work out the offset from the station's own clock
+    let offset = 0;
+    if (sched) {
+      const q = 15 * 60000;
+      offset = Math.round((Date.parse(sched.replace(" ", "T") + "Z") - Date.now()) / q) * q;
+    }
+    const toMs = (s) => s ? Date.parse(String(s).replace(" ", "T") + "Z") - offset : NaN;
+    const show = j.shows && j.shows.current;
+    const tr = j.tracks && j.tracks.current;
+    const md = (tr && tr.metadata) || {};
+    let track = clean(md.track_title || (tr && tr.name));
+    if (md.artist_name && track && track.indexOf(md.artist_name) < 0) track = clean(md.artist_name) + " – " + track;
+    track = track.replace(/\s+@\s+.*$/, "");
+    const showName = clean(show && show.name);
+    if (!showName && !track) return null;
+    const rerun = /restream|replay|\(r\)/i.test(showName + " " + track);
+    const showClean = showName.replace(/\s*\((restream|replay|r)\)\s*/ig, " ").trim();
+    const generic = !showClean || /restream|replay|playlist|staff picks|rotation|auto/i.test(showName);
+    return {
+      title: generic && track ? track : (showClean || track),
+      sub: generic && track ? showClean : (track && track !== showClean ? track : ""),
+      start: toMs(show && show.starts), end: toMs(show && show.ends), rerun
+    };
+  }
+
+  const SOURCES = [
+    { url: "https://www.nts.live/api/v2/live", parse: (j) => {
+        const out = {};
+        (j.results || []).forEach((ch) => {
+          if (ch.channel_name === "1") out.nts1 = fromNts(ch);
+          if (ch.channel_name === "2") out.nts2 = fromNts(ch);
+        });
+        return out;
+      } },
+    { url: "https://public.radio.co/stations/s3699c5e49/status", parse: (j) => ({ refuge: fromRadioCo(j) }) },
+    { url: "https://kioskradiobxl.airtime.pro/api/live-info-v2", parse: (j) => ({ kiosk: fromAirtime(j) }) },
+    { url: "https://radioraheem.airtime.pro/api/live-info-v2", parse: (j) => ({ raheem: fromAirtime(j) }) },
+    { url: "https://cashmereradio.airtime.pro/api/live-info-v2", parse: (j) => ({ cashmere: fromAirtime(j) }) }
+  ];
+
+  function getJSON(url) {
+    const ctl = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = setTimeout(() => ctl && ctl.abort(), 9000);
+    return fetch(url, { cache: "no-store", signal: ctl ? ctl.signal : undefined })
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .finally(() => clearTimeout(timer));
+  }
+
+  let refreshing = false;
+  function refreshLive() {
+    if (refreshing) return;
+    refreshing = true;
+    Promise.all(SOURCES.map((s) =>
+      getJSON(s.url).then((j) => {
+        const r = s.parse(j) || {};
+        Object.keys(r).forEach((k) => { live[k] = r[k]; });
+      }).catch(() => {})
+    )).then(() => { refreshing = false; renderLive(); });
+  }
+
+  function renderLive() {
+    stations.forEach((st) => {
+      const info = live[st.id];
+      const box = st.el.querySelector(".now");
+      const art = st.el.querySelector(".art");
+      if (!info) { box.hidden = true; art.hidden = true; st.el.classList.remove("has-art"); return; }
+      const k = box.querySelector(".now-k");
+      k.textContent = "In onda";
+      if (info.rerun) { const rr = document.createElement("span"); rr.className = "rr"; rr.textContent = "Replica"; k.appendChild(rr); }
+      box.querySelector(".now-t").textContent = info.title;
+      const parts = [];
+      if (info.sub) parts.push(info.sub);
+      if (isFinite(info.end)) parts.push("fino alle " + hhmm(info.end, st.tz));
+      const s = box.querySelector(".now-s");
+      s.textContent = parts.join(" · ");
+      s.hidden = !parts.length;
+      box.hidden = false;
+      if (info.art) {
+        if (art.getAttribute("src") !== info.art) {
+          art.onload = () => { art.hidden = false; st.el.classList.add("has-art"); };
+          art.onerror = () => { art.hidden = true; st.el.classList.remove("has-art"); };
+          art.src = info.art;
+        }
+      } else { art.hidden = true; st.el.classList.remove("has-art"); }
+    });
+    renderTicker();
+    renderPlayer();
+    fitNames();
+  }
+
+  let tickerSig = "";
+  function renderTicker() {
+    const items = stations.filter((st) => live[st.id]);
+    if (!items.length) { ticker.hidden = true; tickerSig = ""; return; }
+    const sig = items.map((st) => st.id + ":" + live[st.id].title).join("|");
+    if (sig === tickerSig) return; // unchanged: keep the scroll running smoothly
+    tickerSig = sig;
+    tickerTrack.classList.remove("run");
+    tickerTrack.textContent = "";
+    for (let copy = 0; copy < 2; copy++) {
+      items.forEach((st) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "tick"; b.style.setProperty("--dot", st.c);
+        if (copy) b.setAttribute("aria-hidden", "true"), b.tabIndex = -1;
+        const dot = document.createElement("i");
+        const nm = document.createElement("b"); nm.textContent = st.name;
+        const tt = document.createElement("span"); tt.textContent = live[st.id].title;
+        b.append(dot, nm, tt);
+        b.addEventListener("click", () => start(st.id));
+        tickerTrack.appendChild(b);
+      });
+    }
+    ticker.hidden = false;
+    requestAnimationFrame(() => {
+      const half = tickerTrack.scrollWidth / 2;
+      tickerTrack.style.setProperty("--dur", Math.max(20, half / 38) + "s");
+      tickerTrack.classList.add("run");
+    });
+  }
+
+  /* ---------- playback ---------- */
+  let current = null;
+  let state = "idle"; // idle | loading | live | paused | error
+
+  function setState(s) { state = s; document.body.dataset.state = s; renderPlayer(); }
+
+  function renderPlayer() {
+    const st = current ? byId[current] : null;
+    const info = st ? live[st.id] : null;
+    tiles.forEach((el) => {
+      const on = !!st && el.dataset.id === st.id;
+      el.classList.toggle("on", on);
+      el.classList.toggle("live", on && state === "live");
+      el.classList.toggle("loading", on && state === "loading");
+    });
+    Array.from(marks.children).forEach((m) => m.classList.toggle("on", !!st && m.dataset.for === st.id));
+
+    const root = document.documentElement.style;
     if (st) {
       root.setProperty("--needle-pos", ((st.index + 0.5) / stations.length * 100) + "%");
       root.setProperty("--needle", st.c);
       swatch.style.setProperty("--pc", st.c);
       swatch.style.setProperty("--pt", st.t);
+      prog.parentNode.style.setProperty("--pc", st.c);
       npName.textContent = st.name;
       pp.disabled = false;
     } else {
@@ -428,29 +660,58 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       pp.disabled = true;
     }
 
-    var text = "Tocca una radio per ascoltarla";
+    npShow.hidden = !(info && info.title);
+    npShow.textContent = info ? info.title + (info.sub ? " · " + info.sub : "") : "";
+
+    if (info && info.art) {
+      if (npArt.getAttribute("src") !== info.art) {
+        npArt.onload = () => { npArt.hidden = false; swatch.classList.add("has-art"); };
+        npArt.onerror = () => { npArt.hidden = true; swatch.classList.remove("has-art"); };
+        npArt.src = info.art;
+      }
+    } else { npArt.hidden = true; npArt.removeAttribute("src"); swatch.classList.remove("has-art"); }
+
+    let text = "Tocca una radio per ascoltarla";
     if (st) {
       if (state === "loading") text = "Sintonizzazione…";
-      else if (state === "live") text = "In diretta da " + st.city;
+      else if (state === "live") text = "In diretta · " + st.city;
       else if (state === "error") text = "Stream non raggiungibile, riprova";
       else text = "In pausa · " + st.city;
     }
     npStatus.textContent = text;
     pp.setAttribute("aria-label", (state === "live" || state === "loading") ? "Ferma" : "Riproduci");
+    updateProgress();
+    setMetadata();
 
     if ("mediaSession" in navigator) {
-      try { navigator.mediaSession.playbackState = state === "live" || state === "loading" ? "playing" : (st ? "paused" : "none"); } catch (e) {}
+      try { navigator.mediaSession.playbackState = (state === "live" || state === "loading") ? "playing" : (st ? "paused" : "none"); } catch (e) {}
     }
   }
 
-  function setMetadata(st) {
-    if (!("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;
+  function updateProgress() {
+    const info = current ? live[current] : null;
+    let pct = 0;
+    if (info && isFinite(info.start) && isFinite(info.end) && info.end > info.start) {
+      pct = Math.min(100, Math.max(0, (Date.now() - info.start) / (info.end - info.start) * 100));
+    }
+    prog.style.width = pct + "%";
+  }
+
+  let lastMeta = "";
+  function setMetadata() {
+    if (!current || !("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;
+    const st = byId[current], info = live[current];
+    const title = info ? info.title : st.name;
+    const art = info && info.art;
+    const sig = [st.id, title, art].join("|");
+    if (sig === lastMeta) return;
+    lastMeta = sig;
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: st.name,
-        artist: st.city + " · in diretta",
+        title,
+        artist: info ? st.name + " · " + st.city : st.city + " · in diretta",
         album: "Sintonia",
-        artwork: [
+        artwork: art ? [{ src: art }] : [
           { src: "icon-512.png", sizes: "512x512", type: "image/png" },
           { src: "icon-192.png", sizes: "192x192", type: "image/png" }
         ]
@@ -459,16 +720,15 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
 
   function start(id) {
-    var st = byId[id];
+    const st = byId[id];
     if (!st) return;
     current = id;
     try { localStorage.setItem(KEY, id); } catch (e) {}
     audio.src = st.src;
-    setMetadata(st);
     setState("loading");
-    var p = audio.play();
+    const p = audio.play();
     if (p && typeof p.catch === "function") {
-      p.catch(function (err) {
+      p.catch((err) => {
         if (current !== id || (err && err.name === "AbortError")) return;
         setState(err && err.name === "NotAllowedError" ? "paused" : "error");
       });
@@ -484,84 +744,80 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
 
   function step(dir) {
-    var i = current ? byId[current].index : -1;
-    var next = stations[(i + dir + stations.length) % stations.length];
-    start(next.id);
+    const i = current ? byId[current].index : -1;
+    start(stations[(i + dir + stations.length) % stations.length].id);
   }
 
-  crate.addEventListener("click", function (ev) {
-    var btn = ev.target.closest && ev.target.closest(".tune");
+  crate.addEventListener("click", (ev) => {
+    const btn = ev.target.closest && ev.target.closest(".tune");
     if (!btn) return;
-    var id = btn.parentNode.getAttribute("data-id");
+    const id = btn.parentNode.dataset.id;
     if (id === current && (state === "live" || state === "loading")) stop();
     else start(id);
   });
 
-  pp.addEventListener("click", function () {
+  pp.addEventListener("click", () => {
     if (!current) return;
     if (state === "live" || state === "loading") stop();
     else start(current);
   });
 
-  audio.addEventListener("playing", function () { setState("live"); });
-  audio.addEventListener("waiting", function () { if (state === "live") setState("loading"); });
-  audio.addEventListener("pause", function () {
+  audio.addEventListener("playing", () => setState("live"));
+  audio.addEventListener("waiting", () => { if (state === "live") setState("loading"); });
+  audio.addEventListener("pause", () => {
     // the system paused us (a call, another app): reflect it in the bar
     if (state === "live" && audio.getAttribute("src")) setState("paused");
   });
-  audio.addEventListener("error", function () {
-    if (audio.getAttribute("src")) setState("error");
-  });
+  audio.addEventListener("error", () => { if (audio.getAttribute("src")) setState("error"); });
 
   if ("mediaSession" in navigator) {
-    var handlers = {
-      play: function () { if (current) start(current); },
+    const handlers = {
+      play: () => { if (current) start(current); },
       pause: stop,
       stop: stop,
-      nexttrack: function () { step(1); },
-      previoustrack: function () { step(-1); }
+      nexttrack: () => step(1),
+      previoustrack: () => step(-1)
     };
-    Object.keys(handlers).forEach(function (k) {
+    Object.keys(handlers).forEach((k) => {
       try { navigator.mediaSession.setActionHandler(k, handlers[k]); } catch (e) {}
     });
   }
 
-  try {
-    var saved = localStorage.getItem(KEY);
-    if (saved && byId[saved]) { current = saved; setMetadata(byId[saved]); setState("paused"); }
-  } catch (e) {}
-
+  /* ---------- layout helpers ---------- */
   // shrink a station name until its longest word fits the tile (covers slow or missing web fonts)
   function fitNames() {
-    tiles.forEach(function (el) {
-      var n = el.querySelector(".name");
+    tiles.forEach((el) => {
+      const n = el.querySelector(".name");
       n.style.fontSize = "";
-      var size = parseFloat(getComputedStyle(n).fontSize);
-      var guard = 0;
+      let size = parseFloat(getComputedStyle(n).fontSize), guard = 0;
       while (n.scrollWidth > n.clientWidth + 1 && size > 16 && guard < 40) {
         size -= 1; n.style.fontSize = size + "px"; guard++;
       }
     });
   }
+
+  function tickClocks() {
+    const now = Date.now();
+    stations.forEach((st) => { st.el.querySelector(".clock").textContent = hhmm(now, st.tz); });
+    updateProgress();
+  }
+
+  /* ---------- boot ---------- */
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved && byId[saved]) current = saved;
+  } catch (e) {}
+  setState(current ? "paused" : "idle");
+  tickClocks();
   fitNames();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitNames);
-  var rt;
-  window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(fitNames, 150); });
+  let rt;
+  window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(fitNames, 150); });
 
-  var fmt = {};
-  function tick() {
-    var now = new Date();
-    var clocks = document.querySelectorAll(".clock[data-tz]");
-    for (var i = 0; i < clocks.length; i++) {
-      var tz = clocks[i].getAttribute("data-tz");
-      try {
-        if (!fmt[tz]) fmt[tz] = new Intl.DateTimeFormat("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: tz });
-        clocks[i].textContent = fmt[tz].format(now);
-      } catch (e) {}
-    }
-  }
-  tick();
-  setInterval(tick, 30000);
+  refreshLive();
+  setInterval(tickClocks, 30000);
+  setInterval(() => { if (!document.hidden || state === "live") refreshLive(); }, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { tickClocks(); refreshLive(); } });
 })();
 </script>
 </body>
