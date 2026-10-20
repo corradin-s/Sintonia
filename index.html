@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -33,7 +33,7 @@
   --f-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --needle: #F3EFE6;
-  --n: 13; /* number of stations on the dial */
+  --n: 14; /* number of stations on the dial */
   --needle-pos: calc(50% / var(--n));
 }
 
@@ -62,6 +62,39 @@ button { font: inherit; color: inherit; }
 .hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
 .eyebrow { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* greeting: sits where the station count used to be; tap it to change your name */
+.greet {
+  appearance: none; -webkit-appearance: none; background: none; border: 0; margin: 0; padding: 4px 0;
+  min-width: 0; text-align: left; cursor: pointer; color: var(--muted);
+}
+.greet b { color: var(--ink); font-weight: 500; }
+.greet:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 3px; }
+
+/* first-run card asking for a name */
+.hello-card {
+  display: grid; gap: 10px; padding: 14px; border-radius: 14px;
+  background: var(--bg-2); border: 1px solid var(--line);
+}
+.hello-card .k { font-family: var(--f-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.hello-card label { font-family: var(--f-display); font-weight: 800; font-stretch: 100%; font-size: 20px; line-height: 1.1; letter-spacing: -.01em; }
+.hello-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.hello-row input {
+  font: inherit; font-size: 16px; /* 16px keeps iPhone from zooming in on focus */
+  padding: 11px 12px; border-radius: 10px; min-width: 0;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+.hello-row input::placeholder { color: #6B6E7B; }
+.hello-row input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+.hello-row .save {
+  appearance: none; -webkit-appearance: none; border: 0; cursor: pointer;
+  background: var(--ink); color: var(--bg); border-radius: 10px; padding: 0 18px;
+  font-size: 15px; font-weight: 600;
+}
+.hello-row .save:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.hello-skip {
+  justify-self: start; appearance: none; -webkit-appearance: none; background: none; border: 0; padding: 2px 0; cursor: pointer;
+  color: var(--muted); font-size: 13px; text-decoration: underline; text-underline-offset: 3px;
+}
 h1 {
   margin: 0;
   font-family: var(--f-display);
@@ -130,8 +163,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 
 /* ---------- Tiles ---------- */
 .crate { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-@media (max-width: 899px) { .crate .tile:first-child { grid-column: span 2; min-height: 168px; } }
-@media (min-width: 900px) { .crate { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; } .crate .tile { min-height: 236px; } .crate .tile:first-child { grid-column: span 3; min-height: 196px; } }
+@media (min-width: 900px) { .crate { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; } .crate .tile { min-height: 236px; } .crate .tile:first-child { grid-column: span 2; } }
 
 .tile {
   position: relative; display: flex; min-height: 200px;
@@ -236,6 +268,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="apacik"]   { --c:#5A2FB8; --t:#F1ECFB; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:110%; --oy:-10%; --gap:16px; }
 [data-id="batuta"]   { --c:#8FD3F4; --t:#08202C; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:-10%; --oy:20%;  --gap:10px; }
 [data-id="super45"]  { --c:#F1EEE6; --t:#1A1915; --ring:rgba(0,0,0,.09);       --pill:rgba(0,0,0,.09);       --ox:60%;  --oy:-15%; --gap:13px; }
+[data-id="radionica"]{ --c:#F7D046; --t:#1F1A05; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.12);       --ox:0%;   --oy:55%;  --gap:11px; }
 
 /* ---------- Player bar ---------- */
 .player {
@@ -322,10 +355,20 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 <div class="wrap">
   <header class="hero">
     <div class="topline">
-      <span class="eyebrow">13 radio indipendenti</span>
+      <button class="eyebrow greet" id="greet" type="button" aria-label="Change your name">Hello</button>
       <div class="onair" aria-hidden="true"><i></i>ON AIR</div>
     </div>
     <h1>Sintonia</h1>
+
+    <form class="hello-card" id="hello-card" autocomplete="on" hidden>
+      <span class="k">Welcome</span>
+      <label for="name-input">What’s your name?</label>
+      <div class="hello-row">
+        <input id="name-input" name="given-name" type="text" autocomplete="given-name" autocapitalize="words" enterkeyhint="done" maxlength="24" placeholder="Your first name">
+        <button class="save" type="submit">Save</button>
+      </div>
+      <button class="hello-skip" id="hello-skip" type="button">Not now</button>
+    </form>
 
     <div class="dial" aria-hidden="true">
       <div class="scale"></div>
@@ -344,6 +387,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span data-for="apacik" style="--dot:#7A52E0"><i></i>P11</span>
         <span data-for="batuta" style="--dot:#8FD3F4"><i></i>P12</span>
         <span data-for="super45" style="--dot:#F1EEE6"><i></i>P13</span>
+        <span data-for="radionica" style="--dot:#F7D046"><i></i>P14</span>
       </div>
     </div>
 
@@ -351,121 +395,130 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   </header>
 
   <ol class="crate" id="crate">
-    <li class="tile" data-id="nts1" data-city="Londra" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream">
+    <li class="tile" data-id="nts1" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta NTS 1">
+      <button class="tune" type="button" aria-label="Listen to NTS 1">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 1</span><span class="meta"><span>P1 · Londra</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 1</span><span class="meta"><span>P1 · London</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.nts.live/" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://www.nts.live/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="nts2" data-city="Londra" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream2">
+    <li class="tile" data-id="nts2" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream2">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta NTS 2">
+      <button class="tune" type="button" aria-label="Listen to NTS 2">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 2</span><span class="meta"><span>P2 · Londra</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 2</span><span class="meta"><span>P2 · London</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.nts.live/" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://www.nts.live/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="refuge" data-city="Berlino" data-tz="Europe/Berlin" data-src="https://streaming.radio.co/s3699c5e49/listen">
+    <li class="tile" data-id="refuge" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://streaming.radio.co/s3699c5e49/listen">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta Refuge Worldwide">
+      <button class="tune" type="button" aria-label="Listen to Refuge Worldwide">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Refuge Worldwide</span><span class="meta"><span>P3 · Berlino</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Refuge Worldwide</span><span class="meta"><span>P3 · Berlin</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://refugeworldwide.com/radio" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://refugeworldwide.com/radio" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="rinse" data-city="Londra" data-tz="Europe/London" data-src="https://admin.stream.rinse.fm/proxy/rinse_uk/stream">
+    <li class="tile" data-id="rinse" data-city="London" data-tz="Europe/London" data-src="https://admin.stream.rinse.fm/proxy/rinse_uk/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta Rinse FM">
+      <button class="tune" type="button" aria-label="Listen to Rinse FM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rinse FM</span><span class="meta"><span>P4 · Londra</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rinse FM</span><span class="meta"><span>P4 · London</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.rinse.fm/" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://www.rinse.fm/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="wwfm" data-city="Londra" data-tz="Europe/London" data-src="https://worldwide-fm.radiocult.fm/stream">
+    <li class="tile" data-id="wwfm" data-city="London" data-tz="Europe/London" data-src="https://worldwide-fm.radiocult.fm/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta Worldwide FM">
+      <button class="tune" type="button" aria-label="Listen to Worldwide FM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Worldwide FM</span><span class="meta"><span>P5 · Londra</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Worldwide FM</span><span class="meta"><span>P5 · London</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.worldwidefm.net/schedule" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://www.worldwidefm.net/schedule" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="kiosk" data-city="Bruxelles" data-tz="Europe/Brussels" data-src="https://kioskradiobxl.out.airtime.pro/kioskradiobxl_b">
+    <li class="tile" data-id="kiosk" data-city="Brussels" data-tz="Europe/Brussels" data-src="https://kioskradiobxl.out.airtime.pro/kioskradiobxl_b">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta Kiosk Radio">
+      <button class="tune" type="button" aria-label="Listen to Kiosk Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Kiosk Radio</span><span class="meta"><span>P6 · Bruxelles</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Kiosk Radio</span><span class="meta"><span>P6 · Brussels</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.kioskradio.com/schedule" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://www.kioskradio.com/schedule" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="raheem" data-city="Milano" data-tz="Europe/Rome" data-src="https://radioraheem.out.airtime.pro/radioraheem_a">
+    <li class="tile" data-id="raheem" data-city="Milan" data-tz="Europe/Rome" data-src="https://radioraheem.out.airtime.pro/radioraheem_a">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta Radio Raheem">
+      <button class="tune" type="button" aria-label="Listen to Radio Raheem">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Raheem</span><span class="meta"><span>P7 · Milano</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Raheem</span><span class="meta"><span>P7 · Milan</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.radioraheem.it/" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://www.radioraheem.it/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="cashmere" data-city="Berlino" data-tz="Europe/Berlin" data-src="https://cashmereradio.out.airtime.pro/cashmereradio_b">
+    <li class="tile" data-id="cashmere" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://cashmereradio.out.airtime.pro/cashmereradio_b">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta Cashmere Radio">
+      <button class="tune" type="button" aria-label="Listen to Cashmere Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Cashmere Radio</span><span class="meta"><span>P8 · Berlino</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Cashmere Radio</span><span class="meta"><span>P8 · Berlin</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://cashmereradio.com/" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://cashmereradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
     <li class="tile" data-id="noods" data-city="Bristol" data-tz="Europe/London" data-src="https://noods-radio.radiocult.fm/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta Noods Radio">
+      <button class="tune" type="button" aria-label="Listen to Noods Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Noods Radio</span><span class="meta"><span>P9 · Bristol</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Noods Radio</span><span class="meta"><span>P9 · Bristol</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.noodsradio.com/" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://www.noodsradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="alhara" data-city="Betlemme" data-tz="Asia/Hebron" data-src="https://stream.radioalhara.net/ra">
+    <li class="tile" data-id="alhara" data-city="Bethlehem" data-tz="Asia/Hebron" data-src="https://stream.radioalhara.net/ra">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta Radio alHara">
+      <button class="tune" type="button" aria-label="Listen to Radio alHara">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio alHara</span><span class="meta"><span>P10 · Betlemme</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio alHara</span><span class="meta"><span>P10 · Bethlehem</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://radioalhara.net/" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://radioalhara.net/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
     <li class="tile" data-id="apacik" data-city="Istanbul" data-tz="Europe/Istanbul" data-src="https://stream.34bit.net/ar.mp3">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta Apaçık Radyo">
+      <button class="tune" type="button" aria-label="Listen to Apaçık Radyo">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Apaçık Radyo</span><span class="meta"><span>P11 · Istanbul</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Apaçık Radyo</span><span class="meta"><span>P11 · Istanbul</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.apacikradyo.com.tr/" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://www.apacikradyo.com.tr/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
     <li class="tile" data-id="batuta" data-city="Rio de Janeiro" data-tz="America/Sao_Paulo" data-src="https://radioims.out.airtime.pro/radioims_a">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta Rádio Batuta">
+      <button class="tune" type="button" aria-label="Listen to Rádio Batuta">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rádio Batuta</span><span class="meta"><span>P12 · Rio</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rádio Batuta</span><span class="meta"><span>P12 · Rio</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://radiobatuta.com.br/" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://radiobatuta.com.br/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="super45" data-city="Santiago del Cile" data-tz="America/Santiago" data-src="https://s4.radio.co/s421105570/listen">
+    <li class="tile" data-id="super45" data-city="Santiago" data-tz="America/Santiago" data-src="https://s4.radio.co/s421105570/listen">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Ascolta Super45">
+      <button class="tune" type="button" aria-label="Listen to Super45">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">In onda</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Super45</span><span class="meta"><span>P13 · Santiago</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Super45</span><span class="meta"><span>P13 · Santiago</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.super45.fm/" target="_blank" rel="noopener">Palinsesto ↗</a>
+      <a class="sched" href="https://www.super45.fm/" target="_blank" rel="noopener">Schedule ↗</a>
+    </li>
+
+    <li class="tile" data-id="radionica" data-city="Bogotá" data-tz="America/Bogota" data-src="https://streaming.rtvc.gov.co/Radio_Radionica/Radionica.stream/playlist.m3u8">
+      <img class="art" alt="" hidden><span class="shade"></span>
+      <button class="tune" type="button" aria-label="Listen to Radiónica">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radiónica</span><span class="meta"><span>P14 · Bogotá</span><span class="clock"></span></span></span>
+      </button>
+      <a class="sched" href="https://www.radionica.rocks/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
   </ol>
 </div>
@@ -475,11 +528,11 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   <div class="player-inner">
     <div class="swatch" id="swatch"><img id="np-art" alt="" hidden><span class="eq"><i></i><i></i><i></i></span></div>
     <div class="np">
-      <div class="np-status"><span class="dot"></span><span id="np-status">Tocca una radio per ascoltarla</span></div>
+      <div class="np-status"><span class="dot"></span><span id="np-status">Tap a station to listen</span></div>
       <div class="np-name" id="np-name">Sintonia</div>
       <div class="np-show" id="np-show" hidden></div>
     </div>
-    <button class="pp" id="pp" type="button" aria-label="Riproduci" disabled>
+    <button class="pp" id="pp" type="button" aria-label="Play" disabled>
       <svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg>
       <svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg>
     </button>
@@ -513,7 +566,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   const hhmm = (ms, tz) => {
     if (!isFinite(ms)) return "";
     try {
-      fmtCache[tz] = fmtCache[tz] || new Intl.DateTimeFormat("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: tz });
+      fmtCache[tz] = fmtCache[tz] || new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: tz });
       return fmtCache[tz].format(new Date(ms));
     } catch (e) { return ""; }
   };
@@ -627,12 +680,12 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       const art = st.el.querySelector(".art");
       if (!info) { box.hidden = true; art.hidden = true; st.el.classList.remove("has-art"); return; }
       const k = box.querySelector(".now-k");
-      k.textContent = "In onda";
-      if (info.rerun) { const rr = document.createElement("span"); rr.className = "rr"; rr.textContent = "Replica"; k.appendChild(rr); }
+      k.textContent = "On now";
+      if (info.rerun) { const rr = document.createElement("span"); rr.className = "rr"; rr.textContent = "Rerun"; k.appendChild(rr); }
       box.querySelector(".now-t").textContent = info.title;
       const parts = [];
       if (info.sub) parts.push(info.sub);
-      if (isFinite(info.end)) parts.push("fino alle " + hhmm(info.end, st.tz));
+      if (isFinite(info.end)) parts.push("until " + hhmm(info.end, st.tz));
       const s = box.querySelector(".now-s");
       s.textContent = parts.join(" · ");
       s.hidden = !parts.length;
@@ -722,15 +775,15 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       }
     } else { npArt.hidden = true; npArt.removeAttribute("src"); swatch.classList.remove("has-art"); }
 
-    let text = "Tocca una radio per ascoltarla";
+    let text = "Tap a station to listen";
     if (st) {
-      if (state === "loading") text = "Sintonizzazione…";
-      else if (state === "live") text = "In diretta · " + st.city;
-      else if (state === "error") text = "Stream non raggiungibile, riprova";
-      else text = "In pausa · " + st.city;
+      if (state === "loading") text = "Tuning in…";
+      else if (state === "live") text = "Live from " + st.city;
+      else if (state === "error") text = "Can’t reach this station. Try again";
+      else text = "Paused · " + st.city;
     }
     npStatus.textContent = text;
-    pp.setAttribute("aria-label", (state === "live" || state === "loading") ? "Ferma" : "Riproduci");
+    pp.setAttribute("aria-label", (state === "live" || state === "loading") ? "Stop" : "Play");
     updateProgress();
     setMetadata();
 
@@ -760,7 +813,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
         title,
-        artist: info ? st.name + " · " + st.city : st.city + " · in diretta",
+        artist: info ? st.name + " · " + st.city : st.city + " · live",
         album: "Sintonia",
         artwork: art ? [{ src: art }] : [
           { src: "icon-512.png", sizes: "512x512", type: "image/png" },
@@ -849,10 +902,50 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     tiles.forEach((el) => fitText(el.querySelector(".name"), 16));
   }
 
+  /* ---------- greeting ---------- */
+  const NAME_KEY = "sintonia:name", ASKED_KEY = "sintonia:asked";
+  const greet = $("greet"), helloCard = $("hello-card"), nameInput = $("name-input");
+  const readKey = (k) => { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } };
+  const writeKey = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  // opened from the Home Screen icon rather than a browser tab
+  const fromHomeScreen = window.navigator.standalone === true ||
+    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+
+  function partOfDay(h) {
+    if (h >= 5 && h < 12) return "Good morning";
+    if (h >= 12 && h < 18) return "Good afternoon";
+    if (h >= 18) return "Good evening";
+    return "Hello";
+  }
+  function renderGreeting() {
+    const name = readKey(NAME_KEY);
+    greet.textContent = partOfDay(new Date().getHours()) + (name ? ", " : "");
+    if (name) { const b = document.createElement("b"); b.textContent = name; greet.appendChild(b); }
+  }
+  function openHello() {
+    nameInput.value = readKey(NAME_KEY);
+    helloCard.hidden = false;
+  }
+  function closeHello() {
+    helloCard.hidden = true;
+    writeKey(ASKED_KEY, "1");
+    nameInput.blur();
+    renderGreeting();
+  }
+  helloCard.addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const v = nameInput.value.replace(/\s+/g, " ").trim().slice(0, 24);
+    if (v) writeKey(NAME_KEY, v);
+    closeHello();
+  });
+  $("hello-skip").addEventListener("click", closeHello);
+  greet.addEventListener("click", () => { if (helloCard.hidden) openHello(); else closeHello(); });
+
   function tickClocks() {
     const now = Date.now();
     stations.forEach((st) => { st.el.querySelector(".clock").textContent = hhmm(now, st.tz); });
     updateProgress();
+    renderGreeting();
   }
 
   /* ---------- boot ---------- */
@@ -860,6 +953,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const saved = localStorage.getItem(KEY);
     if (saved && byId[saved]) current = saved;
   } catch (e) {}
+  if (fromHomeScreen && !readKey(NAME_KEY) && !readKey(ASKED_KEY)) openHello();
   setState(current ? "paused" : "idle");
   tickClocks();
   fitNames();

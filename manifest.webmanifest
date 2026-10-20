@@ -1,8 +1,8 @@
 {
   "name": "Sintonia",
   "short_name": "Sintonia",
-  "description": "Le mie radio indipendenti preferite in diretta.",
-  "lang": "it",
+  "description": "Independent radio from around the world, live.",
+  "lang": "en",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
