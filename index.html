@@ -512,10 +512,9 @@ html.sheet-on, html.sheet-on body { overflow: hidden; }
   font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
 }
 .notice-track i { font-style: normal; color: var(--live); padding: 0 .5em; }
-/* it always scrolls, as asked; with Reduce Motion on it just goes slower */
-.notice-track { animation: notice 75s linear infinite; }
+/* it always scrolls, as asked (Reduce Motion included), at about 47 px a second */
+.notice-track { animation: notice 32s linear infinite; }
 @keyframes notice { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-@media (prefers-reduced-motion: reduce) { .notice-track { animation-duration: 110s; } }
 
 /* ---------- Settings view ---------- */
 .set-card { display: grid; gap: 12px; padding: 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
