@@ -951,8 +951,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
 
   /* ---------- other listeners (Supabase Realtime presence, no database) ---------- */
-  // Filled in once the Supabase project exists. The key is the public "anon"/publishable key, safe in a web page.
-  const COMMUNITY = { url: "", key: "" };
+  // Public project URL and publishable key: both are meant to live in a web page (no database is used, only live presence).
+  const COMMUNITY = { url: "https://pmltyidirptltjndbbem.supabase.co", key: "sb_publishable_orrmTVOKXWuyY0euuJl7Dg_ZT5B7IRn" };
   const SHARING = !!(COMMUNITY.url && COMMUNITY.key);
   const SHARE_NOTE = SHARING
     ? "Other listeners see an anonymous dot near you (rounded to about 50 km), only while Sintonia is open."
