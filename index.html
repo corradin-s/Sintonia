@@ -53,7 +53,7 @@ window.SintoniaTheme = (function () {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: two views switched by a bottom tab bar, like an iPhone app.
-   Stations: on-air header, a tuning strip of cities ordered west to east, a live ticker and the station tiles.
+   Stations: on-air header, your pinned stations, then the stations live right now, then the rest.
    Map: a dot-matrix world map with the listener's position (red, blinking) and the signal arc to the station.
    A dock at the bottom holds the mini-player and the tabs. */
    One deliberate look: a dark night-listening ground under colour-coded stations. */
@@ -73,8 +73,6 @@ window.SintoniaTheme = (function () {
   --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", sans-serif;
   --f-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --needle: #F3EFE6;
-  --needle-pos: 50%;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -146,7 +144,7 @@ h1, .title {
   white-space: nowrap;
 }
 /* the logo: Sofia's drawing of two hands, whose fingers make the S */
-h1.logo { display: flex; align-items: flex-end; gap: .03em; }
+h1.logo { display: flex; align-items: flex-end; gap: .03em; font-size: clamp(30px, 9vw, 46px); }
 h1.logo .logo-mark { flex: none; height: 1.23em; width: auto; aspect-ratio: 933 / 770; margin-bottom: .02em; }
 .onair {
   flex: none;
@@ -159,17 +157,6 @@ h1.logo .logo-mark { flex: none; height: 1.23em; width: auto; aspect-ratio: 933 
 body[data-state="live"] .onair { color: var(--onair-ink); border-color: var(--live); background: var(--onair-bg); box-shadow: 0 0 22px -4px var(--live); }
 body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px var(--live); }
 
-/* ---------- Receiver: world map + geographic tuning strip ---------- */
-.receiver {
-  display: grid; grid-template-columns: minmax(0, 1fr);
-  border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); overflow: hidden;
-}
-.rx-head {
-  display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; min-width: 0;
-  padding: 10px 12px 0;
-  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
-}
-.rx-where { color: var(--ink); letter-spacing: .05em; min-width: 0; overflow-wrap: anywhere; }
 /* ---------- Map view ---------- */
 .view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; min-width: 0; }
 .world { display: grid; grid-template-columns: minmax(0, 1fr); border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); overflow: hidden; }
@@ -228,53 +215,51 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 
-.strip { position: relative; padding: 6px 0 10px; --cols: 12; }
-.regions, .cities { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); }
-.regions span {
-  grid-column: span var(--span); margin: 0 3px; padding-top: 5px; border-top: 1px solid var(--rule);
-  font-family: var(--f-mono); font-size: 8px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
-  text-align: center; white-space: nowrap; overflow: hidden;
+/* ---------- Your stations, live now, more ---------- */
+.sec { display: grid; gap: 10px; min-width: 0; }
+.sec[hidden] { display: none; }
+.sec-h {
+  margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; min-width: 0;
+  font-family: var(--f-mono); font-weight: 500; font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink);
 }
-.ticks {
-  position: relative; height: 14px; margin-top: 6px;
-  background: repeating-linear-gradient(90deg,
-    transparent 0, transparent calc(50% / var(--cols) - 1px),
-    var(--tick) calc(50% / var(--cols) - 1px), var(--tick) calc(50% / var(--cols) + 1px),
-    transparent calc(50% / var(--cols) + 1px), transparent calc(100% / var(--cols)));
+.sec-h small { font-size: 10px; font-weight: 400; letter-spacing: .08em; color: var(--muted); white-space: nowrap; }
+.live-i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--live); margin-right: 7px; box-shadow: 0 0 8px var(--live); vertical-align: 1px; }
+.favs {
+  display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity;
+  margin: 0 -16px; padding: 3px 16px 6px; scroll-padding: 0 16px;
 }
-.ticks::before {
-  content: ""; position: absolute; left: 0; right: 0; top: 4px; height: 6px;
-  background: repeating-linear-gradient(90deg, var(--tick-2) 0, var(--tick-2) 1px, transparent 1px, transparent calc(100% / (var(--cols) * 4)));
+.favs::-webkit-scrollbar { display: none; }
+.mini {
+  position: relative; flex: none; display: flex; width: 136px; height: 128px; border-radius: 16px;
+  overflow: hidden; isolation: isolate; background: var(--c); color: var(--t); scroll-snap-align: start;
 }
-.needle {
-  position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px;
-  left: var(--needle-pos); background: var(--needle); opacity: 0;
-  box-shadow: 0 0 12px 2px var(--needle); border-radius: 2px;
+.mini .tune { padding: 11px; border-radius: 16px; gap: 8px; }
+.mini .knob { width: 30px; height: 30px; }
+.mini .mt { display: grid; gap: 5px; min-width: 0; }
+.mini .nm {
+  font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: 22px; line-height: .88; letter-spacing: -.01em;
+  text-transform: uppercase; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.needle.on { opacity: 1; }
-.cities { margin-top: 7px; align-items: end; }
-.city { display: grid; justify-items: center; gap: 5px; min-width: 0; }
-.city .dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; width: 14px; }
-.city .dots i { display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--dot); }
-.city .dots i.on { box-shadow: 0 0 0 1.5px var(--bg-2), 0 0 0 3px var(--ink); }
-.city b { font-family: var(--f-mono); font-size: 9px; font-weight: 400; letter-spacing: .03em; color: var(--muted); }
-.city.on b { color: var(--ink); }
-
-/* live ticker */
-.ticker {
-  position: relative; overflow: hidden; height: 32px; min-width: 0;
-  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+.mini .nm.keepcase { text-transform: none; }
+.mini .mm { font-family: var(--f-mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; opacity: .82; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--c); }
+.mini-empty {
+  flex: 1; margin: 0; min-height: 64px; display: grid; place-items: center; padding: 12px 16px; text-align: center;
+  border: 1.5px dashed var(--line); border-radius: 16px; color: var(--muted); font-size: 13px;
 }
-.ticker-track { display: flex; width: max-content; height: 100%; align-items: center; }
-.tick {
-  appearance: none; -webkit-appearance: none; border: 0; background: none; margin: 0; cursor: pointer;
-  padding: 0 22px 0 0; display: flex; align-items: center; gap: 7px; white-space: nowrap;
-  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted);
+/* the star that pins a station to "Your stations" */
+.pin {
+  appearance: none; -webkit-appearance: none; position: absolute; right: 6px; bottom: 6px; z-index: 2;
+  width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--t);
+  display: grid; place-items: center; cursor: pointer; opacity: .7;
 }
-.tick b { color: var(--ink); font-weight: 500; }
-.tick i { width: 6px; height: 6px; border-radius: 50%; background: var(--dot); display: block; flex: none; }
+.pin svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
+.pin[aria-pressed="true"] { opacity: 1; }
+.pin[aria-pressed="true"] svg { fill: currentColor; }
+.mini .pin { top: 4px; bottom: auto; right: 4px; }
+.tile .meta { padding-right: 28px; }
+.pin:focus-visible { outline: 2px solid var(--t); outline-offset: -2px; }
 
 /* ---------- Tiles ---------- */
 .crate { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -364,10 +349,10 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 
 /* selected station */
 .tile.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--c), 0 18px 50px -18px var(--c); }
-.tile.on .knob { background: var(--t); color: var(--c); border-color: var(--t); }
-.tile.on.live .knob .i-play, .tile.on.loading .knob .i-play { display: none; }
-.tile.on.live .knob .eq { display: flex; }
-.tile.on.loading .knob .i-stop { display: block; }
+.tile.on .knob, .mini.on .knob { background: var(--t); color: var(--c); border-color: var(--t); }
+.on.live .knob .i-play, .on.loading .knob .i-play { display: none; }
+.on.live .knob .eq { display: flex; }
+.on.loading .knob .i-stop { display: block; }
 
 /* station colours (--dot is the brighter version used on the dark receiver) */
 .tile { --dot: var(--c); }
@@ -491,12 +476,10 @@ body[data-state="live"] .pp .i-play, body[data-state="loading"] .pp .i-play { di
 body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { display: block; }
 
 @media (prefers-reduced-motion: no-preference) {
-  .needle { transition: left .7s cubic-bezier(.2,.8,.2,1), background .4s, box-shadow .4s; }
   .tune { transition: transform .15s ease; }
   .tile:active .tune { transform: scale(.98); }
   .pp:active { transform: scale(.94); }
   .progress i { transition: width 1s linear; }
-  .ticker-track.run { animation: ticker var(--dur, 60s) linear infinite; }
   body[data-state="live"] .eq i { animation: bounce 1s ease-in-out infinite; }
   body[data-state="live"] .eq i:nth-child(2) { animation-delay: -.35s; }
   body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
@@ -515,10 +498,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   @keyframes bounce { 0%,100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
   @keyframes ripple { from { --ph: 0px; } to { --ph: var(--gap); } }
-  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ticker { overflow-x: auto; }
 }
 </style>
 </head>
@@ -544,21 +523,20 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <button class="hello-skip" id="hello-skip" type="button">Not now</button>
     </form>
 
-    <section class="receiver" aria-label="Where you are tuned">
-      <div class="rx-head" aria-live="polite">
-        <span id="rx-k">Pick a station</span>
-        <span class="rx-where" id="rx-where"></span>
-      </div>
-      <div class="strip" id="strip" aria-hidden="true">
-        <div class="regions" id="regions"></div>
-        <div class="ticks"><div class="needle" id="needle"></div></div>
-        <div class="cities" id="cities"></div>
-      </div>
-    </section>
-
-    <div class="ticker" id="ticker" hidden><div class="ticker-track" id="ticker-track"></div></div>
   </header>
 
+  <section class="sec" id="sec-fav" aria-labelledby="fav-h">
+    <h2 class="sec-h" id="fav-h"><span>Your stations</span></h2>
+    <div class="favs" id="favs"></div>
+  </section>
+
+  <section class="sec" id="sec-live" aria-labelledby="live-h" hidden>
+    <h2 class="sec-h"><span id="live-h"><i class="live-i"></i>Live now</span><small id="live-n"></small></h2>
+    <ol class="crate" id="crate-live"></ol>
+  </section>
+
+  <section class="sec" id="sec-more" aria-labelledby="more-h">
+    <h2 class="sec-h"><span id="more-h">All stations</span></h2>
   <ol class="crate" id="crate">
     <li class="tile" data-id="nts1" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
@@ -714,6 +692,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://fmsetagaya.com/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
   </ol>
+  </section>
   </main>
 
   <section class="view" id="view-map" aria-label="World map" hidden>
@@ -828,7 +807,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   const $ = (id) => document.getElementById(id);
   const audio = $("audio"), crate = $("crate"), swatch = $("swatch");
   const npName = $("np-name"), npStatus = $("np-status"), npShow = $("np-show"), npArt = $("np-art");
-  const pp = $("pp"), prog = $("prog"), ticker = $("ticker"), tickerTrack = $("ticker-track");
+  const pp = $("pp"), prog = $("prog");
   const tiles = Array.from(crate.querySelectorAll(".tile"));
 
   const stations = tiles.map((el, index) => {
@@ -855,45 +834,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   });
   cities.forEach((c, i) => { c.index = i; c.stations.forEach((st) => { st.col = i; }); });
 
-  (function drawReceiver() {
-    const strip = $("strip"), regions = $("regions"), cityRow = $("cities");
-    strip.style.setProperty("--cols", cities.length);
-    let prev = null, span = null;
-    cities.forEach((c) => {
-      if (c.region !== prev) {
-        span = document.createElement("span"); span.textContent = c.region; span.dataset.n = "0";
-        regions.appendChild(span); prev = c.region;
-      }
-      span.dataset.n = String(+span.dataset.n + 1);
-      span.style.setProperty("--span", span.dataset.n);
-
-      const col = document.createElement("div"); col.className = "city"; col.dataset.code = c.code;
-      const dots = document.createElement("span"); dots.className = "dots";
-      c.stations.forEach((st) => { const i = document.createElement("i"); i.style.setProperty("--dot", st.dot); i.dataset.id = st.id; dots.appendChild(i); });
-      const label = document.createElement("b"); label.textContent = c.code;
-      col.append(dots, label);
-      cityRow.appendChild(col);
-
-    });
-  })();
-
   const fmtCoord = (v, pos, neg, dp) => Math.abs(v).toFixed(dp == null ? 2 : dp) + "°" + (v >= 0 ? pos : neg);
-
-  function renderReceiver(st) {
-    const needle = $("needle");
-    Array.from($("cities").children).forEach((col) => col.classList.toggle("on", !!st && col.dataset.code === st.code));
-    $("cities").querySelectorAll(".dots i").forEach((i) => i.classList.toggle("on", !!st && i.dataset.id === st.id));
-    if (!st) {
-      needle.classList.remove("on");
-      $("rx-k").textContent = "Pick a station"; $("rx-where").textContent = "";
-    } else {
-      document.documentElement.style.setProperty("--needle-pos", ((st.col + 0.5) / cities.length * 100) + "%");
-      needle.classList.add("on");
-      $("rx-k").textContent = { loading: "Tuning in ·", live: "Live from", error: "Can’t reach" }[state] || "Last tuned ·";
-      $("rx-where").textContent = st.city + ", " + st.country;
-    }
-    renderMap();
-  }
 
   /* ---------- the listener on the map ---------- */
   const POS_KEY = "sintonia:pos";
@@ -1519,40 +1460,94 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         }
       } else { art.hidden = true; st.el.classList.remove("has-art"); }
     });
-    renderTicker();
+    arrange();
     renderPlayer();
     fitNames();
   }
 
-  let tickerSig = "";
-  function renderTicker() {
-    const items = stations.filter((st) => live[st.id]);
-    if (!items.length) { ticker.hidden = true; tickerSig = ""; return; }
-    const sig = items.map((st) => st.id + ":" + live[st.id].title).join("|");
-    if (sig === tickerSig) return; // unchanged: keep the scroll running smoothly
-    tickerSig = sig;
-    tickerTrack.classList.remove("run");
-    tickerTrack.textContent = "";
-    for (let copy = 0; copy < 2; copy++) {
-      items.forEach((st) => {
-        const b = document.createElement("button");
-        b.type = "button"; b.className = "tick"; b.style.setProperty("--dot", st.dot);
-        if (copy) b.setAttribute("aria-hidden", "true"), b.tabIndex = -1;
-        const dot = document.createElement("i");
-        const nm = document.createElement("b"); nm.textContent = st.name;
-        const tt = document.createElement("span"); tt.textContent = live[st.id].title;
-        b.append(dot, nm, tt);
-        b.addEventListener("click", () => start(st.id));
-        tickerTrack.appendChild(b);
-      });
+  /* ---------- your stations (pinned with the star), then who is live now, then the rest ---------- */
+  const FAV_KEY = "sintonia:favs";
+  let favs = [];
+  try { favs = JSON.parse(localStorage.getItem(FAV_KEY) || "[]").filter((id) => byId[id]); } catch (e) {}
+  const STAR = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2l2.4 5 5.5.7-4 3.8 1 5.4L10 14.5l-4.9 2.6 1-5.4-4-3.8 5.5-.7z"/></svg>';
+  function pinButton(st) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "pin"; b.dataset.pin = st.id; b.innerHTML = STAR;
+    return b;
+  }
+  function pinState(b, id) {
+    const on = favs.includes(id);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+    b.setAttribute("aria-label", (on ? "Unpin " : "Pin ") + byId[id].name);
+  }
+  stations.forEach((st) => st.el.appendChild(pinButton(st)));
+
+  function togglePin(id) {
+    if (!byId[id]) return;
+    favs = favs.includes(id) ? favs.filter((x) => x !== id) : favs.concat(id);
+    writeKey(FAV_KEY, JSON.stringify(favs));
+    renderFavs();
+    arrange();
+    renderPlayer();
+  }
+
+  function renderFavs() {
+    const box = $("favs");
+    box.textContent = "";
+    if (!favs.length) {
+      const p = document.createElement("p");
+      p.className = "mini-empty";
+      p.textContent = "Tap ☆ on a station to keep it here";
+      box.appendChild(p);
+      return;
     }
-    ticker.hidden = false;
-    requestAnimationFrame(() => {
-      const half = tickerTrack.scrollWidth / 2;
-      tickerTrack.style.setProperty("--dur", Math.max(20, half / 38) + "s");
-      tickerTrack.classList.add("run");
+    const now = Date.now();
+    favs.forEach((id) => {
+      const st = byId[id];
+      const m = document.createElement("div");
+      m.className = "mini"; m.dataset.id = id;
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "tune"; b.setAttribute("aria-label", "Listen to " + st.name);
+      const t = document.createElement("span"); t.className = "mt";
+      const nm = document.createElement("span");
+      nm.className = "nm" + (st.el.querySelector(".name").classList.contains("keepcase") ? " keepcase" : "");
+      nm.textContent = st.name;
+      const mm = document.createElement("span"); mm.className = "mm";
+      const ck = document.createElement("span"); ck.className = "clock"; ck.textContent = hhmm(now, st.tz);
+      mm.append(st.city + " · ", ck);
+      t.append(nm, mm);
+      b.append(st.el.querySelector(".knob").cloneNode(true), t);
+      const pin = pinButton(st);
+      pinState(pin, id);
+      m.append(b, pin);
+      box.appendChild(m);
     });
   }
+
+  const isLiveNow = (st) => { const i = live[st.id]; return !!(i && i.title && !i.rerun); };
+  let arrangeSig = "";
+  function arrange() {
+    const liveList = [], more = [], pinned = [];
+    stations.forEach((st) => {
+      pinState(st.el.querySelector(".pin"), st.id);
+      if (favs.includes(st.id)) pinned.push(st);
+      else (isLiveNow(st) ? liveList : more).push(st);
+      st.el.hidden = favs.includes(st.id);
+    });
+    const sig = liveList.map((st) => st.id).join() + "|" + favs.join();
+    if (sig !== arrangeSig) { // move tiles only when the grouping changes
+      arrangeSig = sig;
+      liveList.forEach((st) => $("crate-live").appendChild(st.el));
+      more.concat(pinned).forEach((st) => crate.appendChild(st.el));
+    }
+    $("sec-live").hidden = !liveList.length;
+    $("live-n").textContent = liveList.length === 1 ? "1 station" : liveList.length + " stations";
+    $("more-h").textContent = liveList.length ? "More stations" : "All stations";
+    $("sec-more").hidden = !more.length;
+    fitNames();
+  }
+  renderFavs();
+  arrange();
 
   /* ---------- playback ---------- */
   let current = null;
@@ -1569,11 +1564,16 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       el.classList.toggle("live", on && state === "live");
       el.classList.toggle("loading", on && state === "loading");
     });
-    renderReceiver(st);
+    renderMap();
+    document.querySelectorAll(".mini").forEach((m) => {
+      const on = !!st && m.dataset.id === st.id;
+      m.classList.toggle("on", on);
+      m.classList.toggle("live", on && state === "live");
+      m.classList.toggle("loading", on && state === "loading");
+    });
 
     const root = document.documentElement.style;
     if (st) {
-      root.setProperty("--needle", st.dot);
       swatch.style.setProperty("--pc", st.c);
       swatch.style.setProperty("--pt", st.t);
       prog.parentNode.style.setProperty("--pc", st.c);
@@ -1704,7 +1704,9 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     start(stations[(i + dir + stations.length) % stations.length].id);
   }
 
-  crate.addEventListener("click", (ev) => {
+  $("view-stations").addEventListener("click", (ev) => {
+    const pin = ev.target.closest && ev.target.closest(".pin");
+    if (pin) { togglePin(pin.dataset.pin); return; }
     const btn = ev.target.closest && ev.target.closest(".tune");
     if (!btn) return;
     const id = btn.parentNode.dataset.id;
@@ -1802,6 +1804,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   function tickClocks() {
     const now = Date.now();
     stations.forEach((st) => { st.el.querySelector(".clock").textContent = hhmm(now, st.tz); });
+    $("favs").querySelectorAll(".mini").forEach((m) => { m.querySelector(".clock").textContent = hhmm(now, byId[m.dataset.id].tz); });
     updateProgress();
     renderGreeting();
     if (view === "map") renderMap();
