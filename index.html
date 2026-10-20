@@ -170,20 +170,46 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 /* ---------- Map view ---------- */
 .view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; min-width: 0; }
 .world { display: grid; grid-template-columns: minmax(0, 1fr); border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); overflow: hidden; }
-.map-wrap { padding: 12px 10px 6px; }
-.map { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 144 / 54; overflow: visible; }
-.land { fill: none; stroke: var(--land); stroke-width: .66; stroke-linecap: round; }
+.map {
+  position: relative; width: 100%; aspect-ratio: 5 / 4; max-height: 64vh; min-height: 220px;
+  overflow: hidden; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent; border-bottom: 1px solid var(--line);
+}
+.map.grabbing { cursor: grabbing; }
+.map canvas, .map > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.map-ctl { position: absolute; top: 10px; right: 10px; display: grid; gap: 6px; }
+.map-ctl button {
+  appearance: none; -webkit-appearance: none; cursor: pointer; padding: 0;
+  width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--dock); border: 1px solid var(--line); color: var(--ink);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.map-ctl button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.map-ctl svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.map-ctl .dot { fill: currentColor; stroke: none; }
+#z-home .i-me, #z-home[data-to="me"] .i-world { display: none; }
+#z-home[data-to="me"] .i-me { display: block; }
+.m-under { fill: none; stroke: var(--ink); stroke-opacity: .16; stroke-width: 1; }
+.m-line { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: .01 5; }
+.m-st { fill: var(--bg-2); stroke: var(--muted); stroke-width: 1.4; }
+.m-st.on { stroke: var(--ink); }
+.m-code, .m-n {
+  font-family: var(--f-mono); font-size: 9px; font-weight: 500; letter-spacing: .08em; fill: var(--muted);
+  paint-order: stroke; stroke: var(--bg-2); stroke-width: 3px; stroke-linejoin: round;
+}
+.m-code.on, .m-n { fill: var(--ink); }
 
 .me { display: none; }
 .me.on { display: inline; }
 .me .core { fill: var(--live); }
-.me .ping { fill: none; stroke: var(--live); stroke-width: .5; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.me .ping { fill: none; stroke: var(--live); stroke-width: 1.2; opacity: 0; transform-box: fill-box; transform-origin: center; }
 .legend { display: grid; gap: 6px; padding: 4px 12px 12px; font-size: 13px; }
 .lg-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .lg-row i { flex: none; width: 9px; height: 9px; border-radius: 50%; box-sizing: border-box; }
 .lg-you { background: var(--live); }
 .lg-others { background: var(--ink); opacity: .85; }
-.others circle { fill: var(--ink); opacity: .85; }
+.lg-row .lg-st { border-radius: 2px; background: var(--bg-2); border: 1.5px solid var(--muted); width: 8px; height: 8px; margin: 0 .5px; }
+.m-others circle { fill: var(--ink); opacity: .85; }
 .lg-row span { min-width: 0; color: var(--muted); overflow-wrap: anywhere; }
 .lg-row b { color: var(--ink); font-weight: 600; }
 
@@ -477,7 +503,9 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   body[data-state="live"] .onair i { animation: pulse 2.4s ease-in-out infinite; }
   .me .core { animation: blink 1.4s ease-in-out infinite; }
   .me .ping { animation: ping 2.2s ease-out infinite; }
-  .others circle { animation: twinkle 3s ease-in-out infinite; }
+  .m-others circle { animation: twinkle 3s ease-in-out infinite; }
+  .m-line { animation: flow 1.2s linear infinite; }
+  @keyframes flow { from { stroke-dashoffset: 5.01; } to { stroke-dashoffset: 0; } }
   @keyframes twinkle { 0%,100% { opacity: .9; } 50% { opacity: .35; } }
   body[data-state="live"] .me .ping { animation-duration: 1.4s; }
   @keyframes ping { from { transform: scale(.6); opacity: .9; } to { transform: scale(3.2); opacity: 0; } }
@@ -701,16 +729,27 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </header>
 
     <div class="world">
-      <div class="map-wrap">
-        <svg class="map" viewBox="0 0 144 54" aria-hidden="true" focusable="false">
-          <path class="land" id="land" d=""/>
-          <g class="others" id="others"></g>
-          <g class="me" id="me"><circle class="ping" r="1.4"/><circle class="core" r="1.15"/></g>
+      <div class="map" id="map">
+        <canvas id="map-land" aria-hidden="true"></canvas>
+        <svg id="map-over" aria-hidden="true" focusable="false">
+          <g id="m-lines"></g>
+          <g id="m-stations"></g>
+          <g class="m-others" id="m-others"></g>
+          <g class="me" id="me"><circle class="ping" r="4"/><circle class="core" r="4"/></g>
         </svg>
+        <div class="map-ctl">
+          <button type="button" id="z-in" aria-label="Zoom in"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg></button>
+          <button type="button" id="z-out" aria-label="Zoom out"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10"/></svg></button>
+          <button type="button" id="z-home" aria-label="Show the whole world" data-to="world">
+            <svg class="i-world" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M2.5 8h11M8 2.5c-2.2 2.9-2.2 8.1 0 11M8 2.5c2.2 2.9 2.2 8.1 0 11"/></svg>
+            <svg class="i-me" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4"/><circle class="dot" cx="8" cy="8" r="1.4"/><path d="M8 1.5v2.5M8 12v2.5M1.5 8H4M12 8h2.5"/></svg>
+          </button>
+        </div>
       </div>
       <div class="legend" aria-live="polite">
         <div class="lg-row"><i class="lg-you"></i><span id="lg-you">You · location off</span></div>
         <div class="lg-row" id="lg-others-row" hidden><i class="lg-others"></i><span id="lg-others"></span></div>
+        <div class="lg-row"><i class="lg-st"></i><span>Stations. A line links each listener to what they’re playing.</span></div>
       </div>
     </div>
 
@@ -812,23 +851,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   });
   const byId = Object.fromEntries(stations.map((s) => [s.id, s]));
 
-  /* ---------- receiver: dot-matrix world map + tuning strip of cities, west to east ---------- */
-  // land on a 2.5° grid, 144 × 54 cells, 78°N to 57°S (Natural Earth 1:50m, packed as bits)
-  const LAND = "AAAB//+P//8AB8AA8Af8AYAAAAAD3f+Af/+AAAAHiv//YfgAgEAD/+/wP/8AABAGP/////8Bh////3/8P/4AA/9/////////9/////9+P+PAB///////////d/////7+HwHgH///////////A/////L+DgAAPv/////////+B/n//+D+AgACP/////////3AAeA///j/AAAHHv///////wPADgAf//7/wAAPH////////8OAAAAP////wAAP/////////8MAAAAH///+4AAD/////////8AAAAAD////YAAB/////////4AAAAAD///7AAAN//fv/////tAAAAAD///wAAAP3//3////+MAAAAAD///gAAAPEv/3////8YAAAAAB///AAAAP/N//////s4AAAAAB///AAAAP+Cf/////vwAAAAAAf/8AAAAP/v//////iAAAAAAAf/cAAAAf////////gAAAAAAAP4EAAAA////3////gAAAAAAAH4AAAAB/////P///gAAAAAAAB4/AAAB/////D//8gAAAAEAAB/j8AAB////+B+fwAAAAAAAAAfgAAAB///98B8PwgAAAAAAAAB4AAAB////4BwXwgAAAAAAAAAY4AAB////4AwXwwAAAAAAAAAf/AAA////4A4EgYAAAAAAAAAH/wAAf///wAIGDZAAAAAAAAAB/8AAPP//wAAPHAAAAAAAAAAD/8AAAD//gAAHf0AAAAAAAABH//AAAH/+AAADfnQAAAAAAAAH//4AAD/+AAADvt8QAAAAAAAH//8AAD/8AAABxQfoAAAAAAAD//8AAB/8AAAAeYfAAAAAAAAD//8AAB/+AAAAAxBAAAAAAAAB//4AAB/+QAAAALsAAAAAAAAB//4AAD//wAAAAf+AhAAAAAAAf/4AAD/5wAAAA/+ABAAAAAAAP/wAAB/xwAAAD//AwAAAAAAAf/wAAB/5gAAAH//gAAAAAAAAf+AAAA/xgAAAH//wAAAAAAAAf+AAAA/gAAAAH//wAAAAAAAAf8AAAAfgAAAAD//wAAAAAAAAf4AAAAfAAAAAD5/gAAAAAAAA/wAAAAAAAAAADA/gGAAAAAAA/gAAAAAAAAAAAAPAGAAAAAAA+AAAAAAAAAAAAADAOAAAAAAA+AAAAAAAAAAAAADAcAAAAAAB8AAAAAAAAAAAAAAAYAAAAAAB8AAAAAAAAEAAAAAAAAAAAAAA4gAAAAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAAA";
-  const MAP_TOP = 78, STEP = 2.5;
-  const mapXY = (lat, lon) => [(lon + 180) / STEP, (MAP_TOP - lat) / STEP];
-
-  (function drawLand() {
-    try {
-      const bin = atob(LAND);
-      let d = "";
-      for (let i = 0; i < 144 * 54; i++) {
-        if (bin.charCodeAt(i >> 3) & (128 >> (i & 7))) d += "M" + (i % 144 + 0.5) + " " + (Math.floor(i / 144) + 0.5) + "h.01";
-      }
-      $("land").setAttribute("d", d);
-    } catch (e) {}
-  })();
-
+  /* ---------- receiver: tuning strip of cities, west to east ---------- */
   // one column per city, ordered by longitude
   const cities = [];
   stations.slice().sort((a, b) => a.lon - b.lon).forEach((st) => {
@@ -915,7 +938,9 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       // keep it coarse: one decimal is about 10 km
       me = { lat: Math.round(pos.coords.latitude * 10) / 10, lon: Math.round(pos.coords.longitude * 10) / 10 };
       writeKey(POS_KEY, JSON.stringify(me));
-      locState = "ok"; renderLocate(); renderMap(); trackMe();
+      locState = "ok"; renderLocate();
+      if (!quiet) { if (W) flyTo(homeView(), 900); else viewReady = false; }
+      renderMap();
     }, (err) => {
       if (quiet && me) return;
       locState = err && err.code === 1 ? "denied" : "failed"; renderLocate();
@@ -958,46 +983,341 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         Object.keys(state).forEach((k) => {
           if (k === myKey) return;
           const p = (state[k] || [])[0];
-          if (p && isFinite(p.lat) && isFinite(p.lon)) others.push({ lat: +p.lat, lon: +p.lon });
+          if (p && isFinite(p.lat) && isFinite(p.lon)) others.push({ lat: +p.lat, lon: +p.lon, st: p.st && byId[p.st] ? p.st : "" });
         });
         renderOthers();
-      }).subscribe((status) => { if (status === "SUBSCRIBED") trackMe(); });
+      }).subscribe((status) => { if (status === "SUBSCRIBED") { sentSig = ""; trackMe(); } });
     }).catch(() => {});
   }
-  function trackMe() {
-    if (!channel) return;
-    if (me) channel.track({ lat: coarse(me.lat), lon: coarse(me.lon) }).catch(() => {});
+  let sentSig = "", trackTimer = 0;
+  function trackMe() { // where I am (coarse) and which station I'm playing, sent only when it changes
+    if (!channel || !me) return;
+    const payload = { lat: coarse(me.lat), lon: coarse(me.lon), st: current && (state === "live" || state === "loading") ? current : "" };
+    const sig = JSON.stringify(payload);
+    if (sig === sentSig) return;
+    clearTimeout(trackTimer);
+    trackTimer = setTimeout(() => { sentSig = sig; channel.track(payload).catch(() => { sentSig = ""; }); }, 600);
   }
   function renderOthers() {
-    const g = $("others");
-    while (g.firstChild) g.removeChild(g.firstChild);
-    others.forEach((o, i) => {
-      const [x, y] = mapXY(o.lat, o.lon);
-      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      c.setAttribute("cx", x.toFixed(2)); c.setAttribute("cy", Math.min(54, Math.max(0, y)).toFixed(2)); c.setAttribute("r", ".9");
-      c.style.animationDelay = (-(i * 0.7) % 3) + "s";
-      g.appendChild(c);
-    });
-    const row = $("lg-others-row");
-    row.hidden = !SHARING;
+    $("lg-others-row").hidden = !SHARING;
     $("lg-others").textContent = others.length === 0 ? "No one else is tuned in right now"
       : others.length === 1 ? "1 other listener right now" : others.length + " other listeners right now";
+    queueDraw();
   }
+
+  /* ---------- the map: dot-matrix land on Mercator; drag, pinch or tap twice to zoom; wraps round the world ---------- */
+  const TAU = Math.PI * 2, RAD = Math.PI / 180, LAND_Q = 10000;
+  const mercY = (lat) => -Math.log(Math.tan(Math.PI / 4 + Math.max(-80, Math.min(84, lat)) * RAD / 2));
+  const proj = (lat, lon) => [lon * RAD, mercY(lat)];
+  const Y_TOP = mercY(80), Y_BOT = mercY(-58);
+  const mapBox = $("map"), landCv = $("map-land"), over = $("map-over");
+  const cell = document.createElement("canvas"), cellCtx = cell.getContext("2d", { willReadFrequently: true });
+  const cityByCode = Object.fromEntries(cities.map((c) => [c.code, c]));
+  const cam = { x: 0, y: (Y_TOP + Y_BOT) / 2, k: 1 }; // centre on the Mercator plane, pixels per radian
+  let W = 0, H = 0, DPR = 1, viewReady = false, drawQueued = 0, flyAnim = 0;
+  let landPath = null, landAsked = false;
+
+  function loadLand() { // Natural Earth 1:50m land, simplified and packed as zigzag varints (land.bin)
+    if (landAsked) return;
+    landAsked = true;
+    fetch("land.bin").then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then((buf) => {
+      const b = new Uint8Array(buf);
+      let i = 0;
+      const uv = () => { let v = 0, m = 1, c; do { c = b[i++]; v += (c & 127) * m; m *= 128; } while (c & 128); return v; };
+      const sv = () => { const v = uv(); return v % 2 ? -(v + 1) / 2 : v / 2; };
+      const path = new Path2D();
+      let x = 0, y = 0;
+      for (let r = uv(); r > 0; r--) {
+        const n = uv();
+        for (let j = 0; j < n; j++) { x += sv(); y += sv(); if (j) path.lineTo(x, y); else path.moveTo(x, y); }
+        path.closePath();
+      }
+      landPath = path;
+      queueDraw();
+    }).catch(() => { landAsked = false; });
+  }
+
+  const kMin = () => W / TAU;            // the whole world across the card
+  const kMax = () => kMin() * 64;
+  function clampView() {
+    cam.k = Math.min(kMax(), Math.max(kMin(), cam.k));
+    cam.x = ((cam.x + Math.PI) % TAU + TAU) % TAU - Math.PI;
+    const half = H / 2 / cam.k;
+    cam.y = Y_BOT - Y_TOP <= 2 * half ? (Y_TOP + Y_BOT) / 2 : Math.min(Y_BOT - half, Math.max(Y_TOP + half, cam.y));
+  }
+  function homeView() { // 500 km all round the listener, or the whole world
+    if (me) {
+      const [x, y] = proj(me.lat, me.lon);
+      return { x, y, k: Math.min(W, H) / 2 / (500 / 6371 / Math.cos(me.lat * RAD)) };
+    }
+    return { x: 0, y: (Y_TOP + Y_BOT) / 2, k: kMin() };
+  }
+  function measure() {
+    const w = mapBox.clientWidth, h = mapBox.clientHeight;
+    if (!w || !h) return false;
+    if (w !== W || h !== H) {
+      const old = W;
+      W = w; H = h; DPR = Math.min(3, window.devicePixelRatio || 1);
+      landCv.width = Math.round(W * DPR); landCv.height = Math.round(H * DPR);
+      over.setAttribute("viewBox", "0 0 " + W + " " + H);
+      if (old && viewReady) cam.k *= W / old;
+    }
+    if (!viewReady) { Object.assign(cam, homeView()); viewReady = true; }
+    clampView();
+    return true;
+  }
+  function queueDraw() { if (!drawQueued) drawQueued = requestAnimationFrame(() => { drawQueued = 0; drawMap(); }); }
+  function drawMap() {
+    if ($("view-map").hidden || !measure()) return;
+    drawLand();
+    drawOver();
+  }
+  const sx = (x) => W / 2 + (x - cam.x) * cam.k;
+  const sy = (y) => H / 2 + (y - cam.y) * cam.k;
+  const near = (x) => x + TAU * Math.round((cam.x - x) / TAU); // the copy of x closest to the centre of the map
+
+  function drawLand() {
+    const ctx = landCv.getContext("2d");
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, landCv.width, landCv.height);
+    if (!landPath) return;
+    const k = cam.k, S = Math.min(5, 3 + 0.55 * Math.log2(k / kMin())); // dot spacing grows a little as you zoom in
+    const ox = W / 2 - cam.x * k, oy = H / 2 - cam.y * k;              // where the plane's origin sits on screen
+    const x0 = (ox % S + S) % S - S, y0 = (oy % S + S) % S - S;           // the grid travels with the map
+    const gw = Math.ceil((W - x0) / S) + 1, gh = Math.ceil((H - y0) / S) + 1;
+    if (cell.width !== gw || cell.height !== gh) { cell.width = gw; cell.height = gh; }
+    cellCtx.setTransform(1, 0, 0, 1, 0, 0);
+    cellCtx.clearRect(0, 0, gw, gh);
+    cellCtx.fillStyle = "#000";
+    const s = k / S / LAND_Q;
+    for (let m = -1; m <= 1; m++) { // one pixel per dot: how much of each cell is land
+      cellCtx.setTransform(s, 0, 0, s, (ox + m * TAU * k - x0) / S, (oy - y0) / S);
+      cellCtx.fill(landPath, "evenodd");
+    }
+    const a = cellCtx.getImageData(0, 0, gw, gh).data;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--land").trim() || "#343947";
+    ctx.beginPath();
+    const r = S * 0.31;
+    for (let j = 0; j < gh; j++) {
+      for (let i = 0; i < gw; i++) {
+        if (a[(j * gw + i) * 4 + 3] > 72) {
+          const cx = x0 + (i + 0.5) * S, cy = y0 + (j + 0.5) * S;
+          ctx.moveTo(cx + r, cy); ctx.arc(cx, cy, r, 0, TAU);
+        }
+      }
+    }
+    ctx.fill();
+  }
+
+  const arcs = new Map();
+  function arcPts(a, c) { // great circle from a listener to a station's city, on the plane, x kept continuous
+    const key = a.lat + "," + a.lon + ">" + c.code;
+    if (arcs.has(key)) return arcs.get(key);
+    const v = (p) => { const la = p.lat * RAD, lo = p.lon * RAD; return [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)]; };
+    const A = v(a), B = v(c);
+    const w = Math.acos(Math.max(-1, Math.min(1, A[0] * B[0] + A[1] * B[1] + A[2] * B[2])));
+    const pts = [];
+    if (w > 0.004) { // further than about 25 km
+      const n = Math.max(2, Math.ceil(w / 0.025)), sw = Math.sin(w);
+      let px = null;
+      for (let i = 0; i <= n; i++) {
+        const f = Math.sin((1 - i / n) * w) / sw, g = Math.sin(i / n * w) / sw;
+        const P = [f * A[0] + g * B[0], f * A[1] + g * B[1], f * A[2] + g * B[2]];
+        let [x, y] = proj(Math.asin(Math.max(-1, Math.min(1, P[2]))) / RAD, Math.atan2(P[1], P[0]) / RAD);
+        if (px !== null) x += TAU * Math.round((px - x) / TAU);
+        pts.push([x, y]); px = x;
+      }
+    }
+    if (arcs.size > 400) arcs.clear();
+    arcs.set(key, pts);
+    return pts;
+  }
+
+  const shown = { lines: "", st: "", others: "" };
+  function setG(id, html) { if (shown[id] !== html) { shown[id] = html; $(id === "st" ? "m-stations" : "m-" + id).innerHTML = html; } }
+  const f1 = (v) => v.toFixed(1);
+  const onScreen = (x, y, pad) => x > -pad && x < W + pad && y > -pad && y < H + pad;
+
+  function drawOver() {
+    const mySt = me && current && (state === "live" || state === "loading") ? current : "";
+
+    // lines: one per place and station, thicker when several people share it
+    const pairs = new Map();
+    const add = (p, id) => {
+      const key = p.lat + "," + p.lon + ">" + id;
+      const e = pairs.get(key);
+      if (e) e.n++; else pairs.set(key, { p, st: byId[id], n: 1 });
+    };
+    others.forEach((o) => { if (o.st) add(o, o.st); });
+    if (mySt) add(me, mySt);
+    const tally = {}; // city -> station -> listeners
+    let lines = "";
+    pairs.forEach((e) => {
+      const c = cityByCode[e.st.code];
+      (tally[c.code] = tally[c.code] || {})[e.st.id] = (tally[c.code][e.st.id] || 0) + e.n;
+      const pts = arcPts(e.p, c);
+      if (pts.length < 2) return;
+      const base = near(pts[0][0]) - pts[0][0];
+      for (let m = -1; m <= 1; m++) {
+        const off = base + m * TAU;
+        const xs = pts.map((q) => sx(q[0] + off));
+        if (Math.max(...xs) < -10 || Math.min(...xs) > W + 10) continue;
+        const d = "M" + pts.map((q, i) => f1(xs[i]) + " " + f1(sy(q[1]))).join("L");
+        lines += '<path class="m-under" d="' + d + '"/><path class="m-line" d="' + d + '" style="stroke:' + e.st.dot +
+          ";stroke-width:" + Math.min(3.6, 2 + (e.n - 1) * 0.5) + '"/>';
+      }
+    });
+    setG("lines", lines);
+
+    // other listeners, grouped when they sit on top of each other
+    const groups = [];
+    others.forEach((o) => {
+      const [x, y] = proj(o.lat, o.lon);
+      const q = { x: sx(near(x)), y: sy(y), n: 1 };
+      const g = groups.find((g) => Math.hypot(g.x - q.x, g.y - q.y) < 7);
+      if (g) g.n++; else groups.push(q);
+    });
+
+    // stations, one square per city; labels only where they fit
+    let marks = "", labels = "";
+    const boxes = groups.map((g) => ({ x0: g.x - 4, x1: g.x + (g.n > 1 ? 5 + String(g.n).length * 6.3 : 4), y0: g.y - (g.n > 1 ? 12 : 4), y1: g.y + 4 }));
+    if (me) { const [x, y] = proj(me.lat, me.lon), mx = sx(near(x)), my = sy(y); boxes.push({ x0: mx - 5, x1: mx + 5, y0: my - 5, y1: my + 5 }); }
+    const fits = (b) => b.x0 >= 2 && b.x1 <= W - 2 && b.y0 >= 2 && b.y1 <= H - 2 && !boxes.some((o) => b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0);
+    const placed = cities.map((c) => {
+      const [x, y] = proj(c.lat, c.lon);
+      const t = tally[c.code];
+      const top = t ? Object.keys(t).sort((p, q) => t[q] - t[p])[0] : null;
+      return { c, x: sx(near(x)), y: sy(y), top };
+    }).filter((p) => onScreen(p.x, p.y, 12));
+    placed.forEach((p) => {
+      marks += '<rect class="m-st' + (p.top ? " on" : "") + '" x="' + f1(p.x - 3.5) + '" y="' + f1(p.y - 3.5) + '" width="7" height="7" rx="1.5"' +
+        (p.top ? ' style="fill:' + byId[p.top].dot + '"' : "") + "/>";
+      boxes.push({ x0: p.x - 5, x1: p.x + 5, y0: p.y - 5, y1: p.y + 5 });
+    });
+    placed.sort((p, q) => (q.top ? 1 : 0) - (p.top ? 1 : 0)).forEach((p) => {
+      const w = p.c.code.length * 6.3;
+      for (const side of [1, -1]) {
+        const x = side > 0 ? p.x + 7 : p.x - 7 - w;
+        const b = { x0: x - 1, x1: x + w + 1, y0: p.y - 6, y1: p.y + 5 };
+        if (fits(b)) { boxes.push(b); labels += '<text class="m-code' + (p.top ? " on" : "") + '" x="' + f1(x) + '" y="' + f1(p.y + 3.2) + '">' + p.c.code + "</text>"; break; }
+      }
+    });
+    setG("st", marks + labels);
+
+    let dots = "";
+    groups.forEach((g, i) => {
+      if (!onScreen(g.x, g.y, 8)) return;
+      dots += '<circle cx="' + f1(g.x) + '" cy="' + f1(g.y) + '" r="3.2" style="animation-delay:' + (-(i * 0.7) % 3) + 's"/>';
+      if (g.n > 1) dots += '<text class="m-n" x="' + f1(g.x + 5) + '" y="' + f1(g.y - 4) + '">' + g.n + "</text>";
+    });
+    setG("others", dots);
+
+    // me
+    const meEl = $("me");
+    if (me) {
+      const [x, y] = proj(me.lat, me.lon);
+      meEl.setAttribute("transform", "translate(" + f1(sx(near(x))) + " " + f1(sy(y)) + ")");
+      meEl.classList.add("on");
+    } else meEl.classList.remove("on");
+
+    // the round button: back to me, or out to the world
+    const h = homeView(), atHome = !!me && Math.abs(Math.log(cam.k / h.k)) < 0.25 &&
+      Math.hypot((near(h.x) - cam.x) * cam.k, (h.y - cam.y) * cam.k) < 40;
+    const btn = $("z-home"), to = me && !atHome ? "me" : "world";
+    if (btn.dataset.to !== to) { btn.dataset.to = to; btn.setAttribute("aria-label", to === "me" ? "Back to where you are" : "Show the whole world"); }
+  }
+
+  function flyTo(t, ms) {
+    cancelAnimationFrame(flyAnim);
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) ms = 0;
+    const a = { x: cam.x, y: cam.y, k: cam.k }, tx = t.x + TAU * Math.round((a.x - t.x) / TAU), t0 = performance.now();
+    const k0 = Math.log(a.k), k1 = Math.log(Math.min(kMax(), Math.max(kMin(), t.k)));
+    const step = (now) => {
+      const p = ms ? Math.min(1, (now - t0) / ms) : 1, e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+      cam.x = a.x + (tx - a.x) * e; cam.y = a.y + (t.y - a.y) * e; cam.k = Math.exp(k0 + (k1 - k0) * e);
+      clampView(); drawMap();
+      if (p < 1) flyAnim = requestAnimationFrame(step);
+    };
+    flyAnim = requestAnimationFrame(step);
+  }
+  function zoomAt(c, f, ms) { // keep the point under c where it is
+    const k = Math.min(kMax(), Math.max(kMin(), cam.k * f));
+    const ax = cam.x + (c[0] - W / 2) / cam.k, ay = cam.y + (c[1] - H / 2) / cam.k;
+    const t = { x: ax - (c[0] - W / 2) / k, y: ay - (c[1] - H / 2) / k, k };
+    if (ms) flyTo(t, ms); else { Object.assign(cam, t); clampView(); queueDraw(); }
+  }
+
+  // touch: one finger drags, two fingers pinch, a quick double tap zooms in
+  const ptrs = new Map();
+  let g0 = null, tap = null, lastTap = null;
+  const local = (e) => { const r = mapBox.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  function startGesture() {
+    const p = [...ptrs.values()];
+    if (!p.length) { g0 = null; return; }
+    const q = p[1] || p[0];
+    g0 = { x: cam.x, y: cam.y, k: cam.k, c: [(p[0][0] + q[0]) / 2, (p[0][1] + q[1]) / 2], d: p[1] ? Math.hypot(p[0][0] - q[0], p[0][1] - q[1]) : 0 };
+  }
+  mapBox.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("button") || ptrs.size >= 2) return;
+    cancelAnimationFrame(flyAnim);
+    try { mapBox.setPointerCapture(e.pointerId); } catch (err) {}
+    ptrs.set(e.pointerId, local(e));
+    tap = ptrs.size === 1 ? { t: performance.now(), p: local(e) } : null;
+    startGesture();
+    mapBox.classList.add("grabbing");
+  });
+  mapBox.addEventListener("pointermove", (e) => {
+    if (!ptrs.has(e.pointerId) || !g0 || !W) return;
+    ptrs.set(e.pointerId, local(e));
+    const p = [...ptrs.values()];
+    const c = p[1] ? [(p[0][0] + p[1][0]) / 2, (p[0][1] + p[1][1]) / 2] : p[0];
+    if (tap && Math.hypot(c[0] - tap.p[0], c[1] - tap.p[1]) > 6) tap = null;
+    let k = g0.k;
+    if (p[1] && g0.d) k = g0.k * Math.hypot(p[0][0] - p[1][0], p[0][1] - p[1][1]) / g0.d;
+    k = Math.min(kMax(), Math.max(kMin(), k));
+    const ax = g0.x + (g0.c[0] - W / 2) / g0.k, ay = g0.y + (g0.c[1] - H / 2) / g0.k;
+    cam.k = k; cam.x = ax - (c[0] - W / 2) / k; cam.y = ay - (c[1] - H / 2) / k;
+    clampView(); queueDraw();
+  });
+  const endPtr = (e) => {
+    if (!ptrs.delete(e.pointerId)) return;
+    if (!ptrs.size) {
+      mapBox.classList.remove("grabbing");
+      const now = performance.now();
+      if (tap && e.type === "pointerup" && now - tap.t < 300) {
+        if (lastTap && now - lastTap.t < 350 && Math.hypot(tap.p[0] - lastTap.p[0], tap.p[1] - lastTap.p[1]) < 30) { zoomAt(tap.p, 2.5, 320); lastTap = null; }
+        else lastTap = tap;
+      }
+      tap = null;
+    }
+    startGesture();
+  };
+  mapBox.addEventListener("pointerup", endPtr);
+  mapBox.addEventListener("pointercancel", endPtr);
+  mapBox.addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(local(e), Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.002)), 0); }, { passive: false });
+  mapBox.addEventListener("gesturestart", (e) => e.preventDefault());
+  mapBox.addEventListener("dblclick", (e) => e.preventDefault());
+  $("z-in").addEventListener("click", () => zoomAt([W / 2, H / 2], 2.5, 300));
+  $("z-out").addEventListener("click", () => zoomAt([W / 2, H / 2], 1 / 2.5, 300));
+  $("z-home").addEventListener("click", (e) => {
+    const h = homeView();
+    flyTo(e.currentTarget.dataset.to === "me" ? h : { x: me ? h.x : 0, y: (Y_TOP + Y_BOT) / 2, k: kMin() }, 800);
+  });
+  if (window.ResizeObserver) new ResizeObserver(() => queueDraw()).observe(mapBox);
 
   function renderMap() {
     const st = current ? byId[current] : null;
-    const meEl = $("me");
     if (me) {
-      const [x, y] = mapXY(me.lat, me.lon);
-      meEl.setAttribute("transform", "translate(" + x.toFixed(2) + " " + Math.min(54, Math.max(0, y)).toFixed(2) + ")");
-      meEl.classList.add("on");
       const listening = st && (state === "live" || state === "loading") ? " · listening to " + st.name : "";
       $("lg-you").textContent = "You · " + fmtCoord(me.lat, "N", "S", 1) + " " + fmtCoord(me.lon, "E", "W", 1) + listening;
     } else {
-      meEl.classList.remove("on");
       $("lg-you").textContent = "You · location off";
     }
+    trackMe();
+    if (!$("view-map").hidden) { loadLand(); queueDraw(); }
   }
+
 
   /* ---------- views and tab bar ---------- */
   const views = { stations: $("view-stations"), map: $("view-map"), settings: $("view-settings") };
