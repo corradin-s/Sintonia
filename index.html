@@ -499,6 +499,30 @@ html.sheet-on, html.sheet-on body { overflow: hidden; }
 .sh-links a span { color: var(--muted); }
 .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); transform: translateX(-50%); z-index: 50; background: var(--ink); color: var(--bg); padding: 9px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 600; pointer-events: none; }
 
+/* ---------- Rights notice: a slow ticker under the logo ---------- */
+.notice {
+  position: relative; overflow: hidden; min-width: 0; padding: 7px 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.notice-track { display: flex; width: max-content; }
+.notice-track span {
+  flex: none; padding-right: .6em; white-space: nowrap;
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+.notice-track i { font-style: normal; color: var(--live); padding: 0 .5em; }
+@media (prefers-reduced-motion: no-preference) {
+  .notice-track { animation: notice 75s linear infinite; }
+  @keyframes notice { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .notice { -webkit-mask-image: none; mask-image: none; }
+  .notice-track { width: auto; }
+  .notice-track span { white-space: normal; }
+  .notice-track span + span { display: none; }
+}
+
 /* ---------- Settings view ---------- */
 .set-card { display: grid; gap: 12px; padding: 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
 .set-k { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
@@ -637,6 +661,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   <main class="view" id="view-stations">
   <header class="hero">
     <h1 class="logo">Sintonia</h1>
+
+    <div class="notice" role="note" aria-label="Rights notice"><div class="notice-track"><span>All broadcasts, shows, music and station names belong to their respective radio stations and rights holders <i>·</i> Sintonia plays their public streams and is not affiliated with any station <i>·</i> Support the stations you love <i>·</i> </span><span aria-hidden="true">All broadcasts, shows, music and station names belong to their respective radio stations and rights holders <i>·</i> Sintonia plays their public streams and is not affiliated with any station <i>·</i> Support the stations you love <i>·</i> </span></div></div>
 
     <form class="hello-card" id="hello-card" autocomplete="on" hidden>
       <span class="k">Welcome</span>
