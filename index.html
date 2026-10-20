@@ -128,32 +128,20 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
   font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
 }
 .rx-where { color: var(--ink); letter-spacing: .05em; min-width: 0; overflow-wrap: anywhere; }
-.rx-map {
-  margin-left: auto; appearance: none; -webkit-appearance: none; cursor: pointer;
-  border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 5px 10px;
-  font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
-}
-.rx-map:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-
 /* ---------- Map view ---------- */
 .view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; min-width: 0; }
 .world { display: grid; grid-template-columns: minmax(0, 1fr); border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); overflow: hidden; }
 .map-wrap { padding: 12px 10px 6px; }
 .map { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 144 / 54; overflow: visible; }
 .land { fill: none; stroke: #343947; stroke-width: .66; stroke-linecap: round; }
-.pin { fill: #8E92A1; }
-.arc { fill: none; stroke: var(--sd, var(--ink)); stroke-width: .42; stroke-dasharray: .9 1.1; stroke-linecap: round; }
-.stmark, .me { display: none; }
-.stmark.on, .me.on { display: inline; }
-.stmark .ring { fill: none; stroke: var(--sd, var(--ink)); stroke-width: .5; }
-.stmark .core { fill: var(--sd, var(--ink)); }
+.me { display: none; }
+.me.on { display: inline; }
 .me .core { fill: var(--live); }
 .me .ping { fill: none; stroke: var(--live); stroke-width: .5; opacity: 0; transform-box: fill-box; transform-origin: center; }
 .legend { display: grid; gap: 6px; padding: 4px 12px 12px; font-size: 13px; }
 .lg-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .lg-row i { flex: none; width: 9px; height: 9px; border-radius: 50%; box-sizing: border-box; }
 .lg-you { background: var(--live); }
-.lg-st { border: 2px solid var(--sd, var(--muted)); }
 .lg-row span { min-width: 0; color: var(--muted); overflow-wrap: anywhere; }
 .lg-row b { color: var(--ink); font-weight: 600; }
 
@@ -168,21 +156,6 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .btn.ghost { background: none; color: var(--muted); padding: 2px 0; font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
 .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-.near h3 { margin: 0 0 6px; font-family: var(--f-mono); font-size: 10.5px; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.near ol { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-.near li { border-bottom: 1px solid var(--line); }
-.row {
-  appearance: none; -webkit-appearance: none; background: none; border: 0; width: 100%; cursor: pointer; text-align: left; color: var(--ink);
-  display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 2px;
-}
-.row i { width: 10px; height: 10px; border-radius: 50%; background: var(--dot); }
-.row .nm { display: grid; min-width: 0; }
-.row .nm b { font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row .nm span { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row .km { font-family: var(--f-mono); font-size: 11px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
-.row.on i { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--ink); }
-.row.on .km { color: var(--ink); }
-.row:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 .strip { position: relative; padding: 6px 0 10px; --cols: 12; }
 .regions, .cities { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); }
@@ -234,8 +207,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 
 /* ---------- Tiles ---------- */
 .crate { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-@media (max-width: 899px) { .crate .tile:first-child { grid-column: span 2; min-height: 168px; } }
-@media (min-width: 900px) { .crate { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; } .crate .tile { min-height: 236px; } .crate .tile:first-child { grid-column: span 4; min-height: 190px; } }
+@media (min-width: 900px) { .crate { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; } .crate .tile { min-height: 236px; } .crate .tile:nth-child(-n+2) { grid-column: span 2; min-height: 190px; } }
 
 .tile {
   position: relative; display: flex; min-height: 200px;
@@ -344,6 +316,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="radionica"]{ --c:#F7D046; --t:#1F1A05; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.12);       --ox:0%;   --oy:55%;  --gap:11px; }
 [data-id="hanoi"]    { --c:#A6E3C8; --t:#0B2219; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:90%;  --oy:80%;  --gap:12px; }
 [data-id="shonan"]   { --c:#8A5A3B; --t:#FBEFE6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:70%;  --oy:120%; --gap:14px; --dot:#C08457; }
+[data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
 [data-id="bfm"]      { --c:#C2187A; --t:#FCE8F3; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:40%;  --oy:-25%; --gap:9px;  --dot:#E23C9C; }
 .name.keepcase { text-transform: none; }
 
@@ -439,8 +412,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   .me .core { animation: blink 1.4s ease-in-out infinite; }
   .me .ping { animation: ping 2.2s ease-out infinite; }
   body[data-state="live"] .me .ping { animation-duration: 1.4s; }
-  body[data-state="live"] .arc, body[data-state="loading"] .arc { animation: flow 1s linear infinite; }
-  @keyframes flow { to { stroke-dashoffset: -2; } }
   @keyframes ping { from { transform: scale(.6); opacity: .9; } to { transform: scale(3.2); opacity: 0; } }
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
   @keyframes bounce { 0%,100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
@@ -479,7 +450,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <div class="rx-head" aria-live="polite">
         <span id="rx-k">Pick a station</span>
         <span class="rx-where" id="rx-where"></span>
-        <button class="rx-map" id="rx-map" type="button">Map →</button>
       </div>
       <div class="strip" id="strip" aria-hidden="true">
         <div class="regions" id="regions"></div>
@@ -644,6 +614,15 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       </button>
       <a class="sched" href="https://www.beachfm.co.jp/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
+
+    <li class="tile" data-id="setagaya" data-country="Japan" data-code="TYO" data-lat="35.65" data-lon="139.65" data-region="Asia–Pac" data-city="Tokyo" data-tz="Asia/Tokyo" data-src="https://fmsetagaya834.out.airtime.pro/fmsetagaya834_a">
+      <img class="art" alt="" hidden><span class="shade"></span>
+      <button class="tune" type="button" aria-label="Listen to FM Setagaya">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">FM Setagaya</span><span class="meta"><span>P18 · Tokyo</span><span class="clock"></span></span></span>
+      </button>
+      <a class="sched" href="https://fmsetagaya.com/" target="_blank" rel="noopener">Schedule ↗</a>
+    </li>
   </ol>
   </main>
 
@@ -657,28 +636,20 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <div class="map-wrap">
         <svg class="map" viewBox="0 0 144 54" aria-hidden="true" focusable="false">
           <path class="land" id="land" d=""/>
-          <g id="pins"></g>
-          <path class="arc" id="arc" d=""/>
-          <g class="stmark" id="stmark"><circle class="ring" r="1.7"/><circle class="core" r=".75"/></g>
           <g class="me" id="me"><circle class="ping" r="1.4"/><circle class="core" r="1.15"/></g>
         </svg>
       </div>
       <div class="legend" aria-live="polite">
         <div class="lg-row"><i class="lg-you"></i><span id="lg-you">You · location off</span></div>
-        <div class="lg-row"><i class="lg-st" id="lg-st-dot"></i><span id="lg-st">No station yet</span></div>
       </div>
     </div>
 
     <div class="locate" id="locate">
       <strong id="loc-title">See yourself on the map</strong>
-      <p id="loc-text">Sintonia puts a red dot where you are and draws the signal from the station to you. Your position stays on this phone.</p>
+      <p id="loc-text">Sintonia puts a red dot where you are. Your position stays on this phone.</p>
       <button class="btn" id="loc-btn" type="button">Use my location</button>
     </div>
 
-    <section class="near" aria-labelledby="near-h">
-      <h3 id="near-h">Stations, west to east</h3>
-      <ol id="near-list"></ol>
-    </section>
   </section>
 </div>
 
@@ -764,7 +735,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   cities.forEach((c, i) => { c.index = i; c.stations.forEach((st) => { st.col = i; }); });
 
   (function drawReceiver() {
-    const strip = $("strip"), regions = $("regions"), cityRow = $("cities"), pins = $("pins");
+    const strip = $("strip"), regions = $("regions"), cityRow = $("cities");
     strip.style.setProperty("--cols", cities.length);
     let prev = null, span = null;
     cities.forEach((c) => {
@@ -782,10 +753,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       col.append(dots, label);
       cityRow.appendChild(col);
 
-      const [x, y] = mapXY(c.lat, c.lon);
-      const pin = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      pin.setAttribute("class", "pin"); pin.setAttribute("cx", x.toFixed(2)); pin.setAttribute("cy", y.toFixed(2)); pin.setAttribute("r", ".75");
-      pins.appendChild(pin);
     });
   })();
 
@@ -813,33 +780,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   try { const v = JSON.parse(localStorage.getItem(POS_KEY) || "null"); if (v && isFinite(v.lat) && isFinite(v.lon)) me = v; } catch (e) {}
   let locState = me ? "ok" : "none"; // none | asking | ok | denied | failed
 
-  const toRad = Math.PI / 180;
-  function kmBetween(a, b) {
-    const dLat = (b.lat - a.lat) * toRad, dLon = (b.lon - a.lon) * toRad;
-    const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * toRad) * Math.cos(b.lat * toRad) * Math.sin(dLon / 2) ** 2;
-    return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
-  }
-  const fmtKm = (km) => (km < 10 ? "<10" : Math.round(km).toLocaleString("en-GB")) + " km";
-
-  // great-circle route from a to b, projected; split where it wraps around the map edge
-  function arcPath(a, b) {
-    const f1 = a.lat * toRad, l1 = a.lon * toRad, f2 = b.lat * toRad, l2 = b.lon * toRad;
-    const d = kmBetween(a, b) / 6371;
-    if (d < 1e-4) return "";
-    let out = "", px = null;
-    for (let i = 0; i <= 72; i++) {
-      const f = i / 72, A = Math.sin((1 - f) * d) / Math.sin(d), B = Math.sin(f * d) / Math.sin(d);
-      const x = A * Math.cos(f1) * Math.cos(l1) + B * Math.cos(f2) * Math.cos(l2);
-      const y = A * Math.cos(f1) * Math.sin(l1) + B * Math.cos(f2) * Math.sin(l2);
-      const z = A * Math.sin(f1) + B * Math.sin(f2);
-      const lat = Math.atan2(z, Math.sqrt(x * x + y * y)) / toRad, lon = Math.atan2(y, x) / toRad;
-      const [mx, my] = mapXY(lat, lon);
-      out += (px === null || Math.abs(mx - px) > 72 ? "M" : "L") + mx.toFixed(2) + " " + Math.min(54, Math.max(0, my)).toFixed(2);
-      px = mx;
-    }
-    return out;
-  }
-
   function renderLocate() {
     const t = $("loc-title"), p = $("loc-text"), b = $("loc-btn");
     b.disabled = false; b.className = "btn";
@@ -860,7 +800,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       b.textContent = "Try again"; return;
     }
     t.textContent = "See yourself on the map";
-    p.textContent = "Sintonia puts a red dot where you are and draws the signal from the station to you. Your position stays on this phone.";
+    p.textContent = "Sintonia puts a red dot where you are. Your position stays on this phone.";
     b.textContent = "Use my location";
   }
 
@@ -871,7 +811,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       // keep it coarse: one decimal is about 10 km
       me = { lat: Math.round(pos.coords.latitude * 10) / 10, lon: Math.round(pos.coords.longitude * 10) / 10 };
       writeKey(POS_KEY, JSON.stringify(me));
-      locState = "ok"; renderLocate(); renderMap(true);
+      locState = "ok"; renderLocate(); renderMap();
     }, (err) => {
       if (quiet && me) return;
       locState = err && err.code === 1 ? "denied" : "failed"; renderLocate();
@@ -882,62 +822,19 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     navigator.permissions.query({ name: "geolocation" }).then((p) => { if (p.state === "granted") locate(true); }).catch(() => {});
   }
 
-  // list of stations, nearest first when we know where you are
-  const nearList = $("near-list");
-  const rows = {};
-  stations.forEach((st) => {
-    const li = document.createElement("li");
-    const b = document.createElement("button"); b.type = "button"; b.className = "row";
-    const dot = document.createElement("i"); dot.style.setProperty("--dot", st.dot);
-    const nm = document.createElement("span"); nm.className = "nm";
-    const n1 = document.createElement("b"); n1.textContent = st.name;
-    const n2 = document.createElement("span"); n2.textContent = st.city + ", " + st.country;
-    nm.append(n1, n2);
-    const km = document.createElement("span"); km.className = "km";
-    b.append(dot, nm, km);
-    b.addEventListener("click", () => { if (st.id === current && (state === "live" || state === "loading")) stop(); else start(st.id); });
-    li.appendChild(b);
-    rows[st.id] = { li, b, km };
-  });
-  let listOrder = "";
-
-  function renderMap(force) {
+  function renderMap() {
     const st = current ? byId[current] : null;
-    const mark = $("stmark"), meEl = $("me"), arc = $("arc");
-    if (st) {
-      const [x, y] = mapXY(st.lat, st.lon);
-      mark.setAttribute("transform", "translate(" + x.toFixed(2) + " " + y.toFixed(2) + ")");
-      mark.style.setProperty("--sd", st.dot); arc.style.setProperty("--sd", st.dot); $("lg-st-dot").style.setProperty("--sd", st.dot);
-      mark.classList.add("on");
-    } else mark.classList.remove("on");
+    const meEl = $("me");
     if (me) {
       const [x, y] = mapXY(me.lat, me.lon);
       meEl.setAttribute("transform", "translate(" + x.toFixed(2) + " " + Math.min(54, Math.max(0, y)).toFixed(2) + ")");
       meEl.classList.add("on");
-      $("lg-you").textContent = "You · " + fmtCoord(me.lat, "N", "S", 1) + " " + fmtCoord(me.lon, "E", "W", 1);
+      const listening = st && (state === "live" || state === "loading") ? " · listening to " + st.name : "";
+      $("lg-you").textContent = "You · " + fmtCoord(me.lat, "N", "S", 1) + " " + fmtCoord(me.lon, "E", "W", 1) + listening;
     } else {
       meEl.classList.remove("on");
       $("lg-you").textContent = "You · location off";
     }
-    arc.setAttribute("d", st && me ? arcPath(st, me) : "");
-
-    const lg = $("lg-st"); lg.textContent = "";
-    if (st) {
-      const b = document.createElement("b"); b.textContent = st.city + ", " + st.country;
-      lg.append(b, " · " + st.name + (me ? " · " + fmtKm(kmBetween(me, st)) + " away" : ""));
-    } else lg.textContent = "No station yet";
-
-    // list
-    const order = me ? stations.slice().sort((a, b) => kmBetween(me, a) - kmBetween(me, b)) : stations.slice().sort((a, b) => a.lon - b.lon);
-    const sig = order.map((x) => x.id).join(",");
-    if (force || sig !== listOrder) { listOrder = sig; order.forEach((x) => nearList.appendChild(rows[x.id].li)); }
-    $("near-h").textContent = me ? "Stations nearest to you" : "Stations, west to east";
-    const now = Date.now();
-    stations.forEach((x) => {
-      const r = rows[x.id];
-      r.b.classList.toggle("on", x.id === current);
-      r.km.textContent = me ? fmtKm(kmBetween(me, x)) : hhmm(now, x.tz);
-    });
   }
 
   /* ---------- views and tab bar ---------- */
@@ -961,10 +858,9 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
     if (t.dataset.view === view) window.scrollTo({ top: 0, behavior: "smooth" }); else go(t.dataset.view);
   }));
-  $("rx-map").addEventListener("click", () => go("map"));
   $("loc-btn").addEventListener("click", () => locate(false));
   window.addEventListener("hashchange", () => showView(location.hash === "#map" ? "map" : "stations"));
-  $("map-sub").textContent = stations.length + " stations · " + cities.length + " cities";
+  $("map-sub").textContent = "Listeners around the world";
 
   /* ---------- time helpers ---------- */
   const fmtCache = {};
@@ -1056,7 +952,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     { url: "https://cashmereradio.airtime.pro/api/live-info-v2", parse: (j) => ({ cashmere: fromAirtime(j) }) },
     { url: "https://radioims.airtime.pro/api/live-info-v2", parse: (j) => ({ batuta: fromAirtime(j) }) },
     { url: "https://public.radio.co/stations/s421105570/status", parse: (j) => ({ super45: fromRadioCo(j, "track") }) },
-    { url: "https://shonanbeachfm.airtime.pro/api/live-info-v2", parse: (j) => ({ shonan: fromAirtime(j) }) }
+    { url: "https://shonanbeachfm.airtime.pro/api/live-info-v2", parse: (j) => ({ shonan: fromAirtime(j) }) },
+    { url: "https://fmsetagaya834.airtime.pro/api/live-info-v2", parse: (j) => ({ setagaya: fromAirtime(j) }) }
   ];
 
   function getJSON(url) {
