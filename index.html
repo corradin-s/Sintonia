@@ -12,9 +12,45 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<script>
+/* Theme and background, applied before the page paints. One palette, used by the Settings section too. */
+window.SintoniaTheme = (function () {
+  var BG = {
+    graphite: { name: "Graphite", dark: ["#0C0D11", "#15171E", "#2B2E39"], light: ["#F1F2F4", "#FFFFFF", "#D9DCE2"] },
+    navy:     { name: "Navy",     dark: ["#0A0F1E", "#121A2E", "#24304A"], light: ["#E9EFF8", "#F9FBFE", "#CBD6E6"] },
+    plum:     { name: "Plum",     dark: ["#130C16", "#1D1422", "#352840"], light: ["#F3ECF3", "#FCF8FC", "#E0D1DF"] },
+    pine:     { name: "Pine",     dark: ["#0A1311", "#111D1A", "#22352F"], light: ["#E8F1EC", "#F8FBF9", "#CDE0D6"] },
+    cocoa:    { name: "Cocoa",    dark: ["#15100D", "#1F1814", "#382C24"], light: ["#F3EDE6", "#FCF9F5", "#E2D5C8"] }
+  };
+  var INK = {
+    dark:  { ink: "#F3EFE6", muted: "#9B9BA8", live: "#FF4D3F", tick: "#4A4E5C", "tick-2": "#2A2D38", rule: "#3A3E4B", land: "#343947",
+             off: "#5B5E6B", "off-dot": "#3A3D49", "onair-bg": "#3A1210", "onair-ink": "#FFE9E6", ph: "#6B6E7B" },
+    light: { ink: "#15171C", muted: "#5E6371", live: "#E5352B", tick: "#9EA3AE", "tick-2": "#D3D6DC", rule: "#C3C7CF", land: "#C5CAD3",
+             off: "#8A8F9C", "off-dot": "#C3C7CF", "onair-bg": "#FFE3E0", "onair-ink": "#B3261E", ph: "#9EA3AE" }
+  };
+  function get(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } }
+  function mode(pref) { return pref === "auto" ? (window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : (pref === "light" ? "light" : "dark"); }
+  function rgba(h, a) { var n = parseInt(h.slice(1), 16); return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")"; }
+  function apply() {
+    var pref = get("sintonia:theme", "dark"), bg = get("sintonia:bg", "graphite");
+    if (!BG[bg]) bg = "graphite";
+    var m = mode(pref), c = BG[bg][m], ink = INK[m], root = document.documentElement, st = root.style;
+    st.setProperty("--bg", c[0]); st.setProperty("--bg-2", c[1]); st.setProperty("--line", c[2]);
+    st.setProperty("--dock", rgba(c[0], m === "light" ? 0.9 : 0.88));
+    for (var k in ink) st.setProperty("--" + k, ink[k]);
+    st.colorScheme = m; root.setAttribute("data-theme", m);
+    var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", c[0]);
+    // the iPhone status bar only reads this when the app opens
+    var sb = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]'); if (sb) sb.setAttribute("content", m === "light" ? "default" : "black-translucent");
+    return { pref: pref, bg: bg, mode: m };
+  }
+  apply();
+  return { BG: BG, apply: apply };
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Gloria+Hallelujah&display=swap">
 <style>
 /* Layout: two views switched by a bottom tab bar, like an iPhone app.
    Stations: on-air header, a tuning strip of cities ordered west to east, a live ticker and the station tiles.
@@ -31,6 +67,9 @@
   --muted: #9B9BA8;
   --line: #2B2E39;
   --live: #FF4D3F;
+  --tick: #4A4E5C; --tick-2: #2A2D38; --rule: #3A3E4B; --land: #343947;
+  --off: #5B5E6B; --off-dot: #3A3D49; --onair-bg: #3A1210; --onair-ink: #FFE9E6; --ph: #6B6E7B;
+  --dock: rgba(12, 13, 17, .88);
   --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", sans-serif;
   --f-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -84,7 +123,7 @@ button { font: inherit; color: inherit; }
   padding: 11px 12px; border-radius: 10px; min-width: 0;
   border: 1px solid var(--line); background: var(--bg); color: var(--ink);
 }
-.hello-row input::placeholder { color: #6B6E7B; }
+.hello-row input::placeholder { color: var(--ph); }
 .hello-row input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
 .hello-row .save {
   appearance: none; -webkit-appearance: none; border: 0; cursor: pointer;
@@ -110,11 +149,11 @@ h1, .title {
   flex: none;
   font-family: var(--f-mono); font-size: 10px; font-weight: 500; letter-spacing: .16em;
   padding: 5px 8px; border-radius: 5px;
-  border: 1.5px solid var(--line); color: #5B5E6B; background: var(--bg-2);
+  border: 1.5px solid var(--line); color: var(--off); background: var(--bg-2);
   display: flex; align-items: center; gap: 6px;
 }
-.onair i { width: 7px; height: 7px; border-radius: 50%; background: #3A3D49; display: block; }
-body[data-state="live"] .onair { color: #FFE9E6; border-color: var(--live); background: #3A1210; box-shadow: 0 0 22px -4px var(--live); }
+.onair i { width: 7px; height: 7px; border-radius: 50%; background: var(--off-dot); display: block; }
+body[data-state="live"] .onair { color: var(--onair-ink); border-color: var(--live); background: var(--onair-bg); box-shadow: 0 0 22px -4px var(--live); }
 body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px var(--live); }
 
 /* ---------- Receiver: world map + geographic tuning strip ---------- */
@@ -133,7 +172,23 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .world { display: grid; grid-template-columns: minmax(0, 1fr); border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); overflow: hidden; }
 .map-wrap { padding: 12px 10px 6px; }
 .map { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 144 / 54; overflow: visible; }
-.land { fill: none; stroke: #343947; stroke-width: .66; stroke-linecap: round; }
+.land { fill: none; stroke: var(--land); stroke-width: .66; stroke-linecap: round; }
+/* the logo: a child's handwriting in white wax crayon */
+h1.logo {
+  font-family: "Gloria Hallelujah", "Chalkboard SE", "Comic Sans MS", cursive;
+  font-weight: 400; font-stretch: normal; letter-spacing: 0;
+  font-size: clamp(46px, 13.5vw, 80px); line-height: 1.12; padding-bottom: 2px;
+}
+h1.logo span { display: inline-block; filter: url(#crayon); }
+h1.logo span:nth-child(1) { transform: rotate(-6deg); }
+h1.logo span:nth-child(2) { transform: rotate(4deg) translateY(.05em); }
+h1.logo span:nth-child(3) { transform: rotate(-3deg); }
+h1.logo span:nth-child(4) { transform: rotate(5deg) translateY(-.03em); }
+h1.logo span:nth-child(5) { transform: rotate(-4deg) translateY(.03em); }
+h1.logo span:nth-child(6) { transform: rotate(3deg); }
+h1.logo span:nth-child(7) { transform: rotate(-5deg) translateY(-.02em); }
+h1.logo span:nth-child(8) { transform: rotate(4deg) translateY(.02em); }
+
 .me { display: none; }
 .me.on { display: inline; }
 .me .core { fill: var(--live); }
@@ -162,7 +217,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .strip { position: relative; padding: 6px 0 10px; --cols: 12; }
 .regions, .cities { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); }
 .regions span {
-  grid-column: span var(--span); margin: 0 3px; padding-top: 5px; border-top: 1px solid #3A3E4B;
+  grid-column: span var(--span); margin: 0 3px; padding-top: 5px; border-top: 1px solid var(--rule);
   font-family: var(--f-mono); font-size: 8px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
   text-align: center; white-space: nowrap; overflow: hidden;
 }
@@ -170,12 +225,12 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
   position: relative; height: 14px; margin-top: 6px;
   background: repeating-linear-gradient(90deg,
     transparent 0, transparent calc(50% / var(--cols) - 1px),
-    #4A4E5C calc(50% / var(--cols) - 1px), #4A4E5C calc(50% / var(--cols) + 1px),
+    var(--tick) calc(50% / var(--cols) - 1px), var(--tick) calc(50% / var(--cols) + 1px),
     transparent calc(50% / var(--cols) + 1px), transparent calc(100% / var(--cols)));
 }
 .ticks::before {
   content: ""; position: absolute; left: 0; right: 0; top: 4px; height: 6px;
-  background: repeating-linear-gradient(90deg, #2A2D38 0, #2A2D38 1px, transparent 1px, transparent calc(100% / (var(--cols) * 4)));
+  background: repeating-linear-gradient(90deg, var(--tick-2) 0, var(--tick-2) 1px, transparent 1px, transparent calc(100% / (var(--cols) * 4)));
 }
 .needle {
   position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px;
@@ -322,10 +377,34 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="bfm"]      { --c:#C2187A; --t:#FCE8F3; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:40%;  --oy:-25%; --gap:9px;  --dot:#E23C9C; }
 .name.keepcase { text-transform: none; }
 
+/* ---------- Settings view ---------- */
+.set-card { display: grid; gap: 12px; padding: 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
+.set-k { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.set-note { margin: 0; font-size: 12.5px; color: var(--muted); }
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
+.seg button {
+  appearance: none; -webkit-appearance: none; border: 0; cursor: pointer; border-radius: 9px; padding: 10px 0;
+  background: none; color: var(--muted); font-size: 14px; font-weight: 600;
+}
+.seg button[aria-checked="true"] { background: var(--ink); color: var(--bg); }
+.seg button:focus-visible, .bgs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.bgs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.bgs button {
+  appearance: none; -webkit-appearance: none; background: none; border: 0; cursor: pointer; padding: 0; color: var(--muted);
+  display: grid; justify-items: center; gap: 6px; font-size: 11.5px; font-weight: 500; min-width: 0;
+}
+.bgs .chip {
+  width: 100%; max-width: 56px; aspect-ratio: 1; border-radius: 14px; position: relative;
+  background: var(--sw-bg); border: 1px solid var(--sw-line);
+}
+.bgs .chip::after { content: ""; position: absolute; inset: 28% 28% 28% 28%; border-radius: 6px; background: var(--sw-bg2); border: 1px solid var(--sw-line); }
+.bgs button[aria-checked="true"] { color: var(--ink); }
+.bgs button[aria-checked="true"] .chip { box-shadow: 0 0 0 2px var(--bg-2), 0 0 0 4px var(--ink); }
+
 /* ---------- Dock: mini-player + tab bar ---------- */
 .dock {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  background: rgba(12, 13, 17, .88);
+  background: var(--dock);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
   backdrop-filter: blur(20px) saturate(150%);
   border-top: 1px solid var(--line);
@@ -337,7 +416,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 .tabs {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   max-width: 520px; margin: 0 auto;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   padding-left: max(16px, env(safe-area-inset-left, 0px));
@@ -429,6 +508,15 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 </style>
 </head>
 <body data-state="idle">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="crayon" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="grain"/>
+    <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -0.85 1.2" result="holes"/>
+    <feComposite in="SourceGraphic" in2="holes" operator="in" result="waxy"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="wobble"/>
+    <feDisplacementMap in="waxy" in2="wobble" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
 
 <div class="wrap">
   <div class="topline">
@@ -438,7 +526,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   <main class="view" id="view-stations">
   <header class="hero">
-    <h1>Sintonia</h1>
+    <h1 class="logo" aria-label="Sintonia"><span aria-hidden="true">S</span><span aria-hidden="true">i</span><span aria-hidden="true">n</span><span aria-hidden="true">t</span><span aria-hidden="true">o</span><span aria-hidden="true">n</span><span aria-hidden="true">i</span><span aria-hidden="true">a</span></h1>
 
     <form class="hello-card" id="hello-card" autocomplete="on" hidden>
       <span class="k">Welcome</span>
@@ -657,6 +745,36 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </div>
 
   </section>
+
+  <section class="view" id="view-settings" aria-label="Settings" hidden>
+    <header class="hero">
+      <h2 class="title">Settings</h2>
+    </header>
+
+    <div class="set-card">
+      <span class="set-k" id="theme-k">Theme</span>
+      <div class="seg" role="radiogroup" aria-labelledby="theme-k">
+        <button type="button" role="radio" data-theme-opt="dark" aria-checked="true">Dark</button>
+        <button type="button" role="radio" data-theme-opt="light" aria-checked="false">Light</button>
+        <button type="button" role="radio" data-theme-opt="auto" aria-checked="false">Auto</button>
+      </div>
+      <p class="set-note">Auto follows your iPhone. The status bar at the top updates the next time you open the app.</p>
+    </div>
+
+    <div class="set-card">
+      <span class="set-k" id="bg-k">Background</span>
+      <div class="bgs" id="bgs" role="radiogroup" aria-labelledby="bg-k"></div>
+    </div>
+
+    <form class="set-card" id="name-form">
+      <label class="set-k" for="set-name">Your name</label>
+      <div class="hello-row">
+        <input id="set-name" type="text" autocomplete="given-name" autocapitalize="words" enterkeyhint="done" maxlength="24" placeholder="Your first name">
+        <button class="save" type="submit">Save</button>
+      </div>
+      <p class="set-note" id="name-note">Shown in the greeting at the top. It stays on this phone.</p>
+    </form>
+  </section>
 </div>
 
 <div class="dock">
@@ -684,6 +802,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     <button class="tab" type="button" data-view="map">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.4 3.8 5.2 3.8 8.5s-1.3 6.1-3.8 8.5c-2.5-2.4-3.8-5.2-3.8-8.5s1.3-6.1 3.8-8.5z"/></svg>
       Map
+    </button>
+    <button class="tab" type="button" data-view="settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg>
+      Settings
     </button>
   </nav>
 </div>
@@ -902,8 +1024,9 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
 
   /* ---------- views and tab bar ---------- */
-  const views = { stations: $("view-stations"), map: $("view-map") };
-  const scrollMem = { stations: 0, map: 0 };
+  const views = { stations: $("view-stations"), map: $("view-map"), settings: $("view-settings") };
+  const scrollMem = { stations: 0, map: 0, settings: 0 };
+  const viewFromHash = () => ({ "#map": "map", "#settings": "settings" })[location.hash] || "stations";
   let view = null;
   function showView(v) {
     if (!views[v]) v = "stations";
@@ -916,14 +1039,55 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     view = v;
     window.scrollTo(0, scrollMem[v] || 0);
     if (v === "map") { renderLocate(); renderMap(); refreshMyPosition(); }
+    else if (v === "settings") renderSettings();
     else fitNames();
   }
-  const go = (v) => { const h = v === "map" ? "#map" : "#stations"; if (location.hash !== h) location.hash = h; else showView(v); };
+  const go = (v) => { const h = "#" + v; if (location.hash !== h) location.hash = h; else showView(v); };
   document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
     if (t.dataset.view === view) window.scrollTo({ top: 0, behavior: "smooth" }); else go(t.dataset.view);
   }));
   $("loc-btn").addEventListener("click", () => locate(false));
-  window.addEventListener("hashchange", () => showView(location.hash === "#map" ? "map" : "stations"));
+  window.addEventListener("hashchange", () => showView(viewFromHash()));
+
+  /* ---------- settings ---------- */
+  const T = window.SintoniaTheme;
+  const bgsEl = $("bgs");
+  Object.keys(T.BG).forEach((k) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.setAttribute("role", "radio"); b.dataset.bg = k;
+    const chip = document.createElement("span"); chip.className = "chip";
+    b.append(chip, T.BG[k].name);
+    b.addEventListener("click", () => { writeKey("sintonia:bg", k); renderSettings(); });
+    bgsEl.appendChild(b);
+  });
+  document.querySelectorAll("[data-theme-opt]").forEach((b) => b.addEventListener("click", () => {
+    writeKey("sintonia:theme", b.dataset.themeOpt); renderSettings();
+  }));
+  function renderSettings() {
+    const cur = T.apply();
+    document.querySelectorAll("[data-theme-opt]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.themeOpt === cur.pref)));
+    bgsEl.querySelectorAll("button").forEach((b) => {
+      const c = T.BG[b.dataset.bg][cur.mode];
+      b.style.setProperty("--sw-bg", c[0]); b.style.setProperty("--sw-bg2", c[1]); b.style.setProperty("--sw-line", c[2]);
+      b.setAttribute("aria-checked", String(b.dataset.bg === cur.bg));
+    });
+    const input = $("set-name");
+    if (document.activeElement !== input) input.value = readKey(NAME_KEY);
+  }
+  if (window.matchMedia) {
+    const mq = window.matchMedia("(prefers-color-scheme: light)");
+    const onScheme = () => { if (readKey("sintonia:theme") === "auto") renderSettings(); };
+    if (mq.addEventListener) mq.addEventListener("change", onScheme); else if (mq.addListener) mq.addListener(onScheme);
+  }
+  $("name-form").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const v = $("set-name").value.replace(/\s+/g, " ").trim().slice(0, 24);
+    if (v) writeKey(NAME_KEY, v); else { try { localStorage.removeItem(NAME_KEY); } catch (e) {} }
+    writeKey(ASKED_KEY, "1");
+    $("set-name").blur();
+    renderGreeting();
+    $("name-note").textContent = v ? "Saved. Hello, " + v + "!" : "Name removed.";
+  });
   $("map-sub").textContent = "Listeners around the world";
 
   /* ---------- time helpers ---------- */
@@ -1322,7 +1486,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   } catch (e) {}
   if (fromHomeScreen && !readKey(NAME_KEY) && !readKey(ASKED_KEY)) openHello();
   setState(current ? "paused" : "idle");
-  showView(location.hash === "#map" ? "map" : "stations");
+  showView(viewFromHash());
   tickClocks();
   fitNames();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitNames);
