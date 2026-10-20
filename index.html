@@ -369,6 +369,9 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="batuta"]   { --c:#8FD3F4; --t:#08202C; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:-10%; --oy:20%;  --gap:10px; }
 [data-id="super45"]  { --c:#F1EEE6; --t:#1A1915; --ring:rgba(0,0,0,.09);       --pill:rgba(0,0,0,.09);       --ox:60%;  --oy:-15%; --gap:13px; }
 [data-id="radionica"]{ --c:#F7D046; --t:#1F1A05; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.12);       --ox:0%;   --oy:55%;  --gap:11px; }
+[data-id="deepspace"]{ --c:#AEB4BF; --t:#12151B; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:50%;  --oy:50%;  --gap:9px;  --art-o:.55; }
+[data-id="newtown"]  { --c:#3E64A8; --t:#EEF2FA; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:-10%; --oy:110%; --gap:13px; --dot:#6F93D8; }
+[data-id="wfmu"]     { --c:#F2B5A0; --t:#2A140C; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:105%; --oy:30%;  --gap:15px; }
 [data-id="hanoi"]    { --c:#A6E3C8; --t:#0B2219; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:90%;  --oy:80%;  --gap:12px; }
 [data-id="shonan"]   { --c:#8A5A3B; --t:#FBEFE6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:70%;  --oy:120%; --gap:14px; --dot:#C08457; }
 [data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
@@ -666,11 +669,38 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://www.radionica.rocks/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
+    <li class="tile" data-id="deepspace" data-country="United States" data-code="DET" data-lat="42.33" data-lon="-83.05" data-region="Americas" data-city="Detroit" data-tz="America/Detroit" data-src="https://streaming.live365.com/a71161">
+      <img class="art" alt="" hidden><span class="shade"></span>
+      <button class="tune" type="button" aria-label="Listen to Deep Space Radio">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Deep Space Radio</span><span class="meta"><span>P15 · Detroit</span><span class="clock"></span></span></span>
+      </button>
+      <a class="sched" href="https://deepspaceradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
+    </li>
+
+    <li class="tile" data-id="newtown" data-country="United States" data-code="NYC" data-lat="40.71" data-lon="-73.94" data-region="Americas" data-city="Brooklyn" data-tz="America/New_York" data-src="https://streaming.radio.co/s0d090ee43/listen">
+      <img class="art" alt="" hidden><span class="shade"></span>
+      <button class="tune" type="button" aria-label="Listen to Newtown Radio">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Newtown Radio</span><span class="meta"><span>P16 · Brooklyn</span><span class="clock"></span></span></span>
+      </button>
+      <a class="sched" href="https://newtownradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
+    </li>
+
+    <li class="tile" data-id="wfmu" data-country="United States" data-code="NYC" data-lat="40.72" data-lon="-74.04" data-region="Americas" data-city="New York" data-tz="America/New_York" data-src="https://stream0.wfmu.org/freeform-128k">
+      <img class="art" alt="" hidden><span class="shade"></span>
+      <button class="tune" type="button" aria-label="Listen to WFMU">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">WFMU</span><span class="meta"><span>P17 · New York</span><span class="clock"></span></span></span>
+      </button>
+      <a class="sched" href="https://wfmu.org/" target="_blank" rel="noopener">Schedule ↗</a>
+    </li>
+
     <li class="tile" data-id="hanoi" data-country="Vietnam" data-code="HAN" data-lat="21.03" data-lon="105.85" data-region="Asia–Pac" data-city="Hanoi" data-tz="Asia/Ho_Chi_Minh" data-src="https://ha-noi-community-radio.radiocult.fm/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Hà Nội Community Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Hà Nội Community Radio</span><span class="meta"><span>P15 · Hanoi</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Hà Nội Community Radio</span><span class="meta"><span>P18 · Hanoi</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://www.hanoicommunityradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
@@ -679,7 +709,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to 95bFM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name keepcase">95bFM</span><span class="meta"><span>P16 · Auckland</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name keepcase">95bFM</span><span class="meta"><span>P19 · Auckland</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://95bfm.com/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
@@ -688,7 +718,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Shonan Beach FM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Shonan Beach FM</span><span class="meta"><span>P17 · Shonan</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Shonan Beach FM</span><span class="meta"><span>P20 · Shonan</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://www.beachfm.co.jp/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
@@ -697,7 +727,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to FM Setagaya">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">FM Setagaya</span><span class="meta"><span>P18 · Tokyo</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">FM Setagaya</span><span class="meta"><span>P21 · Tokyo</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://fmsetagaya.com/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
@@ -1381,6 +1411,19 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     };
   }
 
+  function fromLive365(j) {
+    const tr = j && j["current-track"];
+    const title = clean(tr && tr.title), artist = clean(tr && tr.artist);
+    if (!title && !artist) return null;
+    const dj = j.live_dj_on === true || j.live_dj_on === "true";
+    return {
+      title: title || artist, sub: title && artist ? artist : "",
+      art: (tr && tr.art) || "",
+      start: tr && tr.start ? Date.parse(String(tr.start).replace(" ", "T")) : NaN, end: NaN,
+      rerun: !dj, tag: dj ? "" : "Playlist" // no DJ on air: the station's own playlist
+    };
+  }
+
   function fromAirtime(j) {
     if (!j) return null;
     const sched = j.station && j.station.schedulerTime;
@@ -1426,6 +1469,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     { url: "https://radioims.airtime.pro/api/live-info-v2", parse: (j) => ({ batuta: fromAirtime(j) }) },
     { url: "https://movementathens.airtime.pro/api/live-info-v2", parse: (j) => ({ stegi: fromAirtime(j) }) },
     { url: "https://public.radio.co/stations/s421105570/status", parse: (j) => ({ super45: fromRadioCo(j, "track") }) },
+    { url: "https://public.radio.co/stations/s0d090ee43/status", parse: (j) => ({ newtown: fromRadioCo(j) }) },
+    { url: "https://api.live365.com/station/a71161", parse: (j) => ({ deepspace: fromLive365(j) }) },
     { url: "https://shonanbeachfm.airtime.pro/api/live-info-v2", parse: (j) => ({ shonan: fromAirtime(j) }) },
     { url: "https://fmsetagaya834.airtime.pro/api/live-info-v2", parse: (j) => ({ setagaya: fromAirtime(j) }) }
   ];
@@ -1458,7 +1503,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       if (!info) { box.hidden = true; art.hidden = true; st.el.classList.remove("has-art"); return; }
       const k = box.querySelector(".now-k");
       k.textContent = "On now";
-      if (info.rerun) { const rr = document.createElement("span"); rr.className = "rr"; rr.textContent = "Rerun"; k.appendChild(rr); }
+      if (info.rerun) { const rr = document.createElement("span"); rr.className = "rr"; rr.textContent = info.tag || "Rerun"; k.appendChild(rr); }
       box.querySelector(".now-t").textContent = info.title;
       const parts = [];
       if (info.sub) parts.push(info.sub);
