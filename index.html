@@ -16,8 +16,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: on-air header with tuning dial and a live ticker, a crate of station tiles that show what is on air
-   (2 columns on the phone with the first tile full width, 3 on wide screens), and a fixed player bar.
+/* Layout: on-air header, a receiver panel (dot-matrix world map + a tuning strip of cities ordered west to east),
+   a live ticker, a crate of station tiles that show what is on air (2 columns on the phone, 4 on wide screens),
+   and a fixed player bar.
    One deliberate look: a dark night-listening ground under colour-coded stations. */
 @property --ph { syntax: "<length>"; inherits: false; initial-value: 0px; }
 
@@ -33,8 +34,7 @@
   --f-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --needle: #F3EFE6;
-  --n: 14; /* number of stations on the dial */
-  --needle-pos: calc(50% / var(--n));
+  --needle-pos: 50%;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -116,34 +116,59 @@ h1 {
 body[data-state="live"] .onair { color: #FFE9E6; border-color: var(--live); background: #3A1210; box-shadow: 0 0 22px -4px var(--live); }
 body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px var(--live); }
 
-.dial {
-  position: relative; height: 62px; border-radius: 14px;
-  background: var(--bg-2); border: 1px solid var(--line); overflow: hidden;
+/* ---------- Receiver: world map + geographic tuning strip ---------- */
+.receiver {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); overflow: hidden;
 }
-.dial .scale {
-  position: absolute; left: 0; right: 0; top: 7px; height: 21px;
+.rx-head {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; min-width: 0;
+  padding: 10px 12px 0;
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+}
+.rx-where { color: var(--ink); letter-spacing: .05em; min-width: 0; overflow-wrap: anywhere; }
+.rx-coords { margin-left: auto; letter-spacing: .03em; font-variant-numeric: tabular-nums; }
+.map-wrap { padding: 8px 10px 2px; }
+.map { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 144 / 54; overflow: visible; }
+.land { fill: none; stroke: #343947; stroke-width: .66; stroke-linecap: round; }
+.pin { fill: #8E92A1; }
+.here { display: none; }
+.here.on { display: inline; }
+.here .core { fill: var(--live); }
+.here .ping { fill: none; stroke: var(--live); stroke-width: .5; opacity: 0; transform-box: fill-box; transform-origin: center; }
+body[data-state="paused"] .here .core, body[data-state="error"] .here .core { fill: var(--bg-2); stroke: var(--live); stroke-width: .55; }
+
+.strip { position: relative; padding: 6px 0 10px; --cols: 12; }
+.regions, .cities { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); }
+.regions span {
+  grid-column: span var(--span); margin: 0 3px; padding-top: 5px; border-top: 1px solid #3A3E4B;
+  font-family: var(--f-mono); font-size: 8px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  text-align: center; white-space: nowrap; overflow: hidden;
+}
+.ticks {
+  position: relative; height: 14px; margin-top: 6px;
   background: repeating-linear-gradient(90deg,
-    transparent 0, transparent calc(50% / var(--n) - 1px),
-    #4A4E5C calc(50% / var(--n) - 1px), #4A4E5C calc(50% / var(--n) + 1px),
-    transparent calc(50% / var(--n) + 1px), transparent calc(100% / var(--n)));
+    transparent 0, transparent calc(50% / var(--cols) - 1px),
+    #4A4E5C calc(50% / var(--cols) - 1px), #4A4E5C calc(50% / var(--cols) + 1px),
+    transparent calc(50% / var(--cols) + 1px), transparent calc(100% / var(--cols)));
 }
-.dial .scale::before {
-  content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 9px;
-  background: repeating-linear-gradient(90deg, #2A2D38 0, #2A2D38 1px, transparent 1px, transparent calc(100% / (var(--n) * 6)));
+.ticks::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 4px; height: 6px;
+  background: repeating-linear-gradient(90deg, #2A2D38 0, #2A2D38 1px, transparent 1px, transparent calc(100% / (var(--cols) * 4)));
 }
-.dial .marks {
-  position: absolute; left: 0; right: 0; bottom: 8px;
-  display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr));
-  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .02em; color: var(--muted);
-}
-.dial .marks span { display: grid; justify-items: center; gap: 4px; }
-.dial .marks i { width: 6px; height: 6px; border-radius: 50%; background: var(--dot); display: block; }
-.dial .marks span.on { color: var(--ink); }
 .needle {
-  position: absolute; top: 5px; bottom: 27px; width: 2px; margin-left: -1px;
-  left: var(--needle-pos); background: var(--needle);
-  box-shadow: 0 0 14px 2px var(--needle); border-radius: 2px;
+  position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px;
+  left: var(--needle-pos); background: var(--needle); opacity: 0;
+  box-shadow: 0 0 12px 2px var(--needle); border-radius: 2px;
 }
+.needle.on { opacity: 1; }
+.cities { margin-top: 7px; align-items: end; }
+.city { display: grid; justify-items: center; gap: 5px; min-width: 0; }
+.city .dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; width: 14px; }
+.city .dots i { display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--dot); }
+.city .dots i.on { box-shadow: 0 0 0 1.5px var(--bg-2), 0 0 0 3px var(--ink); }
+.city b { font-family: var(--f-mono); font-size: 9px; font-weight: 400; letter-spacing: .03em; color: var(--muted); }
+.city.on b { color: var(--ink); }
 
 /* live ticker */
 .ticker {
@@ -163,7 +188,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 
 /* ---------- Tiles ---------- */
 .crate { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-@media (min-width: 900px) { .crate { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; } .crate .tile { min-height: 236px; } .crate .tile:first-child { grid-column: span 2; } }
+@media (min-width: 900px) { .crate { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; } .crate .tile { min-height: 236px; } }
 
 .tile {
   position: relative; display: flex; min-height: 200px;
@@ -254,21 +279,25 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .tile.on.live .knob .eq { display: flex; }
 .tile.on.loading .knob .i-stop { display: block; }
 
-/* station colours */
-[data-id="nts1"]     { --c:#2337D6; --t:#F4F1E8; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:100%; --oy:0%;   --gap:13px; --art-o:.62; }
+/* station colours (--dot is the brighter version used on the dark receiver) */
+.tile { --dot: var(--c); }
+[data-id="nts1"]     { --c:#2337D6; --t:#F4F1E8; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:100%; --oy:0%;   --gap:13px; --art-o:.62; --dot:#5468FF; }
 [data-id="nts2"]     { --c:#E8472C; --t:#1C0C08; --ring:rgba(0,0,0,.13);       --pill:rgba(0,0,0,.16);       --ox:0%;   --oy:100%; --gap:11px; --art-o:.42; }
 [data-id="refuge"]   { --c:#BBA6F2; --t:#17112A; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.14);       --ox:50%;  --oy:125%; --gap:15px; }
 [data-id="rinse"]    { --c:#CDE650; --t:#141B05; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.14);       --ox:0%;   --oy:0%;   --gap:9px;  }
 [data-id="wwfm"]     { --c:#F3A93A; --t:#1E1203; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:100%; --oy:100%; --gap:17px; }
-[data-id="kiosk"]    { --c:#1D6847; --t:#EEF5EC; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.2);  --ox:30%;  --oy:-20%; --gap:12px; }
+[data-id="kiosk"]    { --c:#1D6847; --t:#EEF5EC; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.2);  --ox:30%;  --oy:-20%; --gap:12px; --dot:#2E9A68; }
 [data-id="raheem"]   { --c:#F07CB0; --t:#2A0A18; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:115%; --oy:45%;  --gap:14px; }
 [data-id="cashmere"] { --c:#E4D2B1; --t:#2A2116; --ring:rgba(0,0,0,.10);       --pill:rgba(0,0,0,.13);       --ox:-15%; --oy:60%;  --gap:10px; }
 [data-id="noods"]    { --c:#2FB3BF; --t:#061A1D; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:80%;  --oy:35%;  --gap:8px;  }
-[data-id="alhara"]   { --c:#8C1D35; --t:#F8E9EC; --ring:rgba(255,255,255,.11); --pill:rgba(255,255,255,.18); --ox:20%;  --oy:110%; --gap:12px; }
-[data-id="apacik"]   { --c:#5A2FB8; --t:#F1ECFB; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:110%; --oy:-10%; --gap:16px; }
+[data-id="alhara"]   { --c:#8C1D35; --t:#F8E9EC; --ring:rgba(255,255,255,.11); --pill:rgba(255,255,255,.18); --ox:20%;  --oy:110%; --gap:12px; --dot:#D63B5C; }
+[data-id="apacik"]   { --c:#5A2FB8; --t:#F1ECFB; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:110%; --oy:-10%; --gap:16px; --dot:#8C66F2; }
 [data-id="batuta"]   { --c:#8FD3F4; --t:#08202C; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:-10%; --oy:20%;  --gap:10px; }
 [data-id="super45"]  { --c:#F1EEE6; --t:#1A1915; --ring:rgba(0,0,0,.09);       --pill:rgba(0,0,0,.09);       --ox:60%;  --oy:-15%; --gap:13px; }
 [data-id="radionica"]{ --c:#F7D046; --t:#1F1A05; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.12);       --ox:0%;   --oy:55%;  --gap:11px; }
+[data-id="hanoi"]    { --c:#A6E3C8; --t:#0B2219; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:90%;  --oy:80%;  --gap:12px; }
+[data-id="bfm"]      { --c:#C2187A; --t:#FCE8F3; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:40%;  --oy:-25%; --gap:9px;  --dot:#E23C9C; }
+.name.keepcase { text-transform: none; }
 
 /* ---------- Player bar ---------- */
 .player {
@@ -340,6 +369,11 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   body[data-state="live"] .tile.on::before { animation: ripple 1.4s linear infinite; }
   body[data-state="loading"] .tile.on .knob, body[data-state="loading"] .swatch { animation: pulse 1.1s ease-in-out infinite; }
   body[data-state="live"] .onair i { animation: pulse 2.4s ease-in-out infinite; }
+  body[data-state="live"] .here .ping, body[data-state="loading"] .here .ping { animation: ping 1.8s ease-out infinite; }
+  body[data-state="live"] .here .core { animation: blink 1.2s ease-in-out infinite; }
+  body[data-state="loading"] .here .core { animation: blink .5s ease-in-out infinite; }
+  @keyframes ping { from { transform: scale(.6); opacity: .9; } to { transform: scale(3.2); opacity: 0; } }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
   @keyframes bounce { 0%,100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
   @keyframes ripple { from { --ph: 0px; } to { --ph: var(--gap); } }
@@ -370,32 +404,31 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <button class="hello-skip" id="hello-skip" type="button">Not now</button>
     </form>
 
-    <div class="dial" aria-hidden="true">
-      <div class="scale"></div>
-      <div class="needle"></div>
-      <div class="marks" id="marks">
-        <span data-for="nts1" style="--dot:#2337D6"><i></i>P1</span>
-        <span data-for="nts2" style="--dot:#E8472C"><i></i>P2</span>
-        <span data-for="refuge" style="--dot:#BBA6F2"><i></i>P3</span>
-        <span data-for="rinse" style="--dot:#CDE650"><i></i>P4</span>
-        <span data-for="wwfm" style="--dot:#F3A93A"><i></i>P5</span>
-        <span data-for="kiosk" style="--dot:#2E8A60"><i></i>P6</span>
-        <span data-for="raheem" style="--dot:#F07CB0"><i></i>P7</span>
-        <span data-for="cashmere" style="--dot:#E4D2B1"><i></i>P8</span>
-        <span data-for="noods" style="--dot:#2FB3BF"><i></i>P9</span>
-        <span data-for="alhara" style="--dot:#C2304F"><i></i>P10</span>
-        <span data-for="apacik" style="--dot:#7A52E0"><i></i>P11</span>
-        <span data-for="batuta" style="--dot:#8FD3F4"><i></i>P12</span>
-        <span data-for="super45" style="--dot:#F1EEE6"><i></i>P13</span>
-        <span data-for="radionica" style="--dot:#F7D046"><i></i>P14</span>
+    <section class="receiver" aria-label="Where you are tuned">
+      <div class="rx-head" aria-live="polite">
+        <span id="rx-k">Pick a station</span>
+        <span class="rx-where" id="rx-where"></span>
+        <span class="rx-coords" id="rx-coords"></span>
       </div>
-    </div>
+      <div class="map-wrap">
+        <svg class="map" id="map" viewBox="0 0 144 54" aria-hidden="true" focusable="false">
+          <path class="land" id="land" d=""/>
+          <g id="pins"></g>
+          <g class="here" id="here"><circle class="ping" r="1.4"/><circle class="core" r="1.15"/></g>
+        </svg>
+      </div>
+      <div class="strip" id="strip" aria-hidden="true">
+        <div class="regions" id="regions"></div>
+        <div class="ticks"><div class="needle" id="needle"></div></div>
+        <div class="cities" id="cities"></div>
+      </div>
+    </section>
 
     <div class="ticker" id="ticker" hidden><div class="ticker-track" id="ticker-track"></div></div>
   </header>
 
   <ol class="crate" id="crate">
-    <li class="tile" data-id="nts1" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream">
+    <li class="tile" data-id="nts1" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to NTS 1">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -404,7 +437,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://www.nts.live/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="nts2" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream2">
+    <li class="tile" data-id="nts2" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream2">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to NTS 2">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -413,7 +446,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://www.nts.live/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="refuge" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://streaming.radio.co/s3699c5e49/listen">
+    <li class="tile" data-id="refuge" data-country="Germany" data-code="BER" data-lat="52.52" data-lon="13.4" data-region="Europe" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://streaming.radio.co/s3699c5e49/listen">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Refuge Worldwide">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -422,7 +455,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://refugeworldwide.com/radio" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="rinse" data-city="London" data-tz="Europe/London" data-src="https://admin.stream.rinse.fm/proxy/rinse_uk/stream">
+    <li class="tile" data-id="rinse" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://admin.stream.rinse.fm/proxy/rinse_uk/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Rinse FM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -431,7 +464,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://www.rinse.fm/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="wwfm" data-city="London" data-tz="Europe/London" data-src="https://worldwide-fm.radiocult.fm/stream">
+    <li class="tile" data-id="wwfm" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://worldwide-fm.radiocult.fm/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Worldwide FM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -440,7 +473,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://www.worldwidefm.net/schedule" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="kiosk" data-city="Brussels" data-tz="Europe/Brussels" data-src="https://kioskradiobxl.out.airtime.pro/kioskradiobxl_b">
+    <li class="tile" data-id="kiosk" data-country="Belgium" data-code="BRU" data-lat="50.84" data-lon="4.36" data-region="Europe" data-city="Brussels" data-tz="Europe/Brussels" data-src="https://kioskradiobxl.out.airtime.pro/kioskradiobxl_b">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Kiosk Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -449,7 +482,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://www.kioskradio.com/schedule" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="raheem" data-city="Milan" data-tz="Europe/Rome" data-src="https://radioraheem.out.airtime.pro/radioraheem_a">
+    <li class="tile" data-id="raheem" data-country="Italy" data-code="MIL" data-lat="45.46" data-lon="9.19" data-region="Europe" data-city="Milan" data-tz="Europe/Rome" data-src="https://radioraheem.out.airtime.pro/radioraheem_a">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Radio Raheem">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -458,7 +491,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://www.radioraheem.it/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="cashmere" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://cashmereradio.out.airtime.pro/cashmereradio_b">
+    <li class="tile" data-id="cashmere" data-country="Germany" data-code="BER" data-lat="52.52" data-lon="13.4" data-region="Europe" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://cashmereradio.out.airtime.pro/cashmereradio_b">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Cashmere Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -467,7 +500,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://cashmereradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="noods" data-city="Bristol" data-tz="Europe/London" data-src="https://noods-radio.radiocult.fm/stream">
+    <li class="tile" data-id="noods" data-country="United Kingdom" data-code="BRS" data-lat="51.45" data-lon="-2.59" data-region="Europe" data-city="Bristol" data-tz="Europe/London" data-src="https://noods-radio.radiocult.fm/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Noods Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -476,7 +509,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://www.noodsradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="alhara" data-city="Bethlehem" data-tz="Asia/Hebron" data-src="https://stream.radioalhara.net/ra">
+    <li class="tile" data-id="alhara" data-country="Palestine" data-code="BTH" data-lat="31.7" data-lon="35.2" data-region="Mid East" data-city="Bethlehem" data-tz="Asia/Hebron" data-src="https://stream.radioalhara.net/ra">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Radio alHara">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -485,7 +518,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://radioalhara.net/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="apacik" data-city="Istanbul" data-tz="Europe/Istanbul" data-src="https://stream.34bit.net/ar.mp3">
+    <li class="tile" data-id="apacik" data-country="Türkiye" data-code="IST" data-lat="41.01" data-lon="28.98" data-region="Mid East" data-city="Istanbul" data-tz="Europe/Istanbul" data-src="https://stream.34bit.net/ar.mp3">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Apaçık Radyo">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -494,7 +527,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://www.apacikradyo.com.tr/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="batuta" data-city="Rio de Janeiro" data-tz="America/Sao_Paulo" data-src="https://radioims.out.airtime.pro/radioims_a">
+    <li class="tile" data-id="batuta" data-country="Brazil" data-code="RIO" data-lat="-22.91" data-lon="-43.17" data-region="Americas" data-city="Rio de Janeiro" data-tz="America/Sao_Paulo" data-src="https://radioims.out.airtime.pro/radioims_a">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Rádio Batuta">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -503,7 +536,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://radiobatuta.com.br/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="super45" data-city="Santiago" data-tz="America/Santiago" data-src="https://s4.radio.co/s421105570/listen">
+    <li class="tile" data-id="super45" data-country="Chile" data-code="SCL" data-lat="-33.45" data-lon="-70.67" data-region="Americas" data-city="Santiago" data-tz="America/Santiago" data-src="https://s4.radio.co/s421105570/listen">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Super45">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -512,13 +545,31 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <a class="sched" href="https://www.super45.fm/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
 
-    <li class="tile" data-id="radionica" data-city="Bogotá" data-tz="America/Bogota" data-src="https://streaming.rtvc.gov.co/Radio_Radionica/Radionica.stream/playlist.m3u8">
+    <li class="tile" data-id="radionica" data-country="Colombia" data-code="BOG" data-lat="4.71" data-lon="-74.07" data-region="Americas" data-city="Bogotá" data-tz="America/Bogota" data-src="https://streaming.rtvc.gov.co/Radio_Radionica/Radionica.stream/playlist.m3u8">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Radiónica">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radiónica</span><span class="meta"><span>P14 · Bogotá</span><span class="clock"></span></span></span>
       </button>
       <a class="sched" href="https://www.radionica.rocks/" target="_blank" rel="noopener">Schedule ↗</a>
+    </li>
+
+    <li class="tile" data-id="hanoi" data-country="Vietnam" data-code="HAN" data-lat="21.03" data-lon="105.85" data-region="Asia–Pac" data-city="Hanoi" data-tz="Asia/Ho_Chi_Minh" data-src="https://ha-noi-community-radio.radiocult.fm/stream">
+      <img class="art" alt="" hidden><span class="shade"></span>
+      <button class="tune" type="button" aria-label="Listen to Hà Nội Community Radio">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Hà Nội Community Radio</span><span class="meta"><span>P15 · Hanoi</span><span class="clock"></span></span></span>
+      </button>
+      <a class="sched" href="https://www.hanoicommunityradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
+    </li>
+
+    <li class="tile" data-id="bfm" data-country="Aotearoa New Zealand" data-code="AKL" data-lat="-36.85" data-lon="174.76" data-region="Asia–Pac" data-city="Auckland" data-tz="Pacific/Auckland" data-src="https://streams.95bfm.com/stream95">
+      <img class="art" alt="" hidden><span class="shade"></span>
+      <button class="tune" type="button" aria-label="Listen to 95bFM">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name keepcase">95bFM</span><span class="meta"><span>P16 · Auckland</span><span class="clock"></span></span></span>
+      </button>
+      <a class="sched" href="https://95bfm.com/" target="_blank" rel="noopener">Schedule ↗</a>
     </li>
   </ol>
 </div>
@@ -545,7 +596,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 (() => {
   const KEY = "sintonia:last";
   const $ = (id) => document.getElementById(id);
-  const audio = $("audio"), crate = $("crate"), marks = $("marks"), swatch = $("swatch");
+  const audio = $("audio"), crate = $("crate"), swatch = $("swatch");
   const npName = $("np-name"), npStatus = $("np-status"), npShow = $("np-show"), npArt = $("np-art");
   const pp = $("pp"), prog = $("prog"), ticker = $("ticker"), tickerTrack = $("ticker-track");
   const tiles = Array.from(crate.querySelectorAll(".tile"));
@@ -556,10 +607,86 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       id: el.dataset.id, index, el,
       name: el.querySelector(".name").textContent,
       city: el.dataset.city, tz: el.dataset.tz, src: el.dataset.src,
-      c: cs.getPropertyValue("--c").trim(), t: cs.getPropertyValue("--t").trim()
+      country: el.dataset.country, code: el.dataset.code, region: el.dataset.region,
+      lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon),
+      c: cs.getPropertyValue("--c").trim(), t: cs.getPropertyValue("--t").trim(),
+      dot: cs.getPropertyValue("--dot").trim()
     };
   });
   const byId = Object.fromEntries(stations.map((s) => [s.id, s]));
+
+  /* ---------- receiver: dot-matrix world map + tuning strip of cities, west to east ---------- */
+  // land on a 2.5° grid, 144 × 54 cells, 78°N to 57°S (Natural Earth 1:50m, packed as bits)
+  const LAND = "AAAB//+P//8AB8AA8Af8AYAAAAAD3f+Af/+AAAAHiv//YfgAgEAD/+/wP/8AABAGP/////8Bh////3/8P/4AA/9/////////9/////9+P+PAB///////////d/////7+HwHgH///////////A/////L+DgAAPv/////////+B/n//+D+AgACP/////////3AAeA///j/AAAHHv///////wPADgAf//7/wAAPH////////8OAAAAP////wAAP/////////8MAAAAH///+4AAD/////////8AAAAAD////YAAB/////////4AAAAAD///7AAAN//fv/////tAAAAAD///wAAAP3//3////+MAAAAAD///gAAAPEv/3////8YAAAAAB///AAAAP/N//////s4AAAAAB///AAAAP+Cf/////vwAAAAAAf/8AAAAP/v//////iAAAAAAAf/cAAAAf////////gAAAAAAAP4EAAAA////3////gAAAAAAAH4AAAAB/////P///gAAAAAAAB4/AAAB/////D//8gAAAAEAAB/j8AAB////+B+fwAAAAAAAAAfgAAAB///98B8PwgAAAAAAAAB4AAAB////4BwXwgAAAAAAAAAY4AAB////4AwXwwAAAAAAAAAf/AAA////4A4EgYAAAAAAAAAH/wAAf///wAIGDZAAAAAAAAAB/8AAPP//wAAPHAAAAAAAAAAD/8AAAD//gAAHf0AAAAAAAABH//AAAH/+AAADfnQAAAAAAAAH//4AAD/+AAADvt8QAAAAAAAH//8AAD/8AAABxQfoAAAAAAAD//8AAB/8AAAAeYfAAAAAAAAD//8AAB/+AAAAAxBAAAAAAAAB//4AAB/+QAAAALsAAAAAAAAB//4AAD//wAAAAf+AhAAAAAAAf/4AAD/5wAAAA/+ABAAAAAAAP/wAAB/xwAAAD//AwAAAAAAAf/wAAB/5gAAAH//gAAAAAAAAf+AAAA/xgAAAH//wAAAAAAAAf+AAAA/gAAAAH//wAAAAAAAAf8AAAAfgAAAAD//wAAAAAAAAf4AAAAfAAAAAD5/gAAAAAAAA/wAAAAAAAAAADA/gGAAAAAAA/gAAAAAAAAAAAAPAGAAAAAAA+AAAAAAAAAAAAADAOAAAAAAA+AAAAAAAAAAAAADAcAAAAAAB8AAAAAAAAAAAAAAAYAAAAAAB8AAAAAAAAEAAAAAAAAAAAAAA4gAAAAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAAA";
+  const MAP_TOP = 78, STEP = 2.5;
+  const mapXY = (lat, lon) => [(lon + 180) / STEP, (MAP_TOP - lat) / STEP];
+
+  (function drawLand() {
+    try {
+      const bin = atob(LAND);
+      let d = "";
+      for (let i = 0; i < 144 * 54; i++) {
+        if (bin.charCodeAt(i >> 3) & (128 >> (i & 7))) d += "M" + (i % 144 + 0.5) + " " + (Math.floor(i / 144) + 0.5) + "h.01";
+      }
+      $("land").setAttribute("d", d);
+    } catch (e) {}
+  })();
+
+  // one column per city, ordered by longitude
+  const cities = [];
+  stations.slice().sort((a, b) => a.lon - b.lon).forEach((st) => {
+    let c = cities.find((x) => x.code === st.code);
+    if (!c) { c = { code: st.code, city: st.city, country: st.country, region: st.region, lat: st.lat, lon: st.lon, stations: [] }; cities.push(c); }
+    c.stations.push(st);
+  });
+  cities.forEach((c, i) => { c.index = i; c.stations.forEach((st) => { st.col = i; }); });
+
+  (function drawReceiver() {
+    const strip = $("strip"), regions = $("regions"), cityRow = $("cities"), pins = $("pins");
+    strip.style.setProperty("--cols", cities.length);
+    let prev = null, span = null;
+    cities.forEach((c) => {
+      if (c.region !== prev) {
+        span = document.createElement("span"); span.textContent = c.region; span.dataset.n = "0";
+        regions.appendChild(span); prev = c.region;
+      }
+      span.dataset.n = String(+span.dataset.n + 1);
+      span.style.setProperty("--span", span.dataset.n);
+
+      const col = document.createElement("div"); col.className = "city"; col.dataset.code = c.code;
+      const dots = document.createElement("span"); dots.className = "dots";
+      c.stations.forEach((st) => { const i = document.createElement("i"); i.style.setProperty("--dot", st.dot); i.dataset.id = st.id; dots.appendChild(i); });
+      const label = document.createElement("b"); label.textContent = c.code;
+      col.append(dots, label);
+      cityRow.appendChild(col);
+
+      const [x, y] = mapXY(c.lat, c.lon);
+      const pin = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      pin.setAttribute("class", "pin"); pin.setAttribute("cx", x.toFixed(2)); pin.setAttribute("cy", y.toFixed(2)); pin.setAttribute("r", ".75");
+      pins.appendChild(pin);
+    });
+  })();
+
+  const fmtCoord = (v, pos, neg) => Math.abs(v).toFixed(2) + "°" + (v >= 0 ? pos : neg);
+
+  function renderReceiver(st) {
+    const here = $("here"), needle = $("needle");
+    Array.from($("cities").children).forEach((col) => col.classList.toggle("on", !!st && col.dataset.code === st.code));
+    $("cities").querySelectorAll(".dots i").forEach((i) => i.classList.toggle("on", !!st && i.dataset.id === st.id));
+    if (!st) {
+      here.classList.remove("on"); needle.classList.remove("on");
+      $("rx-k").textContent = "Pick a station"; $("rx-where").textContent = ""; $("rx-coords").textContent = "";
+      return;
+    }
+    const [x, y] = mapXY(st.lat, st.lon);
+    here.setAttribute("transform", "translate(" + x.toFixed(2) + " " + y.toFixed(2) + ")");
+    here.classList.add("on");
+    document.documentElement.style.setProperty("--needle-pos", ((st.col + 0.5) / cities.length * 100) + "%");
+    needle.classList.add("on");
+    $("rx-k").textContent = { loading: "Tuning in ·", live: "Live from", error: "Can\u2019t reach" }[state] || "Last tuned ·";
+    $("rx-where").textContent = st.city + ", " + st.country;
+    $("rx-coords").textContent = fmtCoord(st.lat, "N", "S") + " " + fmtCoord(st.lon, "E", "W");
+  }
 
   /* ---------- time helpers ---------- */
   const fmtCache = {};
@@ -715,7 +842,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     for (let copy = 0; copy < 2; copy++) {
       items.forEach((st) => {
         const b = document.createElement("button");
-        b.type = "button"; b.className = "tick"; b.style.setProperty("--dot", st.c);
+        b.type = "button"; b.className = "tick"; b.style.setProperty("--dot", st.dot);
         if (copy) b.setAttribute("aria-hidden", "true"), b.tabIndex = -1;
         const dot = document.createElement("i");
         const nm = document.createElement("b"); nm.textContent = st.name;
@@ -748,12 +875,11 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       el.classList.toggle("live", on && state === "live");
       el.classList.toggle("loading", on && state === "loading");
     });
-    Array.from(marks.children).forEach((m) => m.classList.toggle("on", !!st && m.dataset.for === st.id));
+    renderReceiver(st);
 
     const root = document.documentElement.style;
     if (st) {
-      root.setProperty("--needle-pos", ((st.index + 0.5) / stations.length * 100) + "%");
-      root.setProperty("--needle", st.c);
+      root.setProperty("--needle", st.dot);
       swatch.style.setProperty("--pc", st.c);
       swatch.style.setProperty("--pt", st.t);
       prog.parentNode.style.setProperty("--pc", st.c);
