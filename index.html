@@ -431,6 +431,74 @@ html[data-state="live"]::before, html[data-state="loading"]::before { opacity: 1
 .mood-where b { color: var(--ink); font-weight: 500; }
 .mood-empty { margin: 0; color: var(--muted); font-size: 13px; }
 
+/* ---------- Sheets: Now playing (track, songs heard) and station Info ---------- */
+.np { cursor: pointer; }
+.np-more { display: inline-block; margin-left: 6px; opacity: .7; font-size: 10px; }
+html.sheet-on, html.sheet-on body { overflow: hidden; }
+.sheet-back { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .5); }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 88vh; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--bg); border-radius: 22px 22px 0 0; border-top: 1px solid var(--line);
+  padding: 0 0 calc(env(safe-area-inset-bottom, 0px) + 26px); box-shadow: 0 -20px 60px -20px rgba(0, 0, 0, .6);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sheet:not([hidden]) { animation: sheet-up .28s cubic-bezier(.2, .8, .2, 1); }
+  @keyframes sheet-up { from { transform: translateY(48px); opacity: 0; } }
+}
+.sheet-grab { width: 38px; height: 5px; border-radius: 3px; background: var(--line); margin: 8px auto 6px; }
+.sheet-x {
+  appearance: none; -webkit-appearance: none; position: absolute; top: 22px; right: 26px; z-index: 3; width: 32px; height: 32px; padding: 0;
+  border: 0; border-radius: 50%; background: rgba(0, 0, 0, .25); color: #fff; font-size: 18px; line-height: 32px; cursor: pointer;
+}
+.sheet-in { max-width: 640px; margin: 0 auto; padding: 0 14px; display: grid; gap: 20px; }
+.sh-head { position: relative; border-radius: 18px; padding: 16px 16px 15px; background: var(--c); color: var(--t); display: grid; gap: 8px; overflow: hidden; isolation: isolate; }
+.sh-head::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: repeating-radial-gradient(circle at var(--ox) var(--oy), transparent 0, transparent calc(var(--gap) - 1.5px), var(--ring) calc(var(--gap) - 1.5px), var(--ring) var(--gap));
+}
+.sh-k { font-family: var(--f-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; opacity: .82; padding-right: 40px; }
+.sh-name { margin: 0; font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: 40px; line-height: .86; text-transform: uppercase; overflow-wrap: anywhere; }
+.sh-name.keepcase { text-transform: none; }
+.sh-show { margin: 0; font-size: 14.5px; font-weight: 600; line-height: 1.3; }
+.sh-show span { font-weight: 400; opacity: .85; }
+.sh-desc { margin: 0; font-size: 14px; line-height: 1.45; max-width: 52ch; }
+.sh-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.sh-btn {
+  appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; padding: 9px 15px; cursor: pointer;
+  font-size: 14px; font-weight: 600; background: var(--t); color: var(--c);
+}
+.sh-btn.ghost { background: var(--pill); color: var(--t); }
+.sh-sec { display: grid; gap: 10px; }
+.sh-sec h3 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; font-family: var(--f-mono); font-weight: 500; font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink); }
+.sh-clear { appearance: none; border: 0; background: none; color: var(--muted); font: inherit; font-weight: 400; letter-spacing: .08em; cursor: pointer; padding: 0; }
+.song { display: grid; gap: 2px; }
+.song b { font-size: 18px; line-height: 1.2; }
+.song span { color: var(--muted); font-size: 14px; }
+.finds { display: flex; flex-wrap: wrap; gap: 6px; }
+.find {
+  appearance: none; -webkit-appearance: none; cursor: pointer; font: inherit; font-size: 13px; color: var(--ink); text-decoration: none;
+  border: 1px solid var(--line); border-radius: 999px; padding: 7px 11px; background: var(--bg-2);
+}
+.empty { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.4; }
+.heard { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.heard details { border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); }
+.heard summary { list-style: none; display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 10px 12px; cursor: pointer; }
+.heard summary::-webkit-details-marker { display: none; }
+.heard summary i { width: 8px; height: 8px; border-radius: 50%; }
+.heard summary small { color: var(--muted); font-size: 16px; transition: transform .2s; }
+.heard details[open] summary small { transform: rotate(90deg); }
+.heard .ht { display: grid; gap: 2px; min-width: 0; }
+.heard .ht b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.heard .ht span { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.heard .finds { padding: 0 12px 12px 31px; }
+.sh-facts { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 9px 16px; font-size: 14px; }
+.sh-facts dt { font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.sh-facts dd { margin: 0; }
+.sh-links { display: grid; gap: 8px; }
+.sh-links a { display: flex; justify-content: space-between; gap: 10px; padding: 13px 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14.5px; }
+.sh-links a span { color: var(--muted); }
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); transform: translateX(-50%); z-index: 50; background: var(--ink); color: var(--bg); padding: 9px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 600; pointer-events: none; }
+
 /* ---------- Settings view ---------- */
 .set-card { display: grid; gap: 12px; padding: 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
 .set-k { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
@@ -614,7 +682,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 1</span><span class="meta"><span>P1 · London</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.nts.live/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://www.nts.live/">Info</button>
     </li>
 
     <li class="tile" data-id="nts2" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream2">
@@ -623,7 +691,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 2</span><span class="meta"><span>P2 · London</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.nts.live/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://www.nts.live/">Info</button>
     </li>
 
     <li class="tile" data-id="refuge" data-country="Germany" data-code="BER" data-lat="52.52" data-lon="13.4" data-region="Europe" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://streaming.radio.co/s3699c5e49/listen">
@@ -632,7 +700,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Refuge Worldwide</span><span class="meta"><span>P3 · Berlin</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://refugeworldwide.com/radio" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://refugeworldwide.com/radio">Info</button>
     </li>
 
     <li class="tile" data-id="rinse" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://admin.stream.rinse.fm/proxy/rinse_uk/stream">
@@ -641,7 +709,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rinse FM</span><span class="meta"><span>P4 · London</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.rinse.fm/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://www.rinse.fm/">Info</button>
     </li>
 
     <li class="tile" data-id="wwfm" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://worldwide-fm.radiocult.fm/stream">
@@ -650,7 +718,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Worldwide FM</span><span class="meta"><span>P5 · London</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.worldwidefm.net/schedule" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://www.worldwidefm.net/schedule">Info</button>
     </li>
 
     <li class="tile" data-id="kiosk" data-country="Belgium" data-code="BRU" data-lat="50.84" data-lon="4.36" data-region="Europe" data-city="Brussels" data-tz="Europe/Brussels" data-src="https://kioskradiobxl.out.airtime.pro/kioskradiobxl_b">
@@ -659,7 +727,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Kiosk Radio</span><span class="meta"><span>P6 · Brussels</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.kioskradio.com/schedule" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://www.kioskradio.com/schedule">Info</button>
     </li>
 
     <li class="tile" data-id="raheem" data-country="Italy" data-code="MIL" data-lat="45.46" data-lon="9.19" data-region="Europe" data-city="Milan" data-tz="Europe/Rome" data-src="https://radioraheem.out.airtime.pro/radioraheem_a">
@@ -668,7 +736,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Raheem</span><span class="meta"><span>P7 · Milan</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.radioraheem.it/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://www.radioraheem.it/">Info</button>
     </li>
 
     <li class="tile" data-id="cashmere" data-country="Germany" data-code="BER" data-lat="52.52" data-lon="13.4" data-region="Europe" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://cashmereradio.out.airtime.pro/cashmereradio_b">
@@ -677,7 +745,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Cashmere Radio</span><span class="meta"><span>P8 · Berlin</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://cashmereradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://cashmereradio.com/">Info</button>
     </li>
 
     <li class="tile" data-id="noods" data-country="United Kingdom" data-code="BRS" data-lat="51.45" data-lon="-2.59" data-region="Europe" data-city="Bristol" data-tz="Europe/London" data-src="https://noods-radio.radiocult.fm/stream">
@@ -686,7 +754,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Noods Radio</span><span class="meta"><span>P9 · Bristol</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.noodsradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://www.noodsradio.com/">Info</button>
     </li>
 
     <li class="tile" data-id="stegi" data-country="Greece" data-code="ATH" data-lat="37.98" data-lon="23.73" data-region="Europe" data-city="Athens" data-tz="Europe/Athens" data-src="https://movementathens.out.airtime.pro/movementathens_a">
@@ -695,7 +763,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Stegi.Radio</span><span class="meta"><span>P10 · Athens</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://stegi.radio/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://stegi.radio/">Info</button>
     </li>
 
     <li class="tile" data-id="alhara" data-country="Palestine" data-code="BTH" data-lat="31.7" data-lon="35.2" data-region="Mid East" data-city="Bethlehem" data-tz="Asia/Hebron" data-src="https://stream.radioalhara.net/ra">
@@ -704,7 +772,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio alHara</span><span class="meta"><span>P11 · Bethlehem</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://radioalhara.net/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://radioalhara.net/">Info</button>
     </li>
 
 
@@ -714,7 +782,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rádio Batuta</span><span class="meta"><span>P12 · Rio</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://radiobatuta.com.br/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://radiobatuta.com.br/">Info</button>
     </li>
 
     <li class="tile" data-id="super45" data-country="Chile" data-code="SCL" data-lat="-33.45" data-lon="-70.67" data-region="Americas" data-city="Santiago" data-tz="America/Santiago" data-src="https://s4.radio.co/s421105570/listen">
@@ -723,7 +791,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Super45</span><span class="meta"><span>P13 · Santiago</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.super45.fm/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://www.super45.fm/">Info</button>
     </li>
 
     <li class="tile" data-id="radionica" data-country="Colombia" data-code="BOG" data-lat="4.71" data-lon="-74.07" data-region="Americas" data-city="Bogotá" data-tz="America/Bogota" data-src="https://streaming.rtvc.gov.co/Radio_Radionica/Radionica.stream/playlist.m3u8">
@@ -732,7 +800,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radiónica</span><span class="meta"><span>P14 · Bogotá</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.radionica.rocks/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://www.radionica.rocks/">Info</button>
     </li>
 
     <li class="tile" data-id="deepspace" data-country="United States" data-code="DET" data-lat="42.33" data-lon="-83.05" data-region="Americas" data-city="Detroit" data-tz="America/Detroit" data-src="https://streaming.live365.com/a71161">
@@ -741,7 +809,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Deep Space Radio</span><span class="meta"><span>P15 · Detroit</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://deepspaceradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://deepspaceradio.com/">Info</button>
     </li>
 
     <li class="tile" data-id="newtown" data-country="United States" data-code="NYC" data-lat="40.71" data-lon="-73.94" data-region="Americas" data-city="Brooklyn" data-tz="America/New_York" data-src="https://streaming.radio.co/s0d090ee43/listen">
@@ -750,7 +818,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Newtown Radio</span><span class="meta"><span>P16 · Brooklyn</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://newtownradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://newtownradio.com/">Info</button>
     </li>
 
     <li class="tile" data-id="wfmu" data-country="United States" data-code="NYC" data-lat="40.72" data-lon="-74.04" data-region="Americas" data-city="New York" data-tz="America/New_York" data-src="https://stream0.wfmu.org/freeform-128k">
@@ -759,7 +827,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">WFMU</span><span class="meta"><span>P17 · New York</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://wfmu.org/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://wfmu.org/">Info</button>
     </li>
 
     <li class="tile" data-id="hanoi" data-country="Vietnam" data-code="HAN" data-lat="21.03" data-lon="105.85" data-region="Asia–Pac" data-city="Hanoi" data-tz="Asia/Ho_Chi_Minh" data-src="https://ha-noi-community-radio.radiocult.fm/stream">
@@ -768,7 +836,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Hà Nội Community Radio</span><span class="meta"><span>P18 · Hanoi</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.hanoicommunityradio.com/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://www.hanoicommunityradio.com/">Info</button>
     </li>
 
     <li class="tile" data-id="bfm" data-country="Aotearoa New Zealand" data-code="AKL" data-lat="-36.85" data-lon="174.76" data-region="Asia–Pac" data-city="Auckland" data-tz="Pacific/Auckland" data-src="https://streams.95bfm.com/stream95">
@@ -777,7 +845,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name keepcase">95bFM</span><span class="meta"><span>P19 · Auckland</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://95bfm.com/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://95bfm.com/">Info</button>
     </li>
 
     <li class="tile" data-id="shonan" data-country="Japan" data-code="SHN" data-lat="35.30" data-lon="139.58" data-region="Asia–Pac" data-city="Shonan" data-tz="Asia/Tokyo" data-src="https://shonanbeachfm.out.airtime.pro/shonanbeachfm_a">
@@ -786,7 +854,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Shonan Beach FM</span><span class="meta"><span>P20 · Shonan</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://www.beachfm.co.jp/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://www.beachfm.co.jp/">Info</button>
     </li>
 
     <li class="tile" data-id="setagaya" data-country="Japan" data-code="TYO" data-lat="35.65" data-lon="139.65" data-region="Asia–Pac" data-city="Tokyo" data-tz="Asia/Tokyo" data-src="https://fmsetagaya834.out.airtime.pro/fmsetagaya834_a">
@@ -795,7 +863,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">FM Setagaya</span><span class="meta"><span>P21 · Tokyo</span><span class="clock"></span></span></span>
       </button>
-      <a class="sched" href="https://fmsetagaya.com/" target="_blank" rel="noopener">Schedule ↗</a>
+      <button class="sched" type="button" data-site="https://fmsetagaya.com/">Info</button>
     </li>
   </ol>
   </section>
@@ -873,13 +941,20 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   </section>
 </div>
 
+<div class="sheet-back" id="sheet-back" hidden></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+  <div class="sheet-grab" aria-hidden="true"></div>
+  <button class="sheet-x" id="sheet-x" type="button" aria-label="Close">×</button>
+  <div id="sheet-body"></div>
+</section>
+
 <div class="dock">
 <div class="player" role="region" aria-label="Player">
   <div class="progress" aria-hidden="true"><i id="prog"></i></div>
   <div class="player-inner">
     <div class="swatch" id="swatch"><img id="np-art" alt="" hidden><span class="eq"><i></i><i></i><i></i></span></div>
-    <div class="np">
-      <div class="np-status"><span class="dot"></span><span id="np-status">Tap a station to listen</span></div>
+    <div class="np" id="np" role="button" tabindex="0" aria-label="Now playing: details, track and history">
+      <div class="np-status"><span class="dot"></span><span id="np-status">Tap a station to listen</span><span class="np-more" aria-hidden="true">▲</span></div>
       <div class="np-name" id="np-name">Sintonia</div>
       <div class="np-show" id="np-show" hidden></div>
     </div>
@@ -927,7 +1002,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       country: el.dataset.country, code: el.dataset.code, region: el.dataset.region,
       lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon),
       c: cs.getPropertyValue("--c").trim(), t: cs.getPropertyValue("--t").trim(),
-      dot: cs.getPropertyValue("--dot").trim()
+      dot: cs.getPropertyValue("--dot").trim(),
+      site: el.querySelector(".sched").dataset.site
     };
   });
   const byId = Object.fromEntries(stations.map((s) => [s.id, s]));
@@ -1469,10 +1545,17 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     if (!raw) return null;
     const rerun = /\((r|repeat)\)/i.test(raw);
     const t = raw.replace(/\s*\((r|repeat)\)/ig, "");
+    if (mode === "pipe") { // "Song | Artist"
+      const i = t.indexOf(" | ");
+      const song = i > 0 ? { title: t.slice(0, i), artist: t.slice(i + 3) } : null;
+      return { title: song ? song.title : t, sub: song ? song.artist : "", song, start: Date.parse(tr.start_time), end: NaN, rerun };
+    }
     const cut = mode === "track" ? -1 : t.indexOf(" - ");
+    const d = t.indexOf(" - ");
     return {
       title: cut > 0 ? t.slice(0, cut) : t.replace(" - ", " – "),
       sub: cut > 0 ? t.slice(cut + 3) : "",
+      song: mode === "track" && d > 0 ? { artist: t.slice(0, d), title: t.slice(d + 3) } : null,
       start: Date.parse(tr.start_time), end: NaN, rerun
     };
   }
@@ -1486,6 +1569,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       title: title || artist, sub: title && artist ? artist : "",
       art: (tr && tr.art) || "",
       start: tr && tr.start ? Date.parse(String(tr.start).replace(" ", "T")) : NaN, end: NaN,
+      song: title ? { title, artist } : null,
       rerun: !dj, tag: dj ? "" : "Playlist" // no DJ on air: the station's own playlist
     };
   }
@@ -1515,6 +1599,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     return {
       title: generic && track ? track : (showClean || track),
       sub: generic && track ? showClean : (track && track !== showClean ? track : ""),
+      song: md.artist_name && md.track_title && track ? { title: clean(md.track_title), artist: clean(md.artist_name) } : null,
       start: toMs(show && show.starts), end: toMs(show && show.ends), rerun
     };
   }
@@ -1535,7 +1620,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     { url: "https://radioims.airtime.pro/api/live-info-v2", parse: (j) => ({ batuta: fromAirtime(j) }) },
     { url: "https://movementathens.airtime.pro/api/live-info-v2", parse: (j) => ({ stegi: fromAirtime(j) }) },
     { url: "https://public.radio.co/stations/s421105570/status", parse: (j) => ({ super45: fromRadioCo(j, "track") }) },
-    { url: "https://public.radio.co/stations/s0d090ee43/status", parse: (j) => ({ newtown: fromRadioCo(j) }) },
+    { url: "https://public.radio.co/stations/s0d090ee43/status", parse: (j) => ({ newtown: fromRadioCo(j, "pipe") }) },
     { url: "https://api.live365.com/station/a71161", parse: (j) => ({ deepspace: fromLive365(j) }) },
     { url: "https://shonanbeachfm.airtime.pro/api/live-info-v2", parse: (j) => ({ shonan: fromAirtime(j) }) },
     { url: "https://fmsetagaya834.airtime.pro/api/live-info-v2", parse: (j) => ({ setagaya: fromAirtime(j) }) }
@@ -1698,6 +1783,171 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   renderFavs();
   arrange();
 
+  /* ---------- station info for the Info sheet (draft texts, to be checked) ---------- */
+  const INFO = {
+    nts1: { desc: "Independent online radio from London with two live channels of shows by artists, DJs and collectives from all over the world.", since: "2011", plays: "Anything: jazz, ambient, club, rap, folk and the unclassifiable", lang: "English", by: "NTS, independent", support: "https://www.nts.live/supporters" },
+    nts2: { desc: "NTS’s second live channel: the same independent London radio, a different schedule.", since: "2011", plays: "Anything: jazz, ambient, club, rap, folk and the unclassifiable", lang: "English", by: "NTS, independent", support: "https://www.nts.live/supporters" },
+    refuge: { desc: "Community radio and fundraising platform from Berlin-Neukölln, with shows by local DJs, artists and collectives.", plays: "Club, experimental, soul, jazz and local scenes", lang: "English, German", by: "Refuge Worldwide, Berlin", support: "https://refugeworldwide.com/support" },
+    rinse: { desc: "Born as a London pirate station, the home of UK garage, grime and dubstep and of the city’s club scene.", since: "1994", plays: "UK garage, grime, dubstep, house, club", lang: "English", by: "Rinse, London" },
+    wwfm: { desc: "Founded by Gilles Peterson, broadcasting from London to the world.", since: "2016", plays: "Jazz, soul, Latin, electronic and global sounds", lang: "English", by: "Worldwide FM, London" },
+    kiosk: { desc: "Broadcasting live from a small wooden kiosk in the Parc Royal, in the middle of Brussels.", plays: "Electronic, experimental, jazz and Brussels’ own scene", lang: "French, Dutch, English", by: "Kiosk Radio, Brussels" },
+    raheem: { desc: "Independent radio from Milan, with shows by the city’s DJs, musicians and collectives.", plays: "Electronic, jazz, soul, experimental", lang: "Italian, English", by: "Radio Raheem, Milan" },
+    cashmere: { desc: "Non-profit radio for experimental music and sound from Berlin, run as an association.", plays: "Experimental, ambient, sound art, outsider music", lang: "English, German", by: "Cashmere Radio e.V., Berlin", support: "https://spenden.twingle.de/cashmere-radio-e-v/cashmere-radio-e-v/tw5d9bb6d582cf7/page" },
+    noods: { desc: "Independent community radio from Bristol, giving space to the city’s underground.", plays: "Club, dub, jazz, folk and everything in between", lang: "English", by: "Noods Radio, Bristol", support: "https://noodsradio.com/luvers" },
+    stegi: { desc: "The 24/7 online radio of Onassis Stegi, the Onassis Foundation’s cultural centre in Athens, with more than 160 producers.", plays: "Music, talks and sound art", lang: "Greek, English", by: "Onassis Stegi, Athens" },
+    alhara: { desc: "Started in Bethlehem by a group of friends in the spring of 2020, connecting Palestine and the Arab world through music.", since: "2020", plays: "Arabic music old and new, electronic, experimental", lang: "Arabic, English", by: "Radio alHara, Bethlehem" },
+    batuta: { desc: "The music radio of Instituto Moreira Salles in Rio de Janeiro, drawing on its archive of Brazilian music.", plays: "Samba, choro, MPB and Brazilian popular music", lang: "Portuguese", by: "Instituto Moreira Salles, Rio" },
+    super45: { desc: "Independent online radio from Santiago de Chile focused on new and independent music.", plays: "Indie, alternative, pop, electronic", lang: "Spanish", by: "Super45, Santiago", support: "https://www.super45.fm/club/" },
+    radionica: { desc: "The music station for young listeners of RTVC, Colombia’s public broadcaster.", plays: "Rock, alternative, electronic and Colombian independent music", lang: "Spanish", by: "RTVC, public broadcaster" },
+    deepspace: { desc: "Founded by Juan Atkins, one of the inventors of techno, with hosts such as DJ Minx and Stacey “Hotwaxx” Hale.", since: "2014", plays: "Detroit techno, house, electro and the soul and funk behind them", lang: "English", by: "Deep Space Radio, Detroit", support: "https://www.patreon.com/deepspaceradio" },
+    newtown: { desc: "Independent internet radio from Bushwick, Brooklyn: mostly live two-hour shows by local DJs, musicians and artists.", since: "2009", plays: "Open format: indie, rap, electronic, live sessions", lang: "English", by: "Newtown Radio, Brooklyn" },
+    wfmu: { desc: "Freeform, listener-supported, non-commercial radio: every DJ plays whatever they like.", since: "1958", plays: "Anything at all", lang: "English", by: "Auricle Communications, non-profit", support: "https://pledge.wfmu.org/donate" },
+    hanoi: { desc: "Community radio from Hanoi, giving space to the city’s DJs, musicians and creative scene.", plays: "Electronic, experimental, Vietnamese sounds", lang: "Vietnamese, English", by: "Hà Nội Community Radio" },
+    bfm: { desc: "Auckland’s student radio, a home for alternative and local New Zealand music.", plays: "Alternative, local New Zealand music, talk", lang: "English", by: "95bFM, Auckland", support: "https://95bfm.com/contribute" },
+    shonan: { desc: "Community FM from Zushi and Hayama on the Shonan coast, on air at 78.9 FM.", plays: "Relaxed music by the sea: jazz, soul, bossa", lang: "Japanese", by: "Shonan Beach FM, Zushi" },
+    setagaya: { desc: "Community FM for Tokyo’s Setagaya ward, on air at 83.4 FM.", plays: "Local programmes, music and community news", lang: "Japanese", by: "FM Setagaya, Tokyo" },
+  };
+
+  /* ---------- Now playing and Info sheets, songs heard, share ---------- */
+  const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const FIND = [
+    ["Spotify", (q) => "https://open.spotify.com/search/" + encodeURIComponent(q)],
+    ["Apple Music", (q) => "https://music.apple.com/search?term=" + encodeURIComponent(q)],
+    ["Bandcamp", (q) => "https://bandcamp.com/search?q=" + encodeURIComponent(q)],
+    ["YouTube", (q) => "https://www.youtube.com/results?search_query=" + encodeURIComponent(q)],
+  ];
+  const HEARD_KEY = "sintonia:heard";
+  let heard = [];
+  try { heard = JSON.parse(localStorage.getItem(HEARD_KEY) || "[]").filter((x) => x && x.title); } catch (e) {}
+
+  function noteHeard() { // remember songs heard while a station is actually playing
+    if (!current || state !== "live") return;
+    const info = live[current];
+    if (!info || !info.song || !info.song.title) return;
+    const k = current + "|" + (info.song.artist || "") + "|" + info.song.title;
+    if (heard.some((x) => x.k === k && Date.now() - x.t < 20 * 60000)) return;
+    heard.unshift({ k, id: current, title: info.song.title, artist: info.song.artist || "", t: Date.now() });
+    heard = heard.slice(0, 200);
+    writeKey(HEARD_KEY, JSON.stringify(heard));
+  }
+
+  function toast(msg) {
+    const t = document.createElement("div");
+    t.className = "toast"; t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 1600);
+  }
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast("Copied"), () => {});
+  }
+  function shareStation(id) {
+    const st = byId[id];
+    const info = live[id];
+    const url = location.origin + location.pathname + "#station=" + id;
+    const playing = current === id && (state === "live" || state === "loading");
+    const text = (playing ? "I’m listening to " : "Listen to ") + st.name + " from " + st.city + (info && info.title ? ": " + info.title : "") + ", on Sintonia";
+    if (navigator.share) navigator.share({ title: "Sintonia · " + st.name, text, url }).catch(() => {});
+    else copyText(text + " " + url);
+  }
+
+  const sheet = $("sheet"), sheetBack = $("sheet-back"), sheetBody = $("sheet-body");
+  let sheetOpen = "", sheetId = "";
+  function openSheet(kind, id) {
+    sheetOpen = kind; sheetId = id || "";
+    renderSheet();
+    sheet.hidden = false; sheetBack.hidden = false;
+    document.documentElement.classList.add("sheet-on");
+    sheet.scrollTop = 0;
+  }
+  function closeSheet() {
+    sheetOpen = "";
+    sheet.hidden = true; sheetBack.hidden = true;
+    document.documentElement.classList.remove("sheet-on");
+  }
+  function renderSheet() {
+    if (sheetOpen === "now") renderNow();
+    else if (sheetOpen === "info") renderInfo(sheetId);
+  }
+
+  function findsHtml(song) {
+    const q = (song.artist ? song.artist + " " : "") + song.title;
+    return '<div class="finds">' + FIND.map(([n, f]) => `<a class="find" href="${esc(f(q))}" target="_blank" rel="noopener">${n} ↗</a>`).join("") +
+      `<button class="find" type="button" data-act="copy" data-q="${esc(q)}">Copy</button></div>`;
+  }
+  function ago(t) {
+    const m = Math.round((Date.now() - t) / 60000);
+    if (m < 1) return "just now";
+    if (m < 60) return m + " min ago";
+    const d = new Date(t);
+    const today = new Date().toDateString() === d.toDateString();
+    return (today ? "" : d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + " ") + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  }
+  function heardHtml() {
+    let h = '<section class="sh-sec"><h3><span>Recently heard</span>' + (heard.length ? '<button class="sh-clear" type="button" data-act="clear">Clear</button>' : "") + "</h3>";
+    if (!heard.length) return h + '<p class="empty">Songs you hear on stations that publish them (Super45, Newtown, Deep Space, Rádio Batuta…) collect here, so you can find them later.</p></section>';
+    h += '<ul class="heard">' + heard.slice(0, 80).map((x) => {
+      const st = byId[x.id];
+      return `<li><details><summary><i style="background:${st ? st.dot : "var(--muted)"}"></i><span class="ht"><b>${esc(x.title)}</b>` +
+        `<span>${esc(x.artist)}${x.artist ? " · " : ""}${esc(st ? st.name : "")} · ${ago(x.t)}</span></span><small aria-hidden="true">›</small></summary>${findsHtml(x)}</details></li>`;
+    }).join("") + "</ul>";
+    return h + "</section>";
+  }
+  function headHtml(st, kicker, extra, acts) {
+    const keep = st.el.querySelector(".name").classList.contains("keepcase") ? " keepcase" : "";
+    return `<div class="sh-head" data-id="${st.id}"><span class="sh-k">${esc(kicker)}</span><h2 class="sh-name${keep}" id="sheet-title">${esc(st.name)}</h2>${extra}<div class="sh-acts">${acts}</div></div>`;
+  }
+  function renderNow() {
+    const st = current ? byId[current] : null;
+    if (!st) { sheetBody.innerHTML = '<div class="sheet-in"><p class="empty">Pick a station to start listening.</p>' + heardHtml() + "</div>"; return; }
+    const info = live[st.id], playing = state === "live" || state === "loading";
+    const k = { loading: "Tuning in · " + st.city, live: "Live from " + st.city, error: "Can’t reach " + st.name }[state] || "Paused · " + st.city;
+    const show = info && info.title ? `<p class="sh-show">${esc(info.title)}${info.sub ? `<span> · ${esc(info.sub)}</span>` : ""}</p>` : "";
+    let h = '<div class="sheet-in">' + headHtml(st, k, show,
+      `<button class="sh-btn" type="button" data-act="toggle">${playing ? "Stop" : "Play"}</button>` +
+      `<button class="sh-btn ghost" type="button" data-act="share" data-id="${st.id}">Share</button>` +
+      `<button class="sh-btn ghost" type="button" data-act="info" data-id="${st.id}">About</button>`);
+    h += '<section class="sh-sec"><h3><span>What’s this track?</span></h3>';
+    if (info && info.song) h += `<div class="song"><b>${esc(info.song.title)}</b><span>${esc(info.song.artist)}</span></div>` + findsHtml(info.song);
+    else h += `<p class="empty">${esc(st.name)} doesn’t say which song is playing${info && info.title ? ", only the show above" : ""}.</p>`;
+    h += "</section>" + heardHtml() + "</div>";
+    sheetBody.innerHTML = h;
+  }
+  function renderInfo(id) {
+    const st = byId[id];
+    if (!st) return;
+    const I = INFO[id] || {}, playing = current === id && (state === "live" || state === "loading");
+    let h = '<div class="sheet-in">' + headHtml(st, st.city + ", " + st.country, I.desc ? `<p class="sh-desc">${esc(I.desc)}</p>` : "",
+      `<button class="sh-btn" type="button" data-act="play" data-id="${id}">${playing ? "Stop" : "Listen"}</button>` +
+      `<button class="sh-btn ghost" type="button" data-act="pin" data-id="${id}">${favs.includes(id) ? "★ Pinned" : "☆ Pin"}</button>` +
+      `<button class="sh-btn ghost" type="button" data-act="share" data-id="${id}">Share</button>`);
+    const info = live[id];
+    const facts = [["On now", info && info.title ? info.title + (info.rerun ? " (" + (info.tag || "rerun").toLowerCase() + ")" : "") : ""], ["Local time", hhmm(Date.now(), st.tz)],
+      ["Since", I.since], ["Plays", I.plays], ["Languages", I.lang], ["Run by", I.by]].filter((f) => f[1]);
+    h += '<dl class="sh-facts">' + facts.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("") + "</dl>";
+    h += '<div class="sh-links">' + `<a href="${esc(st.site)}" target="_blank" rel="noopener">Website and schedule <span>↗</span></a>` +
+      (I.support ? `<a href="${esc(I.support)}" target="_blank" rel="noopener">Support ${esc(st.name)} <span>↗</span></a>` : "") + "</div></div>";
+    sheetBody.innerHTML = h;
+  }
+
+  sheet.addEventListener("click", (ev) => {
+    const a = ev.target.closest("[data-act]");
+    if (!a) return;
+    const id = a.dataset.id, act = a.dataset.act;
+    if (act === "toggle") { if (state === "live" || state === "loading") stop(); else if (current) start(current); }
+    else if (act === "play") { if (current === id && (state === "live" || state === "loading")) stop(); else start(id); }
+    else if (act === "pin") togglePin(id);
+    else if (act === "share") { shareStation(id); return; }
+    else if (act === "info") { openSheet("info", id); return; }
+    else if (act === "copy") { copyText(a.dataset.q); return; }
+    else if (act === "clear") { heard = []; writeKey(HEARD_KEY, "[]"); }
+    renderSheet();
+  });
+  sheetBack.addEventListener("click", closeSheet);
+  $("sheet-x").addEventListener("click", closeSheet);
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && sheetOpen) closeSheet(); });
+  $("np").addEventListener("click", () => openSheet("now"));
+  $("np").addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); openSheet("now"); } });
+
   /* ---------- playback ---------- */
   let current = null;
   let state = "idle"; // idle | loading | live | paused | error
@@ -1764,6 +2014,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     if ("mediaSession" in navigator) {
       try { navigator.mediaSession.playbackState = (state === "live" || state === "loading") ? "playing" : (st ? "paused" : "none"); } catch (e) {}
     }
+    noteHeard();
+    if (sheetOpen) renderSheet();
   }
 
   function updateProgress() {
@@ -1859,6 +2111,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
 
   $("view-stations").addEventListener("click", (ev) => {
+    const inf = ev.target.closest && ev.target.closest(".sched");
+    if (inf) { openSheet("info", inf.closest("[data-id]").dataset.id); return; }
     const pin = ev.target.closest && ev.target.closest(".pin");
     if (pin) { togglePin(pin.dataset.pin); return; }
     const btn = ev.target.closest && ev.target.closest(".tune");
@@ -1971,8 +2225,11 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     if (saved && byId[saved]) current = saved;
   } catch (e) {}
   if (fromHomeScreen && !readKey(NAME_KEY) && !readKey(ASKED_KEY)) openHello();
+  const deep = location.hash.match(/^#station=([a-z0-9-]+)$/i);
+  if (deep && byId[deep[1]]) { current = deep[1]; try { localStorage.setItem(KEY, current); } catch (e) {} }
   setState(current ? "paused" : "idle");
   showView(viewFromHash());
+  if (deep && byId[deep[1]]) { history.replaceState(null, "", location.pathname + location.search); openSheet("info", deep[1]); }
   tickClocks();
   fitNames();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitNames);
