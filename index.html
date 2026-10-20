@@ -50,7 +50,7 @@ window.SintoniaTheme = (function () {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Gloria+Hallelujah&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: two views switched by a bottom tab bar, like an iPhone app.
    Stations: on-air header, a tuning strip of cities ordered west to east, a live ticker and the station tiles.
@@ -173,21 +173,6 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .map-wrap { padding: 12px 10px 6px; }
 .map { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 144 / 54; overflow: visible; }
 .land { fill: none; stroke: var(--land); stroke-width: .66; stroke-linecap: round; }
-/* the logo: a child's handwriting in white wax crayon */
-h1.logo {
-  font-family: "Gloria Hallelujah", "Chalkboard SE", "Comic Sans MS", cursive;
-  font-weight: 400; font-stretch: normal; letter-spacing: 0;
-  font-size: clamp(46px, 13.5vw, 80px); line-height: 1.12; padding-bottom: 2px;
-}
-h1.logo span { display: inline-block; filter: url(#crayon); }
-h1.logo span:nth-child(1) { transform: rotate(-6deg); }
-h1.logo span:nth-child(2) { transform: rotate(4deg) translateY(.05em); }
-h1.logo span:nth-child(3) { transform: rotate(-3deg); }
-h1.logo span:nth-child(4) { transform: rotate(5deg) translateY(-.03em); }
-h1.logo span:nth-child(5) { transform: rotate(-4deg) translateY(.03em); }
-h1.logo span:nth-child(6) { transform: rotate(3deg); }
-h1.logo span:nth-child(7) { transform: rotate(-5deg) translateY(-.02em); }
-h1.logo span:nth-child(8) { transform: rotate(4deg) translateY(.02em); }
 
 .me { display: none; }
 .me.on { display: inline; }
@@ -508,15 +493,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 </style>
 </head>
 <body data-state="idle">
-<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-  <filter id="crayon" x="-5%" y="-5%" width="110%" height="110%">
-    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="grain"/>
-    <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -0.85 1.2" result="holes"/>
-    <feComposite in="SourceGraphic" in2="holes" operator="in" result="waxy"/>
-    <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="wobble"/>
-    <feDisplacementMap in="waxy" in2="wobble" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
-  </filter>
-</svg>
 
 <div class="wrap">
   <div class="topline">
@@ -526,7 +502,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   <main class="view" id="view-stations">
   <header class="hero">
-    <h1 class="logo" aria-label="Sintonia"><span aria-hidden="true">S</span><span aria-hidden="true">i</span><span aria-hidden="true">n</span><span aria-hidden="true">t</span><span aria-hidden="true">o</span><span aria-hidden="true">n</span><span aria-hidden="true">i</span><span aria-hidden="true">a</span></h1>
+    <h1>Sintonia</h1>
 
     <form class="hello-card" id="hello-card" autocomplete="on" hidden>
       <span class="k">Welcome</span>
