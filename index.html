@@ -142,6 +142,8 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .lg-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .lg-row i { flex: none; width: 9px; height: 9px; border-radius: 50%; box-sizing: border-box; }
 .lg-you { background: var(--live); }
+.lg-others { background: var(--ink); opacity: .85; }
+.others circle { fill: var(--ink); opacity: .85; }
 .lg-row span { min-width: 0; color: var(--muted); overflow-wrap: anywhere; }
 .lg-row b { color: var(--ink); font-weight: 600; }
 
@@ -411,6 +413,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   body[data-state="live"] .onair i { animation: pulse 2.4s ease-in-out infinite; }
   .me .core { animation: blink 1.4s ease-in-out infinite; }
   .me .ping { animation: ping 2.2s ease-out infinite; }
+  .others circle { animation: twinkle 3s ease-in-out infinite; }
+  @keyframes twinkle { 0%,100% { opacity: .9; } 50% { opacity: .35; } }
   body[data-state="live"] .me .ping { animation-duration: 1.4s; }
   @keyframes ping { from { transform: scale(.6); opacity: .9; } to { transform: scale(3.2); opacity: 0; } }
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
@@ -636,11 +640,13 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <div class="map-wrap">
         <svg class="map" viewBox="0 0 144 54" aria-hidden="true" focusable="false">
           <path class="land" id="land" d=""/>
+          <g class="others" id="others"></g>
           <g class="me" id="me"><circle class="ping" r="1.4"/><circle class="core" r="1.15"/></g>
         </svg>
       </div>
       <div class="legend" aria-live="polite">
         <div class="lg-row"><i class="lg-you"></i><span id="lg-you">You · location off</span></div>
+        <div class="lg-row" id="lg-others-row" hidden><i class="lg-others"></i><span id="lg-others"></span></div>
       </div>
     </div>
 
@@ -786,7 +792,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     if (locState === "asking") { t.textContent = "Finding you…"; b.textContent = "Locating…"; b.disabled = true; return; }
     if (locState === "ok" && me) {
       t.textContent = "You’re on the map";
-      p.textContent = fmtCoord(me.lat, "N", "S", 1) + " " + fmtCoord(me.lon, "E", "W", 1) + ", rounded to about 10 km. It stays on this phone.";
+      p.textContent = fmtCoord(me.lat, "N", "S", 1) + " " + fmtCoord(me.lon, "E", "W", 1) + ". " + SHARE_NOTE;
       b.textContent = "Update my location"; b.className = "btn ghost"; return;
     }
     if (locState === "denied") {
@@ -800,7 +806,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       b.textContent = "Try again"; return;
     }
     t.textContent = "See yourself on the map";
-    p.textContent = "Sintonia puts a red dot where you are. Your position stays on this phone.";
+    p.textContent = "Sintonia puts a red dot where you are. " + SHARE_NOTE;
     b.textContent = "Use my location";
   }
 
@@ -811,7 +817,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       // keep it coarse: one decimal is about 10 km
       me = { lat: Math.round(pos.coords.latitude * 10) / 10, lon: Math.round(pos.coords.longitude * 10) / 10 };
       writeKey(POS_KEY, JSON.stringify(me));
-      locState = "ok"; renderLocate(); renderMap();
+      locState = "ok"; renderLocate(); renderMap(); trackMe();
     }, (err) => {
       if (quiet && me) return;
       locState = err && err.code === 1 ? "denied" : "failed"; renderLocate();
@@ -820,6 +826,64 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   function refreshMyPosition() {
     if (!me || !navigator.permissions || !navigator.permissions.query) return;
     navigator.permissions.query({ name: "geolocation" }).then((p) => { if (p.state === "granted") locate(true); }).catch(() => {});
+  }
+
+  /* ---------- other listeners (Supabase Realtime presence, no database) ---------- */
+  // Filled in once the Supabase project exists. The key is the public "anon"/publishable key, safe in a web page.
+  const COMMUNITY = { url: "", key: "" };
+  const SHARING = !!(COMMUNITY.url && COMMUNITY.key);
+  const SHARE_NOTE = SHARING
+    ? "Other listeners see an anonymous dot near you (rounded to about 50 km), only while Sintonia is open."
+    : "Your position stays on this phone.";
+  let channel = null, others = [];
+  let myKey = "";
+  function listenerKey() { // random, anonymous, kept on this phone so a reload doesn't count twice
+    if (!myKey) {
+      try { myKey = localStorage.getItem("sintonia:id") || ""; } catch (e) {}
+      if (!myKey) { myKey = Math.random().toString(36).slice(2) + Date.now().toString(36); try { localStorage.setItem("sintonia:id", myKey); } catch (e) {} }
+    }
+    return myKey;
+  }
+  const coarse = (v) => Math.round(v * 2) / 2; // half a degree, about 50 km
+
+  function loadScript(src) {
+    return new Promise((ok, fail) => { const el = document.createElement("script"); el.src = src; el.onload = ok; el.onerror = fail; document.head.appendChild(el); });
+  }
+  function startPresence() {
+    if (!SHARING || channel) return;
+    loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js").then(() => {
+      const client = window.supabase.createClient(COMMUNITY.url, COMMUNITY.key, { auth: { persistSession: false, autoRefreshToken: false } });
+      channel = client.channel("sintonia-listeners", { config: { presence: { key: listenerKey() } } });
+      channel.on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        others = [];
+        Object.keys(state).forEach((k) => {
+          if (k === myKey) return;
+          const p = (state[k] || [])[0];
+          if (p && isFinite(p.lat) && isFinite(p.lon)) others.push({ lat: +p.lat, lon: +p.lon });
+        });
+        renderOthers();
+      }).subscribe((status) => { if (status === "SUBSCRIBED") trackMe(); });
+    }).catch(() => {});
+  }
+  function trackMe() {
+    if (!channel) return;
+    if (me) channel.track({ lat: coarse(me.lat), lon: coarse(me.lon) }).catch(() => {});
+  }
+  function renderOthers() {
+    const g = $("others");
+    while (g.firstChild) g.removeChild(g.firstChild);
+    others.forEach((o, i) => {
+      const [x, y] = mapXY(o.lat, o.lon);
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", x.toFixed(2)); c.setAttribute("cy", Math.min(54, Math.max(0, y)).toFixed(2)); c.setAttribute("r", ".9");
+      c.style.animationDelay = (-(i * 0.7) % 3) + "s";
+      g.appendChild(c);
+    });
+    const row = $("lg-others-row");
+    row.hidden = !SHARING;
+    $("lg-others").textContent = others.length === 0 ? "No one else is tuned in right now"
+      : others.length === 1 ? "1 other listener right now" : others.length + " other listeners right now";
   }
 
   function renderMap() {
@@ -1266,6 +1330,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(fitNames, 150); });
 
   refreshLive();
+  startPresence();
+  renderOthers();
   setInterval(tickClocks, 30000);
   setInterval(() => { if (!document.hidden || state === "live") refreshLive(); }, 60000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) { tickClocks(); refreshLive(); } });
