@@ -248,10 +248,6 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .mini .nm.keepcase { text-transform: none; }
 .mini .mm { font-family: var(--f-mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; opacity: .82; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mini.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--c); }
-.mini-empty {
-  flex: 1; margin: 0; min-height: 64px; display: grid; place-items: center; padding: 12px 16px; text-align: center;
-  border: 1.5px dashed var(--line); border-radius: 16px; color: var(--muted); font-size: 13px;
-}
 /* the star that pins a station to "Your stations" */
 .pin {
   appearance: none; -webkit-appearance: none; position: absolute; right: 6px; bottom: 6px; z-index: 2;
@@ -502,6 +498,26 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .sh-links { display: grid; gap: 8px; }
 .sh-links a { display: flex; justify-content: space-between; gap: 10px; padding: 13px 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14.5px; }
 .sh-links a span { color: var(--muted); }
+/* ---------- Share as a story: the picture, then the share sheet ---------- */
+.story { justify-items: center; text-align: center; gap: 14px; padding-top: 4px; }
+.story-h { margin: 0; padding: 0 46px; font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: 30px; line-height: .9; text-transform: uppercase; overflow-wrap: anywhere; }
+.story-h.keepcase { text-transform: none; }
+.story-prev {
+  position: relative; margin: 0; height: min(50vh, 520px); aspect-ratio: 9 / 16; border-radius: 16px; overflow: hidden;
+  background: var(--bg-2); border: 1px solid var(--line); box-shadow: 0 18px 50px -18px rgba(0, 0, 0, .7);
+}
+.story-prev img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.story-prev:not(.ready) img { visibility: hidden; }
+.story-wait { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; color: var(--muted); font-size: 13px; }
+.story-prev.ready .story-wait { display: none; }
+.story-acts { display: grid; gap: 10px; justify-items: center; width: 100%; max-width: 380px; }
+.sh-big {
+  display: block; width: 100%; box-sizing: border-box; appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; padding: 14px 18px; cursor: pointer;
+  font: inherit; font-size: 15.5px; font-weight: 600; text-decoration: none; text-align: center; background: var(--sc, var(--ink)); color: var(--st, var(--bg));
+}
+.sh-big:disabled, .sh-big[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+.story-tip { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; max-width: 34ch; }
+.story .finds { justify-content: center; }
 .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); transform: translateX(-50%); z-index: 50; background: var(--ink); color: var(--bg); padding: 9px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 600; pointer-events: none; }
 
 /* ---------- Rights notice: a slow ticker under the logo ---------- */
@@ -682,7 +698,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   </header>
 
-  <section class="sec" id="sec-fav" aria-labelledby="fav-h">
+  <section class="sec" id="sec-fav" aria-labelledby="fav-h" hidden>
     <h2 class="sec-h" id="fav-h"><span>Your stations</span></h2>
     <div class="favs" id="favs"></div>
   </section>
@@ -1167,6 +1183,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   const cam = { x: 0, y: (Y_TOP + Y_BOT) / 2, k: 1 }; // centre on the Mercator plane, pixels per radian
   let W = 0, H = 0, DPR = 1, viewReady = false, drawQueued = 0, flyAnim = 0;
   let landPath = null, landAsked = false;
+  const landWait = []; // who else is waiting for the land (the story picture)
 
   function loadLand() { // Natural Earth 1:50m land, simplified and packed as zigzag varints (land.bin)
     if (landAsked) return;
@@ -1185,7 +1202,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       }
       landPath = path;
       queueDraw();
-    }).catch(() => { landAsked = false; });
+      landWait.splice(0).forEach((f) => f());
+    }).catch(() => { landAsked = false; landWait.splice(0).forEach((f) => f()); });
   }
 
   const kMin = () => W / TAU;            // the whole world across the card
@@ -1737,13 +1755,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   function renderFavs() {
     const box = $("favs");
     box.textContent = "";
-    if (!favs.length) {
-      const p = document.createElement("p");
-      p.className = "mini-empty";
-      p.textContent = "Tap ☆ on a station to keep it here";
-      box.appendChild(p);
-      return;
-    }
+    $("sec-fav").hidden = !favs.length;
+    if (!favs.length) return;
     const now = Date.now();
     favs.forEach((id) => {
       const st = byId[id];
@@ -1817,25 +1830,25 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   /* ---------- station info for the Info sheet (draft texts, to be checked) ---------- */
   const INFO = {
-    nts1: { desc: "Independent online radio from London with two live channels of shows by artists, DJs and collectives from all over the world.", since: "2011", plays: "Anything: jazz, ambient, club, rap, folk and the unclassifiable", lang: "English", by: "NTS, independent", support: "https://www.nts.live/supporters" },
-    nts2: { desc: "NTS’s second live channel: the same independent London radio, a different schedule.", since: "2011", plays: "Anything: jazz, ambient, club, rap, folk and the unclassifiable", lang: "English", by: "NTS, independent", support: "https://www.nts.live/supporters" },
-    refuge: { desc: "Community radio and fundraising platform from Berlin-Neukölln, with shows by local DJs, artists and collectives.", plays: "Club, experimental, soul, jazz and local scenes", lang: "English, German", by: "Refuge Worldwide, Berlin", support: "https://refugeworldwide.com/support" },
+    nts1: { desc: "Independent online radio from London with two live channels of shows by artists, DJs and collectives from all over the world.", since: "2011", plays: "Anything: jazz, ambient, club, rap, folk and the unclassifiable", lang: "English", by: "NTS, independent" },
+    nts2: { desc: "NTS’s second live channel: the same independent London radio, a different schedule.", since: "2011", plays: "Anything: jazz, ambient, club, rap, folk and the unclassifiable", lang: "English", by: "NTS, independent" },
+    refuge: { desc: "Community radio and fundraising platform from Berlin-Neukölln, with shows by local DJs, artists and collectives.", plays: "Club, experimental, soul, jazz and local scenes", lang: "English, German", by: "Refuge Worldwide, Berlin" },
     rinse: { desc: "Born as a London pirate station, the home of UK garage, grime and dubstep and of the city’s club scene.", since: "1994", plays: "UK garage, grime, dubstep, house, club", lang: "English", by: "Rinse, London" },
     wwfm: { desc: "Founded by Gilles Peterson, broadcasting from London to the world.", since: "2016", plays: "Jazz, soul, Latin, electronic and global sounds", lang: "English", by: "Worldwide FM, London" },
     kiosk: { desc: "Broadcasting live from a small wooden kiosk in the Parc Royal, in the middle of Brussels.", plays: "Electronic, experimental, jazz and Brussels’ own scene", lang: "French, Dutch, English", by: "Kiosk Radio, Brussels" },
     raheem: { desc: "Independent radio from Milan, with shows by the city’s DJs, musicians and collectives.", plays: "Electronic, jazz, soul, experimental", lang: "Italian, English", by: "Radio Raheem, Milan" },
-    cashmere: { desc: "Non-profit radio for experimental music and sound from Berlin, run as an association.", plays: "Experimental, ambient, sound art, outsider music", lang: "English, German", by: "Cashmere Radio e.V., Berlin", support: "https://spenden.twingle.de/cashmere-radio-e-v/cashmere-radio-e-v/tw5d9bb6d582cf7/page" },
-    noods: { desc: "Independent community radio from Bristol, giving space to the city’s underground.", plays: "Club, dub, jazz, folk and everything in between", lang: "English", by: "Noods Radio, Bristol", support: "https://noodsradio.com/luvers" },
+    cashmere: { desc: "Non-profit radio for experimental music and sound from Berlin, run as an association.", plays: "Experimental, ambient, sound art, outsider music", lang: "English, German", by: "Cashmere Radio e.V., Berlin" },
+    noods: { desc: "Independent community radio from Bristol, giving space to the city’s underground.", plays: "Club, dub, jazz, folk and everything in between", lang: "English", by: "Noods Radio, Bristol" },
     stegi: { desc: "The 24/7 online radio of Onassis Stegi, the Onassis Foundation’s cultural centre in Athens, with more than 160 producers.", plays: "Music, talks and sound art", lang: "Greek, English", by: "Onassis Stegi, Athens" },
     alhara: { desc: "Started in Bethlehem by a group of friends in the spring of 2020, connecting Palestine and the Arab world through music.", since: "2020", plays: "Arabic music old and new, electronic, experimental", lang: "Arabic, English", by: "Radio alHara, Bethlehem" },
     batuta: { desc: "The music radio of Instituto Moreira Salles in Rio de Janeiro, drawing on its archive of Brazilian music.", plays: "Samba, choro, MPB and Brazilian popular music", lang: "Portuguese", by: "Instituto Moreira Salles, Rio" },
-    super45: { desc: "Independent online radio from Santiago de Chile focused on new and independent music.", plays: "Indie, alternative, pop, electronic", lang: "Spanish", by: "Super45, Santiago", support: "https://www.super45.fm/club/" },
+    super45: { desc: "Independent online radio from Santiago de Chile focused on new and independent music.", plays: "Indie, alternative, pop, electronic", lang: "Spanish", by: "Super45, Santiago" },
     radionica: { desc: "The music station for young listeners of RTVC, Colombia’s public broadcaster.", plays: "Rock, alternative, electronic and Colombian independent music", lang: "Spanish", by: "RTVC, public broadcaster" },
-    deepspace: { desc: "Founded by Juan Atkins, one of the inventors of techno, with hosts such as DJ Minx and Stacey “Hotwaxx” Hale.", since: "2014", plays: "Detroit techno, house, electro and the soul and funk behind them", lang: "English", by: "Deep Space Radio, Detroit", support: "https://www.patreon.com/deepspaceradio" },
+    deepspace: { desc: "Founded by Juan Atkins, one of the inventors of techno, with hosts such as DJ Minx and Stacey “Hotwaxx” Hale.", since: "2014", plays: "Detroit techno, house, electro and the soul and funk behind them", lang: "English", by: "Deep Space Radio, Detroit" },
     newtown: { desc: "Independent internet radio from Bushwick, Brooklyn: mostly live two-hour shows by local DJs, musicians and artists.", since: "2009", plays: "Open format: indie, rap, electronic, live sessions", lang: "English", by: "Newtown Radio, Brooklyn" },
-    wfmu: { desc: "Freeform, listener-supported, non-commercial radio: every DJ plays whatever they like.", since: "1958", plays: "Anything at all", lang: "English", by: "Auricle Communications, non-profit", support: "https://pledge.wfmu.org/donate" },
+    wfmu: { desc: "Freeform, listener-supported, non-commercial radio: every DJ plays whatever they like.", since: "1958", plays: "Anything at all", lang: "English", by: "Auricle Communications, non-profit" },
     hanoi: { desc: "Community radio from Hanoi, giving space to the city’s DJs, musicians and creative scene.", plays: "Electronic, experimental, Vietnamese sounds", lang: "Vietnamese, English", by: "Hà Nội Community Radio" },
-    bfm: { desc: "Auckland’s student radio, a home for alternative and local New Zealand music.", plays: "Alternative, local New Zealand music, talk", lang: "English", by: "95bFM, Auckland", support: "https://95bfm.com/contribute" },
+    bfm: { desc: "Auckland’s student radio, a home for alternative and local New Zealand music.", plays: "Alternative, local New Zealand music, talk", lang: "English", by: "95bFM, Auckland" },
     shonan: { desc: "Community FM from Zushi and Hayama on the Shonan coast, on air at 78.9 FM.", plays: "Relaxed music by the sea: jazz, soul, bossa", lang: "Japanese", by: "Shonan Beach FM, Zushi" },
     setagaya: { desc: "Community FM for Tokyo’s Setagaya ward, on air at 83.4 FM.", plays: "Local programmes, music and community news", lang: "Japanese", by: "FM Setagaya, Tokyo" },
   };
@@ -1869,8 +1882,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 1600);
   }
-  function copyText(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast("Copied"), () => {});
+  function copyText(text, msg) {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast(msg || "Copied"), () => {});
   }
   function shareStation(id) {
     const st = byId[id];
@@ -1880,6 +1893,305 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const text = (playing ? "I’m listening to " : "Listen to ") + st.name + " from " + st.city + (info && info.title ? ": " + info.title : "") + ", on Sintonia";
     if (navigator.share) navigator.share({ title: "Sintonia · " + st.name, text, url }).catch(() => {});
     else copyText(text + " " + url);
+  }
+
+  /* ---------- Share as a story: a 1080×1920 picture of the station, for Instagram stories and the like ---------- */
+  const STORY = { id: "", key: "", file: null, url: "", tok: 0 };
+  const S_W = 1080, S_H = 1920, S_BG = "#0C0D11", S_BG2 = "#15171E", S_INK = "#F3EFE6", S_LAND = "#343947", S_LIVE = "#FF4D3F";
+  const fName = (px) => "850 extra-condensed " + px + 'px "Sintonia Narrow", Archivo, "Arial Narrow", sans-serif';
+  const fWord = (px) => "900 expanded " + px + 'px "Sintonia Wide", Archivo, "Helvetica Neue", sans-serif';
+  const fBody = (w, px) => w + " " + px + 'px "Instrument Sans", "Helvetica Neue", Arial, sans-serif';
+  const fMono = (px) => "500 " + px + 'px "IBM Plex Mono", Menlo, monospace';
+  const rgbOf = (c) => { const m = /^#?([0-9a-f]{6})$/i.exec(String(c).trim()); const n = m ? parseInt(m[1], 16) : 0x9B9BA8; return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+  const mixC = (a, b, t) => { const A = rgbOf(a), B = rgbOf(b); return "rgb(" + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",") + ")"; };
+  const rgba = (c, al) => "rgba(" + rgbOf(c).join(",") + "," + al + ")";
+  const same = (a, b) => { const k = (v) => String(v || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ""); return !!k(a) && k(a) === k(b); };
+  const stationUrl = (id) => location.origin + location.pathname + "#station=" + id;
+  let filesOk = null;
+  const canShareFiles = () => {
+    if (filesOk === null) {
+      try { filesOk = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [new File(["x"], "s.jpg", { type: "image/jpeg" })] })); } catch (e) { filesOk = false; }
+    }
+    return filesOk;
+  };
+
+  function storyData(id) {
+    const st = byId[id], info = live[id] || {};
+    const playing = current === id && (state === "live" || state === "loading");
+    const keep = st.el.querySelector(".name").classList.contains("keepcase");
+    return {
+      st, id,
+      kicker: playing ? "I’m listening to" : "Tune in to",
+      name: keep ? st.name : st.name.toUpperCase(),
+      place: st.city + ", " + st.country,
+      show: info.title || "",
+      song: info.song && info.song.title && !same(info.title, (info.song.artist || "") + info.song.title) ? (info.song.artist ? info.song.artist + " – " : "") + info.song.title : "",
+      chip: !info.title ? "" : info.rerun ? (info.tag || "Rerun") : "On air",
+      live: !!(info.title && !info.rerun),
+    };
+  }
+  const storyKey = (id) => { const d = storyData(id); return [id, d.kicker, d.show, d.song, d.chip].join("|"); };
+
+  // letter-spaced text, measured by hand since canvas letterSpacing is not everywhere yet
+  const spacedW = (c, text, ls) => [...text].reduce((a, ch) => a + c.measureText(ch).width, 0) + ls * Math.max(0, [...text].length - 1);
+  function spaced(c, text, x, y, ls, align) {
+    let cx = align === "center" ? x - spacedW(c, text, ls) / 2 : align === "right" ? x - spacedW(c, text, ls) : x;
+    c.textAlign = "left";
+    for (const ch of text) { c.fillText(ch, cx, y); cx += c.measureText(ch).width + ls; }
+  }
+  function clip1(c, text, maxW) {
+    if (c.measureText(text).width <= maxW) return text;
+    while (text.length > 1 && c.measureText(text + "…").width > maxW) text = text.slice(0, -1).trimEnd();
+    return text + "…";
+  }
+  function wrap(c, text, maxW, maxLines) {
+    const lines = [];
+    let line = "";
+    for (const w of String(text).split(/\s+/).filter(Boolean)) {
+      const t = line ? line + " " + w : w;
+      if (!line || c.measureText(t).width <= maxW) line = t; else { lines.push(line); line = w; }
+    }
+    if (line) lines.push(line);
+    if (maxLines && lines.length > maxLines) lines.push(lines.splice(maxLines - 1).join(" "));
+    return lines.map((l) => clip1(c, l, maxW));
+  }
+  function fitName(c, name, maxW, maxH) {
+    for (let px = 236; px >= 96; px -= 4) {
+      c.font = fName(px);
+      if (name.split(/\s+/).some((w) => c.measureText(w).width > maxW)) continue;
+      const lines = wrap(c, name, maxW);
+      if (lines.length <= 3 && lines.length * px * 0.9 <= maxH) return { px, lines };
+    }
+    c.font = fName(96);
+    return { px: 96, lines: wrap(c, name, maxW, 3) };
+  }
+  function rrect(c, x, y, w, h, r) {
+    c.beginPath(); c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+  }
+  function storyLogo(c, x, y, h) { // Sofia's cat sticker, straight from the logo in the page
+    const sk = document.querySelector(".logo-mark .lm-sticker"), cat = document.querySelector(".logo-mark .lm-cat");
+    if (!sk || !cat || !window.Path2D) return 0;
+    c.save(); c.translate(x, y); c.scale(h / 915, h / 915);
+    c.fillStyle = S_INK; c.fill(new Path2D(sk.getAttribute("d")));
+    c.fillStyle = S_BG; c.fill(new Path2D(cat.getAttribute("d")), "evenodd");
+    c.restore();
+    return h * 854 / 915;
+  }
+  function storyChip(c, x, y, text, on) {
+    c.font = fMono(26);
+    const label = text.toUpperCase(), ls = 4, h = 54, pad = 20, dw = on ? 28 : 0;
+    const w = pad * 2 + dw + spacedW(c, label, ls);
+    rrect(c, x, y, w, h, 12);
+    c.fillStyle = on ? "#3A1210" : "rgba(12,13,17,.6)"; c.fill();
+    c.lineWidth = 3; c.strokeStyle = on ? S_LIVE : "rgba(243,239,230,.32)"; c.stroke();
+    if (on) { c.fillStyle = S_LIVE; c.beginPath(); c.arc(x + pad + 8, y + h / 2, 8, 0, TAU); c.fill(); }
+    c.fillStyle = on ? "#FFE9E6" : S_INK; c.textBaseline = "middle";
+    spaced(c, label, x + pad + dw, y + h / 2 + 1, ls);
+  }
+  function storyMap(c, st, x, y, w, h) { // the dot map of the app, around the station
+    const off = document.createElement("canvas"); off.width = w; off.height = h;
+    const o = off.getContext("2d");
+    const [cx, cy] = proj(st.lat, st.lon);
+    const k = w / (46 * RAD), S = 17, r = 5.4;
+    const at = (lat, lon) => { const [px, py] = proj(lat, lon); return [w / 2 + ((px - cx + Math.PI) % TAU + TAU) % TAU * k - Math.PI * k, h / 2 + (py - cy) * k]; };
+    if (landPath) {
+      const gw = Math.ceil(w / S), gh = Math.ceil(h / S);
+      const g = document.createElement("canvas"); g.width = gw; g.height = gh;
+      const gc = g.getContext("2d", { willReadFrequently: true });
+      gc.fillStyle = "#000";
+      const s = k / S / LAND_Q, ox = w / 2 - cx * k, oy = h / 2 - cy * k;
+      for (let m = -1; m <= 1; m++) { gc.setTransform(s, 0, 0, s, (ox + m * TAU * k) / S, oy / S); gc.fill(landPath, "evenodd"); }
+      const a = gc.getImageData(0, 0, gw, gh).data;
+      for (let j = 0; j < gh; j++) {
+        for (let i = 0; i < gw; i++) {
+          if (a[(j * gw + i) * 4 + 3] <= 72) continue;
+          const px = (i + 0.5) * S, py = (j + 0.5) * S;
+          const t = Math.max(0, 1 - Math.hypot(px - w / 2, py - h / 2) / (w * 0.42));
+          o.fillStyle = mixC(S_LAND, st.dot, t * t * 0.85);
+          o.beginPath(); o.arc(px, py, r, 0, TAU); o.fill();
+        }
+      }
+    }
+    // the other cities on Sintonia, small; this one big, with its glow
+    const boxes = [];
+    o.font = fMono(24); o.textBaseline = "middle";
+    const label = (text, px, py, half, col) => {
+      const tw = spacedW(o, text, 2);
+      for (const side of [1, -1]) {
+        const lx = side > 0 ? px + half + 12 : px - half - 12 - tw;
+        const b = { x0: lx - 4, x1: lx + tw + 4, y0: py - 16, y1: py + 16 };
+        if (b.x0 < 8 || b.x1 > w - 8 || boxes.some((q) => b.x0 < q.x1 && b.x1 > q.x0 && b.y0 < q.y1 && b.y1 > q.y0)) continue;
+        boxes.push(b); o.save(); o.shadowColor = "rgba(12,13,17,.95)"; o.shadowBlur = 10; o.fillStyle = col; spaced(o, text, lx, py + 1, 2); o.restore(); return;
+      }
+    };
+    const [hx, hy] = at(st.lat, st.lon);
+    const glow = o.createRadialGradient(hx, hy, 0, hx, hy, 150);
+    glow.addColorStop(0, rgba(st.dot, 0.55)); glow.addColorStop(1, rgba(st.dot, 0));
+    o.fillStyle = glow; o.fillRect(hx - 150, hy - 150, 300, 300);
+    boxes.push({ x0: hx - 22, x1: hx + 22, y0: hy - 22, y1: hy + 22 });
+    rrect(o, hx - 17, hy - 17, 34, 34, 7); o.fillStyle = st.dot; o.fill(); o.lineWidth = 5; o.strokeStyle = S_BG; o.stroke();
+    label(st.code, hx, hy, 17, S_INK);
+    cities.filter((ct) => ct.code !== st.code).forEach((ct) => {
+      const [px, py] = at(ct.lat, ct.lon);
+      if (px < 20 || px > w - 20 || py < 20 || py > h - 20) return;
+      boxes.push({ x0: px - 10, x1: px + 10, y0: py - 10, y1: py + 10 });
+      rrect(o, px - 8, py - 8, 16, 16, 4); o.fillStyle = "rgba(243,239,230,.5)"; o.fill();
+    });
+    cities.filter((ct) => ct.code !== st.code).forEach((ct) => {
+      const [px, py] = at(ct.lat, ct.lon);
+      if (px < 20 || px > w - 20 || py < 20 || py > h - 20) return;
+      label(ct.code, px, py, 8, "rgba(243,239,230,.5)");
+    });
+    // soft edges, no frame
+    o.globalCompositeOperation = "destination-in";
+    let f = o.createLinearGradient(0, 0, w, 0);
+    f.addColorStop(0, "rgba(0,0,0,0)"); f.addColorStop(0.1, "#000"); f.addColorStop(0.9, "#000"); f.addColorStop(1, "rgba(0,0,0,0)");
+    o.fillStyle = f; o.fillRect(0, 0, w, h);
+    f = o.createLinearGradient(0, 0, 0, h);
+    f.addColorStop(0, "rgba(0,0,0,0)"); f.addColorStop(0.14, "#000"); f.addColorStop(0.8, "#000"); f.addColorStop(1, "rgba(0,0,0,0)");
+    o.fillStyle = f; o.fillRect(0, 0, w, h);
+    c.drawImage(off, x, y);
+  }
+
+  function drawStory(d) {
+    const st = d.st, cv = document.createElement("canvas");
+    cv.width = S_W; cv.height = S_H;
+    const c = cv.getContext("2d"), M = 84;
+    c.fillStyle = S_BG; c.fillRect(0, 0, S_W, S_H);
+    let g = c.createRadialGradient(S_W / 2, 860, 0, S_W / 2, 860, 1000);
+    g.addColorStop(0, rgba(st.dot, 0.32)); g.addColorStop(1, rgba(st.dot, 0));
+    c.fillStyle = g; c.fillRect(0, 0, S_W, S_H);
+
+    // top: the cat and the wordmark (below the bar Instagram draws over a story)
+    const LY = 262, LH = 96;
+    const lw = storyLogo(c, M, LY, LH);
+    c.font = fWord(62); c.fillStyle = S_INK; c.textBaseline = "middle";
+    spaced(c, "Sintonia", M + lw + (lw ? 24 : 0), LY + LH / 2 + 4, -2.5);
+
+    // the card, measured before it is drawn
+    const CX = M, CW = S_W - 2 * M, P = 56, IW = CW - 2 * P, TOP = 414, ROOM = 1116;
+    c.font = fMono(28); const kick = clip1(c, d.kicker.toUpperCase(), IW);
+    const nm = fitName(c, d.name, IW, 420);
+    c.font = fMono(28); const place = clip1(c, d.place.toUpperCase() + " · " + hhmm(Date.now(), st.tz), IW);
+    c.font = fBody(600, 46); const show = d.show ? wrap(c, d.show, IW, 2) : [];
+    c.font = fBody(400, 38); const song = d.song ? wrap(c, "♪ " + d.song, IW, 2) : [];
+    const acc = /[^\x00-\x7F]/.test(d.name) ? nm.px * 0.14 : 0;
+    const rest = 30 + 34 + 22 + acc + nm.lines.length * nm.px * 0.9 + 24 + 34 + (show.length ? 40 + show.length * 56 : 0) + (song.length ? 16 + song.length * 48 : 0) + P;
+    const mapH = Math.round(Math.min(560, Math.max(250, ROOM - rest)));
+    const CH = Math.round(mapH + rest), CY = Math.round(TOP + Math.max(0, (ROOM - CH) / 2));
+
+    rrect(c, CX, CY, CW, CH, 44);
+    c.save(); c.clip();
+    c.fillStyle = mixC(S_BG2, st.dot, 0.12); c.fillRect(CX, CY, CW, CH);
+    const cs = getComputedStyle(st.el), pc = (v, dflt) => { const n = parseFloat(v); return isFinite(n) ? n / 100 : dflt; };
+    const gx = CX + CW * pc(cs.getPropertyValue("--ox"), 1), gy = CY + CH * pc(cs.getPropertyValue("--oy"), 0);
+    g = c.createRadialGradient(gx, gy, 0, gx, gy, CW * 1.2);
+    g.addColorStop(0, rgba(st.dot, 0.34)); g.addColorStop(0.7, rgba(st.dot, 0));
+    c.fillStyle = g; c.fillRect(CX, CY, CW, CH);
+    const gap = (parseFloat(cs.getPropertyValue("--gap")) || 13) * 3;
+    c.strokeStyle = "rgba(255,255,255,.035)"; c.lineWidth = 3;
+    for (let r = gap; r < 2600; r += gap) { c.beginPath(); c.arc(gx, gy, r, 0, TAU); c.stroke(); }
+    storyMap(c, st, CX, CY, CW, mapH);
+    c.restore();
+    rrect(c, CX + 1.5, CY + 1.5, CW - 3, CH - 3, 42.5);
+    c.lineWidth = 3; c.strokeStyle = rgba(st.dot, 0.45); c.stroke();
+    if (d.chip) storyChip(c, CX + 36, CY + 36, d.chip, d.live);
+
+    let y = CY + mapH + 30;
+    c.textBaseline = "alphabetic";
+    c.font = fMono(28); c.fillStyle = "rgba(243,239,230,.72)";
+    spaced(c, kick, CX + P, y + 26, 3.4); y += 34 + 22 + acc;
+    c.font = fName(nm.px); c.fillStyle = st.dot; c.textAlign = "left";
+    nm.lines.forEach((l) => { c.fillText(l, CX + P, y + nm.px * 0.76); y += nm.px * 0.9; });
+    y += 24;
+    c.font = fMono(28); c.fillStyle = "rgba(243,239,230,.72)";
+    spaced(c, place, CX + P, y + 26, 3.4); y += 34;
+    if (show.length) {
+      y += 40; c.font = fBody(600, 46); c.fillStyle = S_INK;
+      show.forEach((l) => { c.fillText(l, CX + P, y + 42); y += 56; });
+    }
+    if (song.length) {
+      y += 16; c.font = fBody(400, 38); c.fillStyle = "rgba(243,239,230,.75)";
+      song.forEach((l) => { c.fillText(l, CX + P, y + 36); y += 48; });
+    }
+
+    // bottom: where to find it (a Link sticker on top makes it tappable)
+    const where = (location.host + location.pathname).replace(/\/(index\.html)?$/, "");
+    c.font = fMono(28); c.fillStyle = "rgba(243,239,230,.62)"; c.textBaseline = "middle";
+    spaced(c, clip1(c, where, S_W - 2 * M), S_W / 2, Math.min(1592, CY + CH + 62), 1.5, "center");
+    return cv;
+  }
+
+  let facesP = null;
+  function storyFaces() { // Safari's canvas ignores font-stretch: Archivo is added twice more with the width fixed, narrow for names and wide for the wordmark
+    if (!facesP) {
+      facesP = !window.FontFace ? Promise.resolve() : fetch("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap")
+        .then((r) => r.text()).then((css) => {
+          for (const m of css.matchAll(/@font-face\s*{([^}]*)}/g)) {
+            const src = /src:\s*([^;]+);/.exec(m[1]), ur = /unicode-range:\s*([^;]+);/.exec(m[1]);
+            if (!src || !/font-family:\s*['"]?Archivo['"]?\s*;/.test(m[1])) continue;
+            const d = ur ? { unicodeRange: ur[1].trim() } : {};
+            document.fonts.add(new FontFace("Sintonia Narrow", src[1], Object.assign({ weight: "500 900", stretch: "62.5%" }, d)));
+            document.fonts.add(new FontFace("Sintonia Wide", src[1], Object.assign({ weight: "500 900", stretch: "125%" }, d)));
+          }
+        }).catch(() => {});
+    }
+    return facesP;
+  }
+  function storyFonts(d) {
+    if (!document.fonts || !document.fonts.load) return Promise.resolve();
+    const text = d.name + d.kicker.toUpperCase() + d.place.toUpperCase() + d.show + d.song + "Sintonia ONAIRERUN0123456789:·♪–" + location.host + location.pathname;
+    return storyFaces().then(() => Promise.all([fName(100), fWord(62), fBody(600, 46), fBody(400, 38), fMono(28)].map((f) => document.fonts.load(f, text).catch(() => {}))));
+  }
+  function landReady() { return landPath ? Promise.resolve() : new Promise((res) => { landWait.push(res); loadLand(); }); }
+
+  function makeStory(id) {
+    const tok = ++STORY.tok;
+    const d0 = storyData(id);
+    Promise.race([Promise.all([storyFonts(d0), landReady()]), new Promise((r) => setTimeout(r, 2500))]).then(() => {
+      if (tok !== STORY.tok) return;
+      const cv = drawStory(storyData(id));
+      cv.toBlob((blob) => {
+        if (tok !== STORY.tok || !blob) return;
+        if (STORY.url) URL.revokeObjectURL(STORY.url);
+        STORY.url = URL.createObjectURL(blob);
+        try { STORY.file = new File([blob], "sintonia-" + id + ".jpg", { type: "image/jpeg" }); } catch (e) { STORY.file = null; }
+        const img = $("story-img"), fig = sheetBody.querySelector(".story-prev");
+        if (!img) return;
+        img.src = STORY.url;
+        img.alt = "Story picture: " + d0.kicker + " " + byId[id].name + ", " + byId[id].city;
+        if (fig) fig.classList.add("ready");
+        const go = sheetBody.querySelector('[data-act="story"]');
+        if (go) go.disabled = !STORY.file;
+        const save = $("story-save");
+        if (save) { save.href = STORY.url; save.removeAttribute("aria-disabled"); }
+      }, "image/jpeg", 0.92);
+    });
+  }
+  function renderShare(id) {
+    const st = byId[id];
+    if (!st) return;
+    const key = storyKey(id), there = sheetBody.querySelector(".story");
+    if (there && STORY.id === id && STORY.key === key) return; // nothing new to draw: leave the picture alone
+    if (!there || STORY.id !== id) {
+      STORY.file = null;
+      const keep = st.el.querySelector(".name").classList.contains("keepcase") ? " keepcase" : "";
+      const files = canShareFiles();
+      sheetBody.innerHTML = `<div class="sheet-in story" style="--sc:${esc(st.c)};--st:${esc(st.t)}">` +
+        `<h2 class="story-h${keep}" id="sheet-title">Share ${esc(st.name)}</h2>` +
+        '<figure class="story-prev"><img id="story-img" alt=""><span class="story-wait">Drawing your story…</span></figure>' +
+        '<div class="story-acts">' +
+        (files ? '<button class="sh-big" type="button" data-act="story" disabled>Share as a story</button>'
+          : `<a class="sh-big" id="story-save" download="sintonia-${id}.jpg" aria-disabled="true">Save the picture</a>`) +
+        `<p class="story-tip">${files ? "Pick Instagram, then Story." : "Then post it as a story from Instagram."} To make it tappable, add a Link sticker and paste the station’s link.</p>` +
+        `<div class="finds"><button class="find" type="button" data-act="copylink" data-id="${id}">Copy link</button>` +
+        `<button class="find" type="button" data-act="link" data-id="${id}">Share link only</button></div>` +
+        "</div></div>";
+    }
+    STORY.id = id; STORY.key = key;
+    makeStory(id);
   }
 
   const sheet = $("sheet"), sheetBack = $("sheet-back"), sheetBody = $("sheet-body");
@@ -1892,11 +2204,13 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
   function closeSheet() {
     sheetOpen = "";
+    STORY.tok++; STORY.id = "";
     sheet.hidden = true; sheetBack.hidden = true;
   }
   function renderSheet() {
     if (sheetOpen === "now") renderNow();
     else if (sheetOpen === "info") renderInfo(sheetId);
+    else if (sheetOpen === "share") renderShare(sheetId);
   }
 
   function findsHtml(song) {
@@ -1955,7 +2269,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       ["Since", I.since], ["Plays", I.plays], ["Languages", I.lang], ["Run by", I.by]].filter((f) => f[1]);
     h += '<dl class="sh-facts">' + facts.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("") + "</dl>";
     h += '<div class="sh-links">' + `<a href="${esc(st.site)}" target="_blank" rel="noopener">Website and schedule <span>↗</span></a>` +
-      (I.support ? `<a href="${esc(I.support)}" target="_blank" rel="noopener">Support ${esc(st.name)} <span>↗</span></a>` : "") + "</div></div>";
+      "</div></div>";
     sheetBody.innerHTML = h;
   }
 
@@ -1966,7 +2280,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     if (act === "toggle") { if (state === "live" || state === "loading") stop(); else if (current) start(current); }
     else if (act === "play") { if (current === id && (state === "live" || state === "loading")) stop(); else start(id); }
     else if (act === "pin") togglePin(id);
-    else if (act === "share") { shareStation(id); return; }
+    else if (act === "share") { openSheet("share", id); return; }
+    else if (act === "story") { if (STORY.file) navigator.share({ files: [STORY.file] }).catch(() => {}); return; }
+    else if (act === "copylink") { copyText(stationUrl(id), "Link copied"); return; }
+    else if (act === "link") { shareStation(id); return; }
     else if (act === "info") { openSheet("info", id); return; }
     else if (act === "copy") { copyText(a.dataset.q); return; }
     else if (act === "clear") { heard = []; writeKey(HEARD_KEY, "[]"); }
