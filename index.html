@@ -1869,12 +1869,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   /* ---------- Now playing and Info sheets, songs heard, share ---------- */
   const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-  const FIND = [
-    ["Spotify", (q) => "https://open.spotify.com/search/" + encodeURIComponent(q)],
-    ["Apple Music", (q) => "https://music.apple.com/search?term=" + encodeURIComponent(q)],
-    ["Bandcamp", (q) => "https://bandcamp.com/search?q=" + encodeURIComponent(q)],
-    ["YouTube", (q) => "https://www.youtube.com/results?search_query=" + encodeURIComponent(q)],
-  ];
   const HEARD_KEY = "sintonia:heard";
   let heard = [];
   try { heard = JSON.parse(localStorage.getItem(HEARD_KEY) || "[]").filter((x) => x && x.title); } catch (e) {}
@@ -2251,8 +2245,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   function findsHtml(song) {
     const q = (song.artist ? song.artist + " " : "") + song.title;
-    return '<div class="finds">' + FIND.map(([n, f]) => `<a class="find" href="${esc(f(q))}" target="_blank" rel="noopener">${n} ↗</a>`).join("") +
-      `<button class="find" type="button" data-act="copy" data-q="${esc(q)}">Copy</button></div>`;
+    return `<div class="finds"><button class="find" type="button" data-act="copy" data-q="${esc(q)}">Copy artist and title</button></div>`;
   }
   function ago(t) {
     const m = Math.round((Date.now() - t) / 60000);
