@@ -95,6 +95,8 @@ body {
 }
 .wrap { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 button { font: inherit; color: inherit; }
+/* an app, not a web page: a quick second tap never zooms in (the map keeps its own gestures) */
+html, body, * { touch-action: manipulation; }
 
 /* ---------- Header ---------- */
 .hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
@@ -1491,6 +1493,14 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     if (!$("view-map").hidden) { loadLand(); queueDraw(); }
   }
 
+
+  // iPhone: a quick second tap on text or empty space would still zoom the page like a website
+  let pageTap = 0;
+  document.addEventListener("touchend", (e) => {
+    const t = e.timeStamp, quick = t - pageTap < 350;
+    pageTap = t;
+    if (quick && e.cancelable && !e.touches.length && !(e.target.closest && e.target.closest("button, a, input, textarea, select, label, summary, [role='button'], [data-act], .tile, .mini, #map"))) e.preventDefault();
+  }, { passive: false });
 
   /* ---------- views and tab bar ---------- */
   const views = { stations: $("view-stations"), map: $("view-map"), settings: $("view-settings") };
