@@ -386,13 +386,14 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 /* ---------- Glass and glow: stations are tinted glass; the one you play lights up and colours the app ---------- */
 html { background: var(--bg); }
 body { background: transparent; }
-html::before {
-  content: ""; position: fixed; left: -30vw; right: -30vw; top: -28vh; height: 85vh; pointer-events: none; z-index: 0;
-  background: radial-gradient(55% 55% at 50% 32%, color-mix(in srgb, var(--glow, transparent) 40%, transparent), transparent 72%);
+.wrap { position: relative; z-index: 1; }
+.wrap::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  left: -40%; right: -40%; top: calc(-260px - env(safe-area-inset-top, 0px)); height: 760px;
+  background: radial-gradient(50% 50% at 50% 42%, color-mix(in srgb, var(--glow, transparent) 40%, transparent), transparent 72%);
   opacity: .5; transition: opacity .8s ease;
 }
-html[data-state="live"]::before, html[data-state="loading"]::before { opacity: 1; }
-.wrap { position: relative; z-index: 1; }
+html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before { opacity: 1; }
 .dock { background: var(--dock-glow, var(--dock)); }
 .tile:not(.on), .mini:not(.on) {
   background:
@@ -439,7 +440,6 @@ html[data-state="live"]::before, html[data-state="loading"]::before { opacity: 1
 /* ---------- Sheets: Now playing (track, songs heard) and station Info ---------- */
 .np { cursor: pointer; }
 .np-more { display: inline-block; margin-left: 6px; opacity: .7; font-size: 10px; }
-html.sheet-on, html.sheet-on body { overflow: hidden; }
 .sheet-back { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .5); }
 .sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 88vh; overflow-y: auto; overscroll-behavior: contain;
@@ -553,6 +553,13 @@ html.sheet-on, html.sheet-on body { overflow: hidden; }
   -webkit-backdrop-filter: blur(20px) saturate(150%);
   backdrop-filter: blur(20px) saturate(150%);
   border-top: 1px solid var(--line);
+  -webkit-transform: translateZ(0); transform: translateZ(0);
+}
+/* a strip under the status bar and the Dynamic Island, so the page doesn't scroll beneath them (0 tall where there is none) */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 25; height: env(safe-area-inset-top, 0px); pointer-events: none;
+  background: var(--dock); -webkit-backdrop-filter: blur(20px) saturate(150%); backdrop-filter: blur(20px) saturate(150%);
+  -webkit-transform: translateZ(0); transform: translateZ(0);
 }
 .player {
   position: relative;
@@ -649,6 +656,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 </style>
 </head>
 <body data-state="idle">
+<div class="topbar" aria-hidden="true"></div>
 
 <div class="wrap">
   <div class="topline">
@@ -1880,13 +1888,11 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     sheetOpen = kind; sheetId = id || "";
     renderSheet();
     sheet.hidden = false; sheetBack.hidden = false;
-    document.documentElement.classList.add("sheet-on");
     sheet.scrollTop = 0;
   }
   function closeSheet() {
     sheetOpen = "";
     sheet.hidden = true; sheetBack.hidden = true;
-    document.documentElement.classList.remove("sheet-on");
   }
   function renderSheet() {
     if (sheetOpen === "now") renderNow();
@@ -1967,6 +1973,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     renderSheet();
   });
   sheetBack.addEventListener("click", closeSheet);
+  sheetBack.addEventListener("touchmove", (ev) => ev.preventDefault(), { passive: false });
   $("sheet-x").addEventListener("click", closeSheet);
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && sheetOpen) closeSheet(); });
   $("np").addEventListener("click", () => openSheet("now"));
