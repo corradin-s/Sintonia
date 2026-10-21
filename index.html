@@ -510,6 +510,10 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .story-prev:not(.ready) img { visibility: hidden; }
 .story-wait { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; color: var(--muted); font-size: 13px; }
 .story-prev.ready .story-wait { display: none; }
+.seg.story-mode { grid-template-columns: repeat(2, minmax(0, 1fr)); width: 190px; background: var(--bg-2); }
+.seg.story-mode button { padding: 8px 0; font-size: 13.5px; }
+.story-prev img { transition: opacity .2s; }
+.story-prev.busy img { opacity: .55; }
 .story-acts { display: grid; gap: 10px; justify-items: center; width: 100%; max-width: 380px; }
 .sh-big {
   display: block; width: 100%; box-sizing: border-box; appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; padding: 14px 18px; cursor: pointer;
@@ -1897,7 +1901,13 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   /* ---------- Share as a story: a 1080×1920 picture of the station, for Instagram stories and the like ---------- */
   const STORY = { id: "", key: "", file: null, url: "", tok: 0 };
-  const S_W = 1080, S_H = 1920, S_BG = "#0C0D11", S_BG2 = "#15171E", S_INK = "#F3EFE6", S_LAND = "#343947", S_LIVE = "#FF4D3F";
+  const S_W = 1080, S_H = 1920;
+  const S_PAL = { // the app's two looks; the station colour is added when a picture is drawn
+    dark:  { bg: "#0C0D11", bg2: "#15171E", ink: "#F3EFE6", land: "#343947", live: "#FF4D3F", liveBg: "#3A1210", liveInk: "#FFE9E6", sticker: "#F3EFE6", ring: "rgba(255,255,255,.035)", chip: "rgba(12,13,17,.6)", glow: 0.32, tint: 0.12, wash: 0.34, edge: 0.45 },
+    light: { bg: "#F1F2F4", bg2: "#FFFFFF", ink: "#15171C", land: "#C5CAD3", live: "#E5352B", liveBg: "#FFE3E0", liveInk: "#B3261E", sticker: "#FFFFFF", ring: "rgba(0,0,0,.04)", chip: "rgba(255,255,255,.8)", glow: 0.22, tint: 0.14, wash: 0.42, edge: 0.55 },
+  };
+  let SP = S_PAL.dark;
+  const storyMode = () => readKey("sintonia:story") || (document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
   const fName = (px) => "850 extra-condensed " + px + 'px "Sintonia Narrow", Archivo, "Arial Narrow", sans-serif';
   const fWord = (px) => "900 expanded " + px + 'px "Sintonia Wide", Archivo, "Helvetica Neue", sans-serif';
   const fBody = (w, px) => w + " " + px + 'px "Instrument Sans", "Helvetica Neue", Arial, sans-serif';
@@ -1905,6 +1915,15 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   const rgbOf = (c) => { const m = /^#?([0-9a-f]{6})$/i.exec(String(c).trim()); const n = m ? parseInt(m[1], 16) : 0x9B9BA8; return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
   const mixC = (a, b, t) => { const A = rgbOf(a), B = rgbOf(b); return "rgb(" + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",") + ")"; };
   const rgba = (c, al) => "rgba(" + rgbOf(c).join(",") + "," + al + ")";
+  const lum = (c) => { const [r, g, b] = rgbOf(c).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const deepen = (c, max) => { // the same colour, darker until it reads on a light ground
+    const A = rgbOf(c);
+    for (let t = 0; t <= 1; t += 0.02) {
+      const x = "#" + A.map((v) => Math.round(v * (1 - t)).toString(16).padStart(2, "0")).join("");
+      if (lum(x) <= max) return x;
+    }
+    return "#000000";
+  };
   const same = (a, b) => { const k = (v) => String(v || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ""); return !!k(a) && k(a) === k(b); };
   const stationUrl = (id) => location.origin + location.pathname + "#station=" + id;
   let filesOk = null;
@@ -1928,9 +1947,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       song: info.song && info.song.title && !same(info.title, (info.song.artist || "") + info.song.title) ? (info.song.artist ? info.song.artist + " – " : "") + info.song.title : "",
       chip: !info.title ? "" : info.rerun ? (info.tag || "Rerun") : "On air",
       live: !!(info.title && !info.rerun),
+      mode: storyMode() === "light" ? "light" : "dark",
     };
   }
-  const storyKey = (id) => { const d = storyData(id); return [id, d.kicker, d.show, d.song, d.chip].join("|"); };
+  const storyKey = (id) => { const d = storyData(id); return [id, d.mode, d.kicker, d.show, d.song, d.chip].join("|"); };
 
   // letter-spaced text, measured by hand since canvas letterSpacing is not everywhere yet
   const spacedW = (c, text, ls) => [...text].reduce((a, ch) => a + c.measureText(ch).width, 0) + ls * Math.max(0, [...text].length - 1);
@@ -1974,8 +1994,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const sk = document.querySelector(".logo-mark .lm-sticker"), cat = document.querySelector(".logo-mark .lm-cat");
     if (!sk || !cat || !window.Path2D) return 0;
     c.save(); c.translate(x, y); c.scale(h / 915, h / 915);
-    c.fillStyle = S_INK; c.fill(new Path2D(sk.getAttribute("d")));
-    c.fillStyle = S_BG; c.fill(new Path2D(cat.getAttribute("d")), "evenodd");
+    if (SP === S_PAL.light) { c.shadowColor = "rgba(0,0,0,.16)"; c.shadowBlur = 14; c.shadowOffsetY = 3; }
+    c.fillStyle = SP.sticker; c.fill(new Path2D(sk.getAttribute("d")));
+    c.shadowColor = "transparent";
+    c.fillStyle = "#0C0D11"; c.fill(new Path2D(cat.getAttribute("d")), "evenodd");
     c.restore();
     return h * 854 / 915;
   }
@@ -1984,10 +2006,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const label = text.toUpperCase(), ls = 4, h = 54, pad = 20, dw = on ? 28 : 0;
     const w = pad * 2 + dw + spacedW(c, label, ls);
     rrect(c, x, y, w, h, 12);
-    c.fillStyle = on ? "#3A1210" : "rgba(12,13,17,.6)"; c.fill();
-    c.lineWidth = 3; c.strokeStyle = on ? S_LIVE : "rgba(243,239,230,.32)"; c.stroke();
-    if (on) { c.fillStyle = S_LIVE; c.beginPath(); c.arc(x + pad + 8, y + h / 2, 8, 0, TAU); c.fill(); }
-    c.fillStyle = on ? "#FFE9E6" : S_INK; c.textBaseline = "middle";
+    c.fillStyle = on ? SP.liveBg : SP.chip; c.fill();
+    c.lineWidth = 3; c.strokeStyle = on ? SP.live : rgba(SP.ink, 0.32); c.stroke();
+    if (on) { c.fillStyle = SP.live; c.beginPath(); c.arc(x + pad + 8, y + h / 2, 8, 0, TAU); c.fill(); }
+    c.fillStyle = on ? SP.liveInk : SP.ink; c.textBaseline = "middle";
     spaced(c, label, x + pad + dw, y + h / 2 + 1, ls);
   }
   function storyMap(c, st, x, y, w, h) { // the dot map of the app, around the station
@@ -2009,7 +2031,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
           if (a[(j * gw + i) * 4 + 3] <= 72) continue;
           const px = (i + 0.5) * S, py = (j + 0.5) * S;
           const t = Math.max(0, 1 - Math.hypot(px - w / 2, py - h / 2) / (w * 0.42));
-          o.fillStyle = mixC(S_LAND, st.dot, t * t * 0.85);
+          o.fillStyle = mixC(SP.land, SP.mark, t * t * 0.85);
           o.beginPath(); o.arc(px, py, r, 0, TAU); o.fill();
         }
       }
@@ -2023,26 +2045,26 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         const lx = side > 0 ? px + half + 12 : px - half - 12 - tw;
         const b = { x0: lx - 4, x1: lx + tw + 4, y0: py - 16, y1: py + 16 };
         if (b.x0 < 8 || b.x1 > w - 8 || boxes.some((q) => b.x0 < q.x1 && b.x1 > q.x0 && b.y0 < q.y1 && b.y1 > q.y0)) continue;
-        boxes.push(b); o.save(); o.shadowColor = "rgba(12,13,17,.95)"; o.shadowBlur = 10; o.fillStyle = col; spaced(o, text, lx, py + 1, 2); o.restore(); return;
+        boxes.push(b); o.save(); o.shadowColor = rgba(SP.bg, 0.95); o.shadowBlur = 10; o.fillStyle = col; spaced(o, text, lx, py + 1, 2); o.restore(); return;
       }
     };
     const [hx, hy] = at(st.lat, st.lon);
     const glow = o.createRadialGradient(hx, hy, 0, hx, hy, 150);
-    glow.addColorStop(0, rgba(st.dot, 0.55)); glow.addColorStop(1, rgba(st.dot, 0));
+    glow.addColorStop(0, rgba(SP.col, 0.55)); glow.addColorStop(1, rgba(SP.col, 0));
     o.fillStyle = glow; o.fillRect(hx - 150, hy - 150, 300, 300);
     boxes.push({ x0: hx - 22, x1: hx + 22, y0: hy - 22, y1: hy + 22 });
-    rrect(o, hx - 17, hy - 17, 34, 34, 7); o.fillStyle = st.dot; o.fill(); o.lineWidth = 5; o.strokeStyle = S_BG; o.stroke();
-    label(st.code, hx, hy, 17, S_INK);
+    rrect(o, hx - 17, hy - 17, 34, 34, 7); o.fillStyle = SP.mark; o.fill(); o.lineWidth = 5; o.strokeStyle = SP.bg; o.stroke();
+    label(st.code, hx, hy, 17, SP.ink);
     cities.filter((ct) => ct.code !== st.code).forEach((ct) => {
       const [px, py] = at(ct.lat, ct.lon);
       if (px < 20 || px > w - 20 || py < 20 || py > h - 20) return;
       boxes.push({ x0: px - 10, x1: px + 10, y0: py - 10, y1: py + 10 });
-      rrect(o, px - 8, py - 8, 16, 16, 4); o.fillStyle = "rgba(243,239,230,.5)"; o.fill();
+      rrect(o, px - 8, py - 8, 16, 16, 4); o.fillStyle = rgba(SP.ink, 0.45); o.fill();
     });
     cities.filter((ct) => ct.code !== st.code).forEach((ct) => {
       const [px, py] = at(ct.lat, ct.lon);
       if (px < 20 || px > w - 20 || py < 20 || py > h - 20) return;
-      label(ct.code, px, py, 8, "rgba(243,239,230,.5)");
+      label(ct.code, px, py, 8, rgba(SP.ink, 0.55));
     });
     // soft edges, no frame
     o.globalCompositeOperation = "destination-in";
@@ -2058,20 +2080,22 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   function drawStory(d) {
     const st = d.st, cv = document.createElement("canvas");
     cv.width = S_W; cv.height = S_H;
-    const c = cv.getContext("2d"), M = 84;
-    c.fillStyle = S_BG; c.fillRect(0, 0, S_W, S_H);
+    const c = cv.getContext("2d"), M = 84, light = d.mode === "light";
+    // dark: the bright station dot; light: the deeper station colour, as on the tiles
+    SP = Object.assign({}, S_PAL[d.mode], light ? { col: st.c, mark: deepen(st.c, 0.3), hue: deepen(st.c, 0.1) } : { col: st.dot, mark: st.dot, hue: st.dot });
+    c.fillStyle = SP.bg; c.fillRect(0, 0, S_W, S_H);
     let g = c.createRadialGradient(S_W / 2, 860, 0, S_W / 2, 860, 1000);
-    g.addColorStop(0, rgba(st.dot, 0.32)); g.addColorStop(1, rgba(st.dot, 0));
+    g.addColorStop(0, rgba(SP.col, SP.glow)); g.addColorStop(1, rgba(SP.col, 0));
     c.fillStyle = g; c.fillRect(0, 0, S_W, S_H);
 
     // top: the cat and the wordmark (below the bar Instagram draws over a story)
     const LY = 262, LH = 96;
     const lw = storyLogo(c, M, LY, LH);
-    c.font = fWord(62); c.fillStyle = S_INK; c.textBaseline = "middle";
+    c.font = fWord(62); c.fillStyle = SP.ink; c.textBaseline = "middle";
     spaced(c, "Sintonia", M + lw + (lw ? 24 : 0), LY + LH / 2 + 4, -2.5);
 
     // the card, measured before it is drawn
-    const CX = M, CW = S_W - 2 * M, P = 56, IW = CW - 2 * P, TOP = 414, ROOM = 1116;
+    const CX = M, CW = S_W - 2 * M, P = 56, IW = CW - 2 * P, TOP = 414, ROOM = 1180;
     c.font = fMono(28); const kick = clip1(c, d.kicker.toUpperCase(), IW);
     const nm = fitName(c, d.name, IW, 420);
     c.font = fMono(28); const place = clip1(c, d.place.toUpperCase() + " · " + hhmm(Date.now(), st.tz), IW);
@@ -2084,43 +2108,38 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
     rrect(c, CX, CY, CW, CH, 44);
     c.save(); c.clip();
-    c.fillStyle = mixC(S_BG2, st.dot, 0.12); c.fillRect(CX, CY, CW, CH);
+    c.fillStyle = mixC(SP.bg2, SP.col, SP.tint); c.fillRect(CX, CY, CW, CH);
     const cs = getComputedStyle(st.el), pc = (v, dflt) => { const n = parseFloat(v); return isFinite(n) ? n / 100 : dflt; };
     const gx = CX + CW * pc(cs.getPropertyValue("--ox"), 1), gy = CY + CH * pc(cs.getPropertyValue("--oy"), 0);
     g = c.createRadialGradient(gx, gy, 0, gx, gy, CW * 1.2);
-    g.addColorStop(0, rgba(st.dot, 0.34)); g.addColorStop(0.7, rgba(st.dot, 0));
+    g.addColorStop(0, rgba(SP.col, SP.wash)); g.addColorStop(0.7, rgba(SP.col, 0));
     c.fillStyle = g; c.fillRect(CX, CY, CW, CH);
     const gap = (parseFloat(cs.getPropertyValue("--gap")) || 13) * 3;
-    c.strokeStyle = "rgba(255,255,255,.035)"; c.lineWidth = 3;
+    c.strokeStyle = SP.ring; c.lineWidth = 3;
     for (let r = gap; r < 2600; r += gap) { c.beginPath(); c.arc(gx, gy, r, 0, TAU); c.stroke(); }
     storyMap(c, st, CX, CY, CW, mapH);
     c.restore();
     rrect(c, CX + 1.5, CY + 1.5, CW - 3, CH - 3, 42.5);
-    c.lineWidth = 3; c.strokeStyle = rgba(st.dot, 0.45); c.stroke();
+    c.lineWidth = 3; c.strokeStyle = rgba(SP.col, SP.edge); c.stroke();
     if (d.chip) storyChip(c, CX + 36, CY + 36, d.chip, d.live);
 
     let y = CY + mapH + 30;
     c.textBaseline = "alphabetic";
-    c.font = fMono(28); c.fillStyle = "rgba(243,239,230,.72)";
+    c.font = fMono(28); c.fillStyle = rgba(SP.ink, 0.72);
     spaced(c, kick, CX + P, y + 26, 3.4); y += 34 + 22 + acc;
-    c.font = fName(nm.px); c.fillStyle = st.dot; c.textAlign = "left";
+    c.font = fName(nm.px); c.fillStyle = SP.hue; c.textAlign = "left";
     nm.lines.forEach((l) => { c.fillText(l, CX + P, y + nm.px * 0.76); y += nm.px * 0.9; });
     y += 24;
-    c.font = fMono(28); c.fillStyle = "rgba(243,239,230,.72)";
+    c.font = fMono(28); c.fillStyle = rgba(SP.ink, 0.72);
     spaced(c, place, CX + P, y + 26, 3.4); y += 34;
     if (show.length) {
-      y += 40; c.font = fBody(600, 46); c.fillStyle = S_INK;
+      y += 40; c.font = fBody(600, 46); c.fillStyle = SP.ink;
       show.forEach((l) => { c.fillText(l, CX + P, y + 42); y += 56; });
     }
     if (song.length) {
-      y += 16; c.font = fBody(400, 38); c.fillStyle = "rgba(243,239,230,.75)";
+      y += 16; c.font = fBody(400, 38); c.fillStyle = rgba(SP.ink, 0.75);
       song.forEach((l) => { c.fillText(l, CX + P, y + 36); y += 48; });
     }
-
-    // bottom: where to find it (a Link sticker on top makes it tappable)
-    const where = (location.host + location.pathname).replace(/\/(index\.html)?$/, "");
-    c.font = fMono(28); c.fillStyle = "rgba(243,239,230,.62)"; c.textBaseline = "middle";
-    spaced(c, clip1(c, where, S_W - 2 * M), S_W / 2, Math.min(1592, CY + CH + 62), 1.5, "center");
     return cv;
   }
 
@@ -2142,7 +2161,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
   function storyFonts(d) {
     if (!document.fonts || !document.fonts.load) return Promise.resolve();
-    const text = d.name + d.kicker.toUpperCase() + d.place.toUpperCase() + d.show + d.song + "Sintonia ONAIRERUN0123456789:·♪–" + location.host + location.pathname;
+    const text = d.name + d.kicker.toUpperCase() + d.place.toUpperCase() + d.show + d.song + "Sintonia ONAIRERUN0123456789:·♪–";
     return storyFaces().then(() => Promise.all([fName(100), fWord(62), fBody(600, 46), fBody(400, 38), fMono(28)].map((f) => document.fonts.load(f, text).catch(() => {}))));
   }
   function landReady() { return landPath ? Promise.resolve() : new Promise((res) => { landWait.push(res); loadLand(); }); }
@@ -2162,7 +2181,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         if (!img) return;
         img.src = STORY.url;
         img.alt = "Story picture: " + d0.kicker + " " + byId[id].name + ", " + byId[id].city;
-        if (fig) fig.classList.add("ready");
+        if (fig) { fig.classList.add("ready"); fig.classList.remove("busy"); }
         const go = sheetBody.querySelector('[data-act="story"]');
         if (go) go.disabled = !STORY.file;
         const save = $("story-save");
@@ -2181,6 +2200,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       const files = canShareFiles();
       sheetBody.innerHTML = `<div class="sheet-in story" style="--sc:${esc(st.c)};--st:${esc(st.t)}">` +
         `<h2 class="story-h${keep}" id="sheet-title">Share ${esc(st.name)}</h2>` +
+        '<div class="seg story-mode" role="radiogroup" aria-label="Story colours">' +
+        ["dark", "light"].map((m) => `<button type="button" role="radio" data-act="smode" data-mode="${m}" aria-checked="false">${m === "dark" ? "Dark" : "Light"}</button>`).join("") + "</div>" +
         '<figure class="story-prev"><img id="story-img" alt=""><span class="story-wait">Drawing your story…</span></figure>' +
         '<div class="story-acts">' +
         (files ? '<button class="sh-big" type="button" data-act="story" disabled>Share as a story</button>'
@@ -2190,7 +2211,12 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         `<button class="find" type="button" data-act="link" data-id="${id}">Share link only</button></div>` +
         "</div></div>";
     }
-    STORY.id = id; STORY.key = key;
+    const mode = storyMode() === "light" ? "light" : "dark";
+    sheetBody.querySelectorAll("[data-mode]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.mode === mode)));
+    STORY.id = id; STORY.key = key; STORY.file = null;
+    const go = sheetBody.querySelector('[data-act="story"]'), fig = sheetBody.querySelector(".story-prev");
+    if (go) go.disabled = true;
+    if (fig) fig.classList.add("busy");
     makeStory(id);
   }
 
@@ -2283,6 +2309,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     else if (act === "share") { openSheet("share", id); return; }
     else if (act === "story") { if (STORY.file) navigator.share({ files: [STORY.file] }).catch(() => {}); return; }
     else if (act === "copylink") { copyText(stationUrl(id), "Link copied"); return; }
+    else if (act === "smode") writeKey("sintonia:story", a.dataset.mode);
     else if (act === "link") { shareStation(id); return; }
     else if (act === "info") { openSheet("info", id); return; }
     else if (act === "copy") { copyText(a.dataset.q); return; }
