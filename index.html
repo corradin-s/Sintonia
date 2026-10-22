@@ -2482,7 +2482,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       // so stop, as music apps do
       if (was && !airplayAvail && state === "live" && audio.getAttribute("src") && Date.now() - startedAt > 3000) {
         stop();
-        toast("Headphones disconnected: radio stopped");
       }
       if (fpOpen) renderFP();
     });
