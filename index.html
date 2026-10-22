@@ -147,12 +147,6 @@ h1, .title {
   white-space: nowrap;
 }
 /* the logo: the original wordmark, Archivo wide and black like the page titles */
-/* Sofia's black kitten, leg up, sniffing its bottom: a sticker beside the greeting */
-.topline-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.topline .logo-mark { flex: none; height: 32px; width: auto; aspect-ratio: 796 / 876; }
-.logo-mark .lm-sticker { fill: #F3EFE6; }
-.logo-mark .lm-cat { fill: #0C0D11; }
-:root[data-theme="light"] .logo-mark .lm-sticker { fill: #FFFFFF; }
 .onair {
   flex: none;
   font-family: var(--f-mono); font-size: 10px; font-weight: 500; letter-spacing: .16em;
@@ -818,13 +812,13 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
 <div class="wrap">
   <div class="topline">
-    <div class="topline-l"><svg class="logo-mark" viewBox="0 0 796 876" aria-hidden="true" focusable="false"><path class="lm-sticker" d="M360.0 873.2C348.2 871.9 336.1 868.9 327.9 865.1L323.8 863.2L318.8 864.3C312.3 865.8 297.7 867.8 289.0 868.5C264.2 870.4 236.4 867.4 212.5 860.2C188.8 853.1 170.5 841.0 160.3 825.6C153.8 815.9 151.8 809.1 151.8 797.1L151.8 789.0L150.2 789.0C145.0 789.0 123.9 784.6 113.0 781.2C100.7 777.4 84.7 770.0 73.7 763.0C33.2 737.2 8.2 696.7 3.0 648.2C2.1 640.2 2.2 618.7 3.2 610.8C6.3 585.5 13.5 562.3 25.4 539.5C32.3 526.2 42.7 510.4 48.5 504.3C58.4 493.8 72.3 487.0 86.7 485.5C89.4 485.2 91.7 484.9 91.8 484.8C91.9 484.8 91.6 482.7 91.2 480.2C90.3 474.5 90.3 471.8 91.3 466.3C94.1 450.3 105.8 436.9 121.0 432.3C122.5 431.8 140.1 429.0 160.0 426.0C179.9 423.0 196.3 420.3 196.5 420.1C196.7 419.9 198.4 417.5 200.3 414.8C211.6 398.3 224.7 383.6 239.0 371.4C241.9 368.9 244.5 366.6 244.8 366.3C245.3 365.9 245.9 355.5 247.0 330.8C247.9 309.7 248.8 293.8 249.3 290.8C251.8 274.5 264.5 260.8 281.1 256.5C284.4 255.6 286.6 255.4 292.2 255.4C300.0 255.4 305.1 256.5 311.1 259.5C312.7 260.4 335.4 275.3 361.5 292.8L409.0 324.5L417.8 326.7C461.6 337.8 497.5 362.9 522.7 400.3C525.2 404.1 528.4 409.3 529.8 411.8L532.2 416.2L532.8 413.5C533.2 412.0 548.3 347.2 566.5 269.5L599.5 128.3L598.2 125.0C593.8 114.0 592.5 107.6 592.5 95.8C592.5 85.7 593.5 79.0 596.3 70.9C606.8 40.1 635.4 15.3 671.3 6.0C703.5 -2.4 737.3 2.8 761.5 19.9C771.2 26.7 782.0 39.0 787.0 48.9C795.7 66.3 797.1 88.3 790.6 107.2C786.4 119.9 779.1 131.3 768.8 141.8C765.2 145.4 761.5 148.9 760.7 149.6L759.1 150.8L748.6 195.8C742.8 220.5 723.7 301.9 706.3 376.8C688.8 451.6 672.6 520.5 670.4 529.9L666.4 547.0L669.4 550.9C698.0 588.8 712.7 637.2 709.6 683.1C707.2 716.6 696.9 745.4 678.1 770.5C673.2 777.0 661.2 789.5 655.2 794.3C628.2 816.1 593.5 826.8 559.6 823.8C554.2 823.3 549.6 822.8 549.2 822.7C548.8 822.5 548.4 823.1 548.0 824.6C542.5 846.6 520.2 864.5 489.9 871.2C469.3 875.8 444.5 874.5 425.5 867.9C422.3 866.8 419.2 865.9 418.5 865.9C417.8 865.9 414.7 866.8 411.5 867.9C396.3 873.2 377.5 875.1 360.0 873.2Z"/><path class="lm-cat" fill-rule="evenodd" d="M364.8 843.7C350.1 841.8 338.3 838.0 330.9 832.8C328.0 830.6 328.6 830.7 322.5 832.5C316.3 834.3 307.4 836.1 297.5 837.6C285.3 839.4 260.4 839.2 247.8 837.3C220.3 833.2 200.9 825.5 190.0 814.5C169.0 793.4 188.5 769.1 234.5 759.0C245.7 756.5 254.8 755.5 268.9 755.2C280.4 754.9 282.4 754.6 281.0 753.7C280.3 753.3 275.9 747.3 272.2 741.8C269.4 737.5 266.5 732.7 262.3 725.0C260.5 721.8 260.5 721.8 260.5 723.5C260.4 734.2 252.6 745.9 242.2 750.8C231.7 755.8 191.0 761.6 173.2 760.7C154.6 759.6 145.3 758.5 133.8 755.7C60.6 738.5 20.3 674.5 35.5 599.9C40.3 576.5 50.0 554.2 65.1 531.9C69.9 524.9 73.8 521.2 79.2 518.5C103.3 506.6 130.3 527.6 124.8 553.7C123.8 558.2 122.0 562.0 117.6 568.7C107.6 583.8 101.4 598.1 98.2 613.1C96.6 620.7 96.0 634.0 97.0 640.5C101.4 672.0 124.7 691.6 162.4 695.7C178.9 697.5 196.2 696.2 219.2 691.3C231.5 688.7 240.3 690.5 248.8 697.4L251.8 699.8L250.0 693.3C246.0 679.1 243.5 662.7 243.5 649.8L243.5 644.9L246.6 647.6C292.9 687.4 362.0 694.1 421.0 664.5C442.4 653.8 463.9 637.1 478.1 620.2C479.8 618.2 481.3 616.6 481.3 616.7C481.4 616.7 480.9 619.5 480.3 622.8C471.1 668.6 479.2 710.5 504.6 748.5C515.4 764.6 532.6 784.0 536.6 784.8C542.5 785.9 547.4 781.1 546.3 775.2C546.0 773.9 544.6 772.0 540.3 767.3C516.6 741.9 502.9 718.1 496.5 691.2C487.9 655.4 493.4 618.4 513.5 575.2C517.2 567.3 517.3 564.8 514.3 561.5L513.1 560.2L514.5 555.8C519.3 541.3 522.1 525.2 522.8 509.2C523.0 505.0 523.2 501.5 523.4 501.5C523.7 501.5 527.7 504.2 531.6 507.1C534.7 509.4 535.0 509.5 538.2 509.5C540.0 509.5 541.5 509.4 541.5 509.3C541.5 509.1 561.8 422.4 586.5 316.6C611.2 210.7 631.5 123.8 631.5 123.5C631.5 123.2 630.4 121.1 629.0 118.8C621.7 106.8 620.4 92.8 625.4 79.1C633.1 58.1 654.3 41.0 680.6 34.6C689.3 32.4 695.2 31.8 704.7 32.1C720.4 32.7 733.3 36.7 744.1 44.5C774.6 66.4 770.4 107.2 735.2 130.8L732.2 132.9L720.6 182.6C708.4 235.0 649.1 488.5 639.3 530.2L633.6 554.8L634.9 556.3C635.7 557.2 638.1 560.0 640.3 562.6C659.1 585.0 672.5 614.2 677.4 643.8C680.6 662.8 680.5 682.7 677.0 700.2C668.7 741.4 643.4 773.5 608.3 787.2C585.9 796.0 558.7 796.6 534.9 788.7L531.1 787.4L527.3 789.9C525.3 791.3 521.4 793.8 518.8 795.4C516.1 797.1 514.2 798.5 514.4 798.7C515.4 799.3 518.1 804.6 518.8 807.2C523.9 826.5 497.6 844.0 463.5 844.0C447.3 844.0 430.5 839.5 420.9 832.7L418.5 831.0L416.1 832.7C409.0 837.8 397.4 841.8 385.3 843.3C379.9 843.9 368.7 844.1 364.8 843.7ZM335.5 661.0C300.7 658.8 269.5 643.5 246.5 617.2C244.8 615.3 244.7 615.2 241.2 615.2C234.8 615.1 234.8 615.1 215.8 592.3C206.6 581.3 181.9 551.6 160.9 526.4C136.8 497.5 122.3 479.7 121.8 478.4C119.1 471.8 122.6 463.7 129.2 461.3C130.9 460.6 175.9 453.8 228.9 446.1C236.4 445.0 242.6 444.0 242.7 443.9C250.1 433.2 261.1 420.7 270.6 412.2L273.9 409.2L274.5 394.5C275.7 363.2 278.5 300.6 278.8 297.6C279.2 292.5 281.7 288.7 286.2 286.4C289.1 284.9 294.4 284.8 297.3 286.3C299.2 287.3 356.0 325.3 417.5 366.6C443.8 384.3 443.4 383.9 443.9 390.2L444.1 393.5L447.9 396.2C495.2 429.5 513.5 492.9 493.0 552.1C469.6 619.9 403.9 665.3 335.5 661.0ZM333.8 599.5C335.1 599.2 338.5 597.8 341.3 596.5C349.8 592.4 355.8 585.5 358.9 576.2C360.1 572.6 360.2 571.6 360.2 564.2C360.2 554.7 359.7 552.3 355.8 544.2C346.9 526.0 329.2 514.5 310.0 514.3C302.3 514.3 298.6 515.1 292.0 518.4C278.8 524.8 271.1 539.7 273.0 555.0C276.2 581.7 301.4 602.7 327.5 600.4C329.6 600.2 332.4 599.8 333.8 599.5ZM302.8 581.7C292.9 579.0 283.2 570.3 279.1 560.3C277.3 555.9 277.2 549.7 279.0 546.2C285.4 533.8 308.5 540.3 318.5 557.4C324.9 568.4 322.8 579.1 313.7 581.8C310.8 582.7 306.1 582.6 302.8 581.7ZM408.6 513.8C417.0 512.1 422.1 509.5 427.8 503.8C432.2 499.3 434.4 495.9 436.3 490.4C444.2 467.2 427.8 438.7 401.8 430.3C381.7 423.9 362.3 431.0 354.2 447.8C351.2 453.9 350.3 458.6 350.6 466.2C350.9 473.4 351.8 477.1 354.8 483.4C363.5 502.0 381.7 514.2 401.1 514.5C403.2 514.5 406.6 514.2 408.6 513.8ZM380.8 495.5C374.4 493.8 370.2 491.3 365.0 486.0C358.2 479.3 355.3 473.2 355.3 466.2C355.4 456.6 363.0 451.7 373.9 454.3C392.7 458.7 406.3 481.8 396.6 492.7C393.7 496.0 386.8 497.2 380.8 495.5ZM703.0 115.3C717.4 110.0 723.8 97.1 716.6 87.7C707.0 75.3 680.9 79.6 673.8 94.7C670.2 102.3 673.4 110.7 681.2 114.5C687.3 117.4 696.2 117.7 703.0 115.3ZM661.0 90.5C668.8 86.5 667.4 72.3 658.9 68.8C651.9 65.9 645.2 71.9 646.2 80.1C647.2 88.7 654.5 93.8 661.0 90.5ZM727.0 74.1C728.0 73.6 729.4 72.2 730.2 71.0C732.2 68.2 732.7 62.4 731.1 58.9C727.2 50.1 717.4 49.0 713.3 56.8C711.6 60.0 711.8 65.5 713.8 69.0C717.0 74.6 722.1 76.6 727.0 74.1ZM678.8 73.8C683.0 71.9 684.2 69.5 684.2 63.7C684.2 59.5 684.1 59.0 682.7 56.7C678.8 50.4 671.5 49.1 667.3 54.1C661.0 61.4 666.1 74.1 675.8 74.9C676.0 75.0 677.4 74.4 678.8 73.8ZM701.9 68.2C710.4 64.7 709.7 50.0 700.8 45.9C694.4 43.0 687.8 48.2 687.9 56.1C687.9 64.4 695.4 70.9 701.9 68.2Z"/></svg><button class="eyebrow greet" id="greet" type="button" aria-label="Change your name">Hello</button></div>
+    <button class="eyebrow greet" id="greet" type="button" aria-label="Change your name">Hello</button>
     <div class="onair" aria-hidden="true"><i></i>ON AIR</div>
   </div>
 
   <main class="view" id="view-stations">
   <header class="hero">
-    <h1 class="logo"><span>Sintonia</span></h1>
+    <h1 class="logo" aria-label="Sintonia"><span aria-hidden="true">Sintonìa</span></h1>
 
     <div class="notice" role="note" aria-label="Rights notice"><div class="notice-track"><span>All broadcasts, shows, music and station names belong to their respective radio stations and rights holders <i>·</i> Sintonia plays their public streams and is not affiliated with any station <i>·</i> Support the stations you love <i>·</i> </span><span aria-hidden="true">All broadcasts, shows, music and station names belong to their respective radio stations and rights holders <i>·</i> Sintonia plays their public streams and is not affiliated with any station <i>·</i> Support the stations you love <i>·</i> </span></div></div>
 
@@ -2133,18 +2127,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
     c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
   }
-  function storyLogo(c, x, y, h) { // Sofia's cat sticker, straight from the logo in the page
-    const sk = document.querySelector(".logo-mark .lm-sticker"), cat = document.querySelector(".logo-mark .lm-cat");
-    const vb = (document.querySelector(".logo-mark").getAttribute("viewBox") || "0 0 1 1").split(/\s+/).map(Number), lw = vb[2], lh = vb[3];
-    if (!sk || !cat || !window.Path2D) return 0;
-    c.save(); c.translate(x, y); c.scale(h / lh, h / lh);
-    if (SP === S_PAL.light) { c.shadowColor = "rgba(0,0,0,.16)"; c.shadowBlur = 14; c.shadowOffsetY = 3; }
-    c.fillStyle = SP.sticker; c.fill(new Path2D(sk.getAttribute("d")));
-    c.shadowColor = "transparent";
-    c.fillStyle = "#0C0D11"; c.fill(new Path2D(cat.getAttribute("d")), "evenodd");
-    c.restore();
-    return h * lw / lh;
-  }
   function storyChip(c, x, y, text, on) {
     c.font = fLabel(26);
     const label = text.toUpperCase(), ls = 4, h = 54, pad = 20, dw = on ? 28 : 0;
@@ -2232,11 +2214,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     g.addColorStop(0, rgba(SP.col, SP.glow)); g.addColorStop(1, rgba(SP.col, 0));
     c.fillStyle = g; c.fillRect(0, 0, S_W, S_H);
 
-    // top: the cat and the wordmark (below the bar Instagram draws over a story)
+    // top: the wordmark (below the bar Instagram draws over a story)
     const LY = 262, LH = 96;
-    const lw = storyLogo(c, M, LY, LH);
     c.font = fWord(62); c.fillStyle = SP.ink; c.textBaseline = "middle";
-    spaced(c, "Sintonia", M + lw + (lw ? 24 : 0), LY + LH / 2 + 4, -2.5);
+    spaced(c, "Sintonìa", M, LY + LH / 2 + 4, -2.5);
 
     // the card, measured before it is drawn
     const CX = M, CW = S_W - 2 * M, P = 56, IW = CW - 2 * P, TOP = 414, ROOM = 1180;
@@ -2305,7 +2286,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
   function storyFonts(d) {
     if (!document.fonts || !document.fonts.load) return Promise.resolve();
-    const text = d.name + d.kicker.toUpperCase() + d.place.toUpperCase() + d.show + d.song + "Sintonia ONAIRERUN0123456789:·♪–";
+    const text = d.name + d.kicker.toUpperCase() + d.place.toUpperCase() + d.show + d.song + "Sintonìa ONAIRERUN0123456789:·♪–";
     return storyFaces().then(() => Promise.all([fName(100), fWord(62), fBody(600, 46), fBody(400, 38), fLabel(28)].map((f) => document.fonts.load(f, text).catch(() => {}))));
   }
   function landReady() { return landPath ? Promise.resolve() : new Promise((res) => { landWait.push(res); loadLand(); }); }
