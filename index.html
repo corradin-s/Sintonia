@@ -3089,6 +3089,28 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     if (!hls) setState("error");
   });
 
+  // On a computer the browser carries on through the speakers when headphones are unplugged or switched off.
+  // When the list of devices changes while the radio plays, stop if an audio output went away, or if the browser
+  // won't say what changed. (iPhone has its own signal above; Android pauses by itself.)
+  const mobile = /Android|iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const md = navigator.mediaDevices;
+  if (!mobile && md && md.enumerateDevices && md.addEventListener) {
+    const snap = () => md.enumerateDevices().then((ds) => ds.map((d) => d.kind + "|" + (d.deviceId || "") + "|" + (d.groupId || "") + "|" + (d.label || "")), () => null);
+    let devs = null;
+    snap().then((d) => { devs = d; });
+    md.addEventListener("devicechange", () => {
+      snap().then((now) => {
+        const before = devs;
+        devs = now;
+        if (state !== "live" || !audio.getAttribute("src") || Date.now() - startedAt < 3000) return;
+        const outs = (list) => (list || []).filter((d) => d.startsWith("audiooutput|") && !d.startsWith("audiooutput|default|") && !d.startsWith("audiooutput|communications|"));
+        const lostOutput = outs(before).some((d) => !outs(now).includes(d));
+        const cantTell = !before || !now || before.join("\n") === now.join("\n");
+        if (lostOutput || cantTell) stop();
+      });
+    });
+  }
+
   if ("mediaSession" in navigator) {
     const handlers = {
       play: () => { if (current) start(current); },
