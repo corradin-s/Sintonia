@@ -618,6 +618,51 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
 }
 .sh-opt span { color: var(--muted); font-weight: 400; }
 
+/* ---------- "The sound of…" city page ---------- */
+.cp { position: fixed; inset: 0; z-index: 34; background: var(--bg); color: var(--ink); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+.cp::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 520px; pointer-events: none;
+  background: radial-gradient(85% 60% at 50% 18%, color-mix(in srgb, var(--cg, transparent) 30%, transparent), transparent 72%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cp:not([hidden]) { animation: cp-in .28s cubic-bezier(.2, .8, .2, 1); }
+  @keyframes cp-in { from { transform: translateX(40px); opacity: 0; } }
+}
+.cp-in {
+  position: relative; max-width: 560px; margin: 0 auto; display: grid; gap: 18px;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) max(22px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 34px) max(22px, env(safe-area-inset-left, 0px));
+}
+.cp-wait { margin: 40px 0; text-align: center; color: var(--muted); }
+.cp-h { display: grid; gap: 7px; }
+.cp-title { margin: 0; font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: clamp(48px, 16vw, 76px); line-height: .86; text-transform: uppercase; color: var(--ca); overflow-wrap: anywhere; }
+.cp-h small { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.cp-map { border-radius: 20px; overflow: hidden; background: #23262E; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); }
+.cp-map canvas { display: block; width: 100%; height: auto; }
+.cp-intro { margin: 0; font-size: 16px; line-height: 1.5; }
+.cp-born { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cp-born b, .cp-names h3 { font-family: var(--f-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0 4px 0 0; }
+.cp-born span { font-size: 13px; padding: 6px 11px; border-radius: 999px; background: color-mix(in srgb, var(--cb) 16%, transparent); border: 1px solid color-mix(in srgb, var(--cb) 45%, transparent); }
+.cp-notes { list-style: none; margin: 0; padding: 0; display: grid; gap: 15px; }
+.cp-notes li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; }
+.cp-notes .n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--pin); color: var(--pin-t); font-family: var(--f-mono); font-size: 12px; font-weight: 500; }
+.cp-notes .w { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.cp-notes .w i { font-style: normal; color: var(--ca); font-weight: 500; }
+.cp-notes p { margin: 3px 0 0; font-size: 14.5px; line-height: 1.45; }
+.cp-names { display: grid; gap: 10px; }
+.cp-names ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.cp-names button {
+  appearance: none; -webkit-appearance: none; width: 100%; height: 100%; text-align: left; cursor: pointer; display: grid; gap: 2px; align-content: start;
+  padding: 10px 12px; border-radius: 12px; font: inherit; color: var(--ink); background: var(--bg-2); border: 1px solid var(--line);
+}
+.cp-names b { font-size: 14px; }
+.cp-names span { font-size: 12px; color: var(--muted); line-height: 1.35; }
+.cp-tip { margin: 0; font-size: 12px; color: var(--muted); }
+.cp-btn {
+  appearance: none; -webkit-appearance: none; cursor: pointer; padding: 14px; border-radius: 999px; font: inherit; font-weight: 600; font-size: 14.5px;
+  color: var(--ink); background: var(--bg-2); border: 1px solid var(--line);
+}
+.cp-src { margin: 0; font-size: 12px; color: var(--muted); text-align: center; }
+
 /* ---------- Rights notice: a slow ticker under the logo ---------- */
 .notice {
   position: relative; overflow: hidden; min-width: 0; padding: 7px 0;
@@ -1095,6 +1140,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 </section>
 
 <section class="fp" id="fp" role="dialog" aria-modal="true" aria-labelledby="fp-title" hidden><div class="fp-in" id="fp-in"></div></section>
+<section class="cp" id="cp" role="dialog" aria-modal="true" aria-labelledby="cp-title" hidden><div class="cp-in" id="cp-in"></div></section>
 
 <div class="dock">
 <div class="player" role="region" aria-label="Player">
@@ -2418,7 +2464,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   $("sheet-x").addEventListener("click", closeSheet);
   document.addEventListener("keydown", (ev) => {
     if (ev.key !== "Escape") return;
-    if (sheetOpen) closeSheet(); else if (!$("fp").hidden) closePlayer();
+    if (sheetOpen) closeSheet(); else if (!$("cp").hidden) closeCity(); else if (!$("fp").hidden) closePlayer();
   });
   $("np").addEventListener("click", () => openPlayer());
   $("np").addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); openPlayer(); } });
@@ -2556,7 +2602,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     else if (a === "share") openSheet("share", id);
     else if (a === "info") openSheet("info", id);
     else if (a === "heard") openSheet("heard");
-    else if (a === "map") showOnMap(id);
+    else if (a === "map") openCity(id);
   });
   // swipe down from the top to close; nothing behind the player scrolls meanwhile
   let fpDrag = null;
@@ -2582,6 +2628,259 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     fpDrag = null;
   });
   window.addEventListener("resize", () => { if (fpOpen) fitCover(); });
+
+  /* ---------- "The sound of…": the music, people and geography of each station's city ---------- */
+  const cp = $("cp"), cpIn = $("cp-in");
+  let cityData = null, geo = null, cityAsked = null, cpId = "";
+  const GEO_ORDER = ["GB", "DE", "BE", "IT", "GR", "PS", "BR", "CL", "CO", "US", "VN", "NZ", "JP"];
+  function decodeGeo(buf) { // Natural Earth lakes, land borders and the stations' countries, packed like land.bin
+    const b = new Uint8Array(buf);
+    let i = 0, x = 0, y = 0;
+    const uv = () => { let v = 0, m = 1, c; do { c = b[i++]; v += (c & 127) * m; m *= 128; } while (c & 128); return v; };
+    const sv = () => { const v = uv(); return v % 2 ? -(v + 1) / 2 : v / 2; };
+    const feature = (closed) => {
+      const p = new Path2D();
+      for (let r = uv(); r > 0; r--) {
+        const n = uv();
+        for (let j = 0; j < n; j++) { x += sv(); y += sv(); if (j) p.lineTo(x, y); else p.moveTo(x, y); }
+        if (closed) p.closePath();
+      }
+      return p;
+    };
+    const out = { countries: {} };
+    uv(); out.lakes = feature(true);
+    uv(); out.borders = feature(false);
+    const n = uv();
+    for (let k = 0; k < n; k++) out.countries[GEO_ORDER[k]] = feature(true);
+    return out;
+  }
+  function loadCity() {
+    if (!cityAsked) {
+      cityAsked = Promise.all([
+        fetch("cities.json?v=1").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+        fetch("geo.bin?v=1").then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(decodeGeo),
+        landReady(),
+      ]).then(([c, g]) => { cityData = c; geo = g; }).catch((e) => { cityAsked = null; throw e; });
+    }
+    return cityAsked;
+  }
+
+  // flags, simplified, painted over the country's dots
+  const star = (g, cx, cy, r, fill) => {
+    g.beginPath();
+    for (let q = 0; q < 10; q++) { const a = -Math.PI / 2 + q * Math.PI / 5, rr = q % 2 ? r * 0.4 : r; g.lineTo(cx + rr * Math.cos(a), cy + rr * Math.sin(a)); }
+    g.closePath(); g.fillStyle = fill; g.fill();
+  };
+  const bands = (g, w, h, cols, vertical) => cols.forEach((c, q) => { g.fillStyle = c; if (vertical) g.fillRect(w * q / cols.length, 0, w / cols.length + 1, h); else g.fillRect(0, h * q / cols.length, w, h / cols.length + 1); });
+  function unionJack(g, w, h) {
+    const t = Math.min(w, h);
+    g.fillStyle = "#012169"; g.fillRect(0, 0, w, h);
+    const diag = () => { g.beginPath(); g.moveTo(0, 0); g.lineTo(w, h); g.moveTo(w, 0); g.lineTo(0, h); g.stroke(); };
+    g.strokeStyle = "#FFFFFF"; g.lineWidth = t * 0.2; diag();
+    g.strokeStyle = "#C8102E"; g.lineWidth = t * 0.07; diag();
+    g.fillStyle = "#FFFFFF"; g.fillRect(w / 2 - t * 0.17, 0, t * 0.34, h); g.fillRect(0, h / 2 - t * 0.17, w, t * 0.34);
+    g.fillStyle = "#C8102E"; g.fillRect(w / 2 - t * 0.1, 0, t * 0.2, h); g.fillRect(0, h / 2 - t * 0.1, w, t * 0.2);
+  }
+  const FLAGS = {
+    GB: { a: ["#C8102E", "#012169"], draw: unionJack },
+    DE: { a: ["#DD0000", "#FFCE00"], draw: (g, w, h) => bands(g, w, h, ["#000000", "#DD0000", "#FFCE00"]) },
+    BE: { a: ["#FDDA24", "#EF3340"], draw: (g, w, h) => bands(g, w, h, ["#000000", "#FDDA24", "#EF3340"], true) },
+    IT: { a: ["#009246", "#CE2B37"], draw: (g, w, h) => bands(g, w, h, ["#009246", "#FFFFFF", "#CE2B37"], true) },
+    GR: { a: ["#0D5EAF", "#0D5EAF"], draw: (g, w, h) => {
+      bands(g, w, h, ["#0D5EAF", "#FFFFFF", "#0D5EAF", "#FFFFFF", "#0D5EAF", "#FFFFFF", "#0D5EAF", "#FFFFFF", "#0D5EAF"]);
+      const cw = Math.min(w * 0.37, h * 5 / 9), ch = h * 5 / 9, s = h / 9;
+      g.fillStyle = "#0D5EAF"; g.fillRect(0, 0, cw, ch);
+      g.fillStyle = "#FFFFFF"; g.fillRect(cw / 2 - s / 2, 0, s, ch); g.fillRect(0, ch / 2 - s / 2, cw, s);
+    } },
+    PS: { a: ["#007A3D", "#CE1126"], draw: (g, w, h) => {
+      bands(g, w, h, ["#000000", "#FFFFFF", "#007A3D"]);
+      g.fillStyle = "#CE1126"; g.beginPath(); g.moveTo(0, 0); g.lineTo(w * 0.42, h / 2); g.lineTo(0, h); g.closePath(); g.fill();
+    } },
+    BR: { a: ["#009C3B", "#FFDF00"], draw: (g, w, h) => {
+      g.fillStyle = "#009C3B"; g.fillRect(0, 0, w, h);
+      g.fillStyle = "#FFDF00"; g.beginPath(); g.moveTo(w * 0.08, h / 2); g.lineTo(w / 2, h * 0.1); g.lineTo(w * 0.92, h / 2); g.lineTo(w / 2, h * 0.9); g.closePath(); g.fill();
+      g.fillStyle = "#002776"; g.beginPath(); g.arc(w / 2, h / 2, Math.min(w, h) * 0.24, 0, TAU); g.fill();
+    } },
+    CL: { a: ["#D52B1E", "#0039A6"], draw: (g, w, h) => {
+      bands(g, w, h, ["#FFFFFF", "#D52B1E"]);
+      const cw = w / 3, ch = h / 2;
+      g.fillStyle = "#0039A6"; g.fillRect(0, 0, cw, ch);
+      star(g, cw / 2, ch / 2, Math.min(cw, ch) * 0.3, "#FFFFFF");
+    } },
+    CO: { a: ["#FCD116", "#CE1126"], draw: (g, w, h) => { g.fillStyle = "#FCD116"; g.fillRect(0, 0, w, h / 2); g.fillStyle = "#003893"; g.fillRect(0, h / 2, w, h / 4); g.fillStyle = "#CE1126"; g.fillRect(0, h * 3 / 4, w, h / 4 + 1); } },
+    US: { a: ["#B22234", "#3C3B6E"], draw: (g, w, h) => {
+      for (let q = 0; q < 13; q++) { g.fillStyle = q % 2 ? "#FFFFFF" : "#B22234"; g.fillRect(0, h * q / 13, w, h / 13 + 1); }
+      const cw = w * 0.4, ch = h * 7 / 13;
+      g.fillStyle = "#3C3B6E"; g.fillRect(0, 0, cw, ch);
+      g.fillStyle = "#FFFFFF";
+      for (let r = 0; r < 5; r++) for (let q = 0; q < 6; q++) { g.beginPath(); g.arc(cw * (q + 0.5) / 6, ch * (r + 0.5) / 5, Math.min(cw / 6, ch / 5) * 0.22, 0, TAU); g.fill(); }
+    } },
+    VN: { a: ["#DA251D", "#FFCD00"], draw: (g, w, h) => { g.fillStyle = "#DA251D"; g.fillRect(0, 0, w, h); star(g, w / 2, h / 2, Math.min(w, h) * 0.3, "#FFCD00"); } },
+    NZ: { a: ["#C8102E", "#012169"], draw: (g, w, h) => {
+      g.fillStyle = "#012169"; g.fillRect(0, 0, w, h);
+      g.save(); unionJack(g, w / 2, h / 2); g.restore();
+      const r = Math.min(w, h) * 0.06;
+      [[0.75, 0.22], [0.62, 0.5], [0.85, 0.42], [0.75, 0.8]].forEach(([fx, fy]) => { star(g, w * fx, h * fy, r * 1.25, "#FFFFFF"); star(g, w * fx, h * fy, r, "#C8102E"); });
+    } },
+    JP: { a: ["#BC002D", "#BC002D"], draw: (g, w, h) => { g.fillStyle = "#FFFFFF"; g.fillRect(0, 0, w, h); g.fillStyle = "#BC002D"; g.beginPath(); g.arc(w / 2, h / 2, Math.min(w, h) * 0.3, 0, TAU); g.fill(); } },
+  };
+  const lighten = (c, min) => { const A = rgbOf(c); for (let t = 0; t <= 1; t += 0.04) { const x = "#" + A.map((v) => Math.round(v + (255 - v) * t).toString(16).padStart(2, "0")).join(""); if (lum(x) >= min) return x; } return "#FFFFFF"; };
+  const readable = (c, light) => light ? deepen(c, 0.16) : lighten(c, 0.16);
+  const onColor = (c) => lum(c) > 0.35 ? "#0C0D11" : "#FFFFFF";
+  const fmtLL = (lat, lon) => Math.abs(lat).toFixed(1) + "°" + (lat >= 0 ? "N" : "S") + " " + Math.abs(lon).toFixed(1) + "°" + (lon >= 0 ? "E" : "W");
+
+  function cityGroups(city, st, at) { // notes close together on the map share one marker
+    const groups = [];
+    city.pins.forEach((p, q) => {
+      const [x, y] = at(p.lat, p.lon);
+      const g = groups.find((g) => Math.hypot(g.x - x, g.y - y) < 0.05 * at.w);
+      if (g) g.n.push(q + 1); else groups.push({ x, y, n: [q + 1], place: p.place });
+    });
+    groups.forEach((g) => {
+      const places = new Set(g.n.map((n) => city.pins[n - 1].place));
+      if (places.size > 1) g.place = st.city;
+    });
+    return groups;
+  }
+  function drawCityMap(cv, city, st) {
+    const W2 = cv.width, H2 = cv.height, c = cv.getContext("2d"), F = FLAGS[city.flag];
+    const [x0] = proj(0, city.view.lon[0]), [x1] = proj(0, city.view.lon[1]);
+    const [, yT] = proj(city.view.lat[1], 0), [, yB] = proj(city.view.lat[0], 0);
+    const k = Math.min(W2 / (x1 - x0), H2 / (yB - yT)), cx = (x0 + x1) / 2, cy = (yT + yB) / 2;
+    const at = (lat, lon) => { const [x, y] = proj(lat, lon); return [W2 / 2 + (x - cx) * k, H2 / 2 + (y - cy) * k]; };
+    at.w = W2;
+    const ox = W2 / 2 - cx * k, oy = H2 / 2 - cy * k, S = W2 / 46, gw = Math.ceil(W2 / S), gh = Math.ceil(H2 / S);
+    const cells = (path) => { // one pixel per dot: how much of each cell the shape covers
+      const g = document.createElement("canvas"); g.width = gw; g.height = gh;
+      const x = g.getContext("2d", { willReadFrequently: true });
+      x.setTransform(k / S / LAND_Q, 0, 0, k / S / LAND_Q, ox / S, oy / S); x.fillStyle = "#000"; x.fill(path, "evenodd");
+      return x.getImageData(0, 0, gw, gh).data;
+    };
+    const land = cells(landPath), lakes = cells(geo.lakes), home = cells(geo.countries[city.flag]);
+    let i0 = gw, i1 = -1, j0 = gh, j1 = -1;
+    for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) if (home[(j * gw + i) * 4 + 3] > 100) { i0 = Math.min(i0, i); i1 = Math.max(i1, i); j0 = Math.min(j0, j); j1 = Math.max(j1, j); }
+    let flag = null;
+    if (i1 >= 0) { // the flag, stretched over the part of the country you can see
+      const fc = document.createElement("canvas"); fc.width = W2; fc.height = H2;
+      const g = fc.getContext("2d"), fx = i0 * S, fy = j0 * S, fw = (i1 + 1 - i0) * S, fh = (j1 + 1 - j0) * S;
+      g.translate(fx, fy); F.draw(g, fw, fh);
+      flag = g.getImageData(0, 0, W2, H2).data;
+    }
+    c.fillStyle = "#23262E"; c.fillRect(0, 0, W2, H2);
+    const r = S * 0.34;
+    for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) {
+      const q = (j * gw + i) * 4;
+      if (land[q + 3] <= 72 || lakes[q + 3] > 128) continue;
+      const px = (i + 0.5) * S, py = (j + 0.5) * S;
+      if (flag && home[q + 3] > 100) { const f = (Math.min(H2 - 1, Math.round(py)) * W2 + Math.min(W2 - 1, Math.round(px))) * 4; c.fillStyle = `rgb(${flag[f]},${flag[f + 1]},${flag[f + 2]})`; }
+      else c.fillStyle = "#4A4E5B";
+      c.beginPath(); c.arc(px, py, r, 0, TAU); c.fill();
+    }
+    // borders, faint
+    c.save(); c.setTransform(k / LAND_Q, 0, 0, k / LAND_Q, ox, oy);
+    c.strokeStyle = "rgba(243,239,230,.22)"; c.lineWidth = (W2 / 400) / (k / LAND_Q); c.lineJoin = "round"; c.stroke(geo.borders);
+    c.restore();
+    const px1 = W2 / 390, mono = (s, w) => `${w || 500} ${Math.round(s * px1)}px "IBM Plex Mono", Menlo, monospace`;
+    (city.lines || []).forEach((ln) => {
+      const [, y] = at(ln.lat, 0);
+      if (y < 0 || y > H2) return;
+      c.save(); c.setLineDash([4 * px1, 4 * px1]); c.strokeStyle = "rgba(243,239,230,.4)"; c.lineWidth = px1;
+      c.beginPath(); c.moveTo(0, y); c.lineTo(W2, y); c.stroke(); c.restore();
+      c.font = mono(8.5); c.fillStyle = "rgba(243,239,230,.6)"; c.textAlign = "right"; c.textBaseline = "top";
+      spaced(c, ln.label.toUpperCase(), W2 - 8 * px1, y + 4 * px1, px1, "right");
+    });
+    c.font = mono(9, 400); c.fillStyle = "rgba(243,239,230,.42)"; c.textBaseline = "middle";
+    (city.sea || []).forEach((s) => {
+      const [x, y] = at(s.lat, s.lon), words = s.label.toUpperCase().split(" ");
+      words.forEach((wd, q) => spaced(c, wd, x, y + (q - (words.length - 1) / 2) * 12 * px1, 1.2 * px1, "center"));
+    });
+    // the other cities on Sintonia, small
+    c.font = mono(8.5);
+    cities.forEach((ct) => {
+      if (ct.code === st.code) return;
+      const [x, y] = at(ct.lat, ct.lon);
+      if (x < 8 * px1 || x > W2 - 8 * px1 || y < 8 * px1 || y > H2 - 8 * px1) return;
+      rrect(c, x - 3.5 * px1, y - 3.5 * px1, 7 * px1, 7 * px1, 1.5 * px1); c.fillStyle = "rgba(243,239,230,.7)"; c.fill();
+      c.fillStyle = "rgba(243,239,230,.7)"; spaced(c, ct.code, x + 7 * px1, y + px1, px1);
+    });
+    // the notes, numbered: markers first, then names where they fit
+    const pin = lighten(F.a[1], 0.12), ink = onColor(pin), boxes = [], groups = cityGroups(city, st, at), ph = 18 * px1;
+    const hit = (b) => b.x0 < 2 || b.x1 > W2 - 2 || b.y0 < 2 || b.y1 > H2 - 2 || boxes.some((o) => b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0);
+    groups.forEach((g) => {
+      g.label = g.n.join(" · ");
+      c.font = mono(9.5);
+      g.w = Math.max(ph, spacedW(c, g.label, 0) + 11 * px1);
+      c.save(); c.shadowColor = "rgba(0,0,0,.6)"; c.shadowBlur = 6 * px1;
+      rrect(c, g.x - g.w / 2, g.y - ph / 2, g.w, ph, ph / 2); c.fillStyle = pin; c.fill(); c.restore();
+      c.lineWidth = 1.5 * px1; c.strokeStyle = "#111318"; rrect(c, g.x - g.w / 2, g.y - ph / 2, g.w, ph, ph / 2); c.stroke();
+      c.fillStyle = ink; c.textBaseline = "middle"; spaced(c, g.label, g.x, g.y + 0.5 * px1, 0, "center");
+      boxes.push({ x0: g.x - g.w / 2, x1: g.x + g.w / 2, y0: g.y - ph / 2, y1: g.y + ph / 2 });
+    });
+    c.font = mono(8.5);
+    groups.forEach((g) => {
+      const text = g.place.toUpperCase(), tw = spacedW(c, text, 0.6 * px1), lw = tw + 10 * px1, lh = 15 * px1;
+      const spots = [[g.x + g.w / 2 + 4 * px1, g.y - lh / 2], [g.x - g.w / 2 - 4 * px1 - lw, g.y - lh / 2], [g.x - lw / 2, g.y - ph / 2 - 3 * px1 - lh], [g.x - lw / 2, g.y + ph / 2 + 3 * px1]];
+      for (const [lx, ly] of spots) {
+        const bx = { x0: lx, x1: lx + lw, y0: ly, y1: ly + lh };
+        if (hit(bx)) continue;
+        boxes.push(bx);
+        rrect(c, lx, ly, lw, lh, 4 * px1); c.fillStyle = "rgba(17,19,24,.82)"; c.fill();
+        c.fillStyle = "rgba(243,239,230,.95)"; c.textBaseline = "middle"; spaced(c, text, lx + 5 * px1, ly + lh / 2 + 0.5 * px1, 0.6 * px1);
+        break;
+      }
+    });
+  }
+
+  function openCity(id) {
+    cpId = id;
+    cp.hidden = false;
+    cp.scrollTop = 0;
+    renderCity();
+  }
+  function closeCity() { cp.hidden = true; cpId = ""; }
+  function renderCity() {
+    const st = byId[cpId];
+    if (!st) return closeCity();
+    const top = `<div class="fp-top"><button class="fp-ib" type="button" data-cp="back" aria-label="Back to the player"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>` +
+      `<div class="fp-k">The sound of</div><span></span></div>`;
+    if (!cityData) {
+      cpIn.innerHTML = top + '<p class="cp-wait">Loading…</p>';
+      loadCity().then(() => { if (!cp.hidden && cpId === st.id) renderCity(); }, () => { cpIn.innerHTML = top + '<p class="cp-wait">Couldn’t load this page. Check your connection and try again.</p>'; });
+      return;
+    }
+    const city = cityData[st.code];
+    if (!city) { cpIn.innerHTML = top + '<p class="cp-wait">Nothing here yet.</p>'; return; }
+    const light = document.documentElement.getAttribute("data-theme") === "light", F = FLAGS[city.flag];
+    const a = readable(F.a[0], light), b = readable(F.a[1], light), pin = lighten(F.a[1], 0.12);
+    cp.style.setProperty("--ca", a); cp.style.setProperty("--cb", b); cp.style.setProperty("--cg", F.a[0]);
+    cp.style.setProperty("--pin", pin); cp.style.setProperty("--pin-t", onColor(pin));
+    let h = top + `<div class="cp-h"><h2 class="cp-title" id="cp-title">${esc(st.city)}</h2>` +
+      `<small>${esc(st.country)} · ${fmtLL(st.lat, st.lon)} · ${hhmm(Date.now(), st.tz)} local time</small></div>` +
+      '<div class="cp-map"><canvas id="cp-map" role="img" aria-label="Map of the region with the places in the notes"></canvas></div>' +
+      `<p class="cp-intro">${esc(city.intro)}</p>`;
+    if (city.born && city.born.length) h += `<div class="cp-born"><b>Born here</b>${city.born.map((x) => `<span>${esc(x)}</span>`).join("")}</div>`;
+    h += '<ol class="cp-notes">' + city.pins.map((p, q) => `<li><span class="n">${q + 1}</span><div><span class="w"><i>${esc(p.year)}</i> · ${esc(p.place)}</span><p>${esc(p.text)}</p></div></li>`).join("") + "</ol>";
+    h += '<section class="cp-names"><h3>Names to know</h3><ul>' + city.names.map(([n, d]) => `<li><button type="button" data-cp="copy" data-q="${esc(n)}"><b>${esc(n)}</b><span>${esc(d)}</span></button></li>`).join("") +
+      '</ul><p class="cp-tip">Tap a name to copy it.</p></section>';
+    h += '<button class="cp-btn" type="button" data-cp="world">Listeners on the world map</button>' +
+      '<p class="cp-src">Maps from Natural Earth. Notes checked against Wikipedia and other public sources.</p>';
+    cpIn.innerHTML = h;
+    const cv = $("cp-map"), box = cv.parentNode, dpr = Math.min(3, window.devicePixelRatio || 1);
+    const [x0] = proj(0, city.view.lon[0]), [x1] = proj(0, city.view.lon[1]), [, yT] = proj(city.view.lat[1], 0), [, yB] = proj(city.view.lat[0], 0);
+    const ratio = Math.min(1.5, Math.max(0.72, (yB - yT) / (x1 - x0))), cw = box.clientWidth || 340;
+    cv.width = Math.round(cw * dpr); cv.height = Math.round(cw * ratio * dpr);
+    cv.style.aspectRatio = cv.width + " / " + cv.height;
+    try { drawCityMap(cv, city, st); } catch (e) {}
+  }
+  cp.addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-cp]");
+    if (!b) return;
+    const a = b.dataset.cp;
+    if (a === "back") closeCity();
+    else if (a === "copy") copyText(b.dataset.q, "Copied");
+    else if (a === "world") { const id = cpId; closeCity(); showOnMap(id); }
+  });
+
 
 
   /* ---------- playback ---------- */
