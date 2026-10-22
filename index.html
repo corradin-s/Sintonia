@@ -529,8 +529,8 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .swatch { cursor: pointer; }
 .fp { position: fixed; inset: 0; z-index: 30; background: var(--bg); color: var(--ink); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
 .fp::before {
-  content: ""; position: absolute; left: -30%; right: -30%; top: -12%; height: 78%; pointer-events: none;
-  background: radial-gradient(50% 50% at 50% 40%, color-mix(in srgb, var(--fc, transparent) 42%, transparent), transparent 72%);
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 72%; pointer-events: none;
+  background: radial-gradient(85% 60% at 50% 32%, color-mix(in srgb, var(--fc, transparent) 42%, transparent), transparent 72%);
 }
 @media (prefers-reduced-motion: no-preference) {
   .fp:not([hidden]) { animation: fp-up .3s cubic-bezier(.2, .8, .2, 1); }
