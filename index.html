@@ -50,7 +50,7 @@ window.SintoniaTheme = (function () {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400;500;600&family=Gloria+Hallelujah&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400;500;600&display=swap">
 <style>
 /* Layout: two views switched by a bottom tab bar, like an iPhone app.
    Stations: on-air header, your pinned stations, then the stations live right now, then the rest.
@@ -146,21 +146,7 @@ h1, .title {
   letter-spacing: -.04em;
   white-space: nowrap;
 }
-/* the logo: "Sintonia" written by hand, each letter a little askew */
-h1.logo {
-  font-family: "Gloria Hallelujah", "Chalkboard SE", "Comic Sans MS", cursive;
-  font-weight: 400; font-stretch: normal; letter-spacing: 0;
-  font-size: clamp(46px, 13.5vw, 80px); line-height: 1.12; padding-bottom: 2px;
-}
-h1.logo span { display: inline-block; }
-h1.logo span:nth-child(1) { transform: rotate(-6deg); }
-h1.logo span:nth-child(2) { transform: rotate(4deg) translateY(.05em); }
-h1.logo span:nth-child(3) { transform: rotate(-3deg); }
-h1.logo span:nth-child(4) { transform: rotate(5deg) translateY(-.03em); }
-h1.logo span:nth-child(5) { transform: rotate(-4deg) translateY(.03em); }
-h1.logo span:nth-child(6) { transform: rotate(3deg); }
-h1.logo span:nth-child(7) { transform: rotate(-5deg) translateY(-.02em); }
-h1.logo span:nth-child(8) { transform: rotate(4deg) translateY(.02em); }
+/* the logo: the original wordmark, Archivo wide and black like the page titles */
 /* Sofia's black kitten, leg up, sniffing its bottom: a sticker beside the greeting */
 .topline-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .topline .logo-mark { flex: none; height: 32px; width: auto; aspect-ratio: 796 / 876; }
@@ -838,7 +824,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   <main class="view" id="view-stations">
   <header class="hero">
-    <h1 class="logo" aria-label="Sintonia"><span aria-hidden="true">S</span><span aria-hidden="true">i</span><span aria-hidden="true">n</span><span aria-hidden="true">t</span><span aria-hidden="true">o</span><span aria-hidden="true">n</span><span aria-hidden="true">i</span><span aria-hidden="true">a</span></h1>
+    <h1 class="logo"><span>Sintonia</span></h1>
 
     <div class="notice" role="note" aria-label="Rights notice"><div class="notice-track"><span>All broadcasts, shows, music and station names belong to their respective radio stations and rights holders <i>·</i> Sintonia plays their public streams and is not affiliated with any station <i>·</i> Support the stations you love <i>·</i> </span><span aria-hidden="true">All broadcasts, shows, music and station names belong to their respective radio stations and rights holders <i>·</i> Sintonia plays their public streams and is not affiliated with any station <i>·</i> Support the stations you love <i>·</i> </span></div></div>
 
@@ -2066,7 +2052,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   let SP = S_PAL.dark;
   const storyMode = () => readKey("sintonia:story") || (document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
   const fName = (px) => "850 extra-condensed " + px + 'px "Sintonia Narrow", Archivo, "Arial Narrow", sans-serif';
-  const fHand = (px) => "400 " + px + 'px "Gloria Hallelujah", "Chalkboard SE", cursive';
+  const fWord = (px) => "900 expanded " + px + 'px "Sintonia Wide", Archivo, "Helvetica Neue", sans-serif';
   const fBody = (w, px) => w + " " + px + 'px "Instrument Sans", "Helvetica Neue", Arial, sans-serif';
   const fLabel = (px) => "500 " + px + 'px "Instrument Sans", "Helvetica Neue", Arial, sans-serif';
   const rgbOf = (c) => { const m = /^#?([0-9a-f]{6})$/i.exec(String(c).trim()); const n = m ? parseInt(m[1], 16) : 0x9B9BA8; return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
@@ -2159,16 +2145,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     c.restore();
     return h * lw / lh;
   }
-  function handWord(c, x, y, px) { // "Sintonia" as in the title: each letter a little askew
-    const tilt = [[-6, 0], [4, .05], [-3, 0], [5, -.03], [-4, .03], [3, 0], [-5, -.02], [4, .02]];
-    c.save(); c.font = fHand(px); c.fillStyle = SP.ink; c.textBaseline = "middle";
-    [..."Sintonia"].forEach((ch, i) => {
-      const w = c.measureText(ch).width, [deg, dy] = tilt[i];
-      c.save(); c.translate(x + w / 2, y + dy * px); c.rotate(deg * Math.PI / 180);
-      c.fillText(ch, -w / 2, 0); c.restore(); x += w;
-    });
-    c.restore();
-  }
   function storyChip(c, x, y, text, on) {
     c.font = fLabel(26);
     const label = text.toUpperCase(), ls = 4, h = 54, pad = 20, dw = on ? 28 : 0;
@@ -2259,7 +2235,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     // top: the cat and the wordmark (below the bar Instagram draws over a story)
     const LY = 262, LH = 96;
     const lw = storyLogo(c, M, LY, LH);
-    handWord(c, M + lw + (lw ? 22 : 0), LY + LH / 2 + 2, 76);
+    c.font = fWord(62); c.fillStyle = SP.ink; c.textBaseline = "middle";
+    spaced(c, "Sintonia", M + lw + (lw ? 24 : 0), LY + LH / 2 + 4, -2.5);
 
     // the card, measured before it is drawn
     const CX = M, CW = S_W - 2 * M, P = 56, IW = CW - 2 * P, TOP = 414, ROOM = 1180;
@@ -2311,7 +2288,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
 
   let facesP = null;
-  function storyFaces() { // Safari's canvas ignores font-stretch: Archivo is added once more with the width fixed, narrow for the names
+  function storyFaces() { // Safari's canvas ignores font-stretch: Archivo is added twice more with the width fixed, narrow for names and wide for the wordmark
     if (!facesP) {
       facesP = !window.FontFace ? Promise.resolve() : fetch("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap")
         .then((r) => r.text()).then((css) => {
@@ -2320,6 +2297,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
             if (!src || !/font-family:\s*['"]?Archivo['"]?\s*;/.test(m[1])) continue;
             const d = ur ? { unicodeRange: ur[1].trim() } : {};
             document.fonts.add(new FontFace("Sintonia Narrow", src[1], Object.assign({ weight: "500 900", stretch: "62.5%" }, d)));
+            document.fonts.add(new FontFace("Sintonia Wide", src[1], Object.assign({ weight: "500 900", stretch: "125%" }, d)));
           }
         }).catch(() => {});
     }
@@ -2328,7 +2306,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   function storyFonts(d) {
     if (!document.fonts || !document.fonts.load) return Promise.resolve();
     const text = d.name + d.kicker.toUpperCase() + d.place.toUpperCase() + d.show + d.song + "Sintonia ONAIRERUN0123456789:·♪–";
-    return storyFaces().then(() => Promise.all([fName(100), fHand(76), fBody(600, 46), fBody(400, 38), fLabel(28)].map((f) => document.fonts.load(f, text).catch(() => {}))));
+    return storyFaces().then(() => Promise.all([fName(100), fWord(62), fBody(600, 46), fBody(400, 38), fLabel(28)].map((f) => document.fonts.load(f, text).catch(() => {}))));
   }
   function landReady() { return landPath ? Promise.resolve() : new Promise((res) => { landWait.push(res); loadLand(); }); }
 
