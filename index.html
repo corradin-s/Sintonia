@@ -149,7 +149,9 @@ h1, .title {
 h1.logo { font-size: clamp(30px, 9vw, 46px); display: flex; align-items: center; gap: .32em; }
 /* Sofia's kitten, leg up, sniffing its bottom: one colour */
 h1.logo .logo-mark { flex: none; height: 1.45em; width: auto; aspect-ratio: 758 / 816; }
-.logo-mark .lm-cat { fill: currentColor; } /* one colour: cream on dark, ink on light */
+.logo-mark .lm-cat { fill: #0C0D11; } /* always the black kitten */
+/* on the dark theme it sits on a cream tile, like the Home Screen icon, or it would vanish */
+:root[data-theme="dark"] h1.logo .logo-mark { width: 1.5em; height: 1.5em; aspect-ratio: 1; padding: .16em; box-sizing: border-box; border-radius: .34em; background: #F3EFE6; }
 .onair {
   flex: none;
   font-family: var(--f-mono); font-size: 10px; font-weight: 500; letter-spacing: .16em;
@@ -2134,10 +2136,17 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const cat = document.querySelector(".logo-mark .lm-cat");
     const vb = (document.querySelector(".logo-mark").getAttribute("viewBox") || "0 0 1 1").split(/\s+/).map(Number), lw = vb[2], lh = vb[3];
     if (!cat || !window.Path2D) return 0;
-    c.save(); c.translate(x, y); c.scale(h / lh, h / lh); c.translate(-vb[0], -vb[1]);
-    c.fillStyle = SP.ink; c.fill(new Path2D(cat.getAttribute("d")), "evenodd");
+    let w = h * lw / lh;
+    c.save();
+    if (SP.bg === S_PAL.dark.bg) { // the black kitten on its cream tile, as on the Home Screen
+      rrect(c, x, y, h, h, h * 0.23); c.fillStyle = "#F3EFE6"; c.fill();
+      const inner = h * 0.78; w = h;
+      c.translate(x + (h - inner * lw / lh) / 2, y + (h - inner) / 2); c.scale(inner / lh, inner / lh);
+    } else { c.translate(x, y); c.scale(h / lh, h / lh); }
+    c.translate(-vb[0], -vb[1]);
+    c.fillStyle = "#0C0D11"; c.fill(new Path2D(cat.getAttribute("d")), "evenodd");
     c.restore();
-    return h * lw / lh;
+    return w;
   }
   function storyChip(c, x, y, text, on) {
     c.font = fMono(26);
