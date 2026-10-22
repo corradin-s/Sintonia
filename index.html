@@ -437,7 +437,6 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 
 /* ---------- Sheets: Now playing (track, songs heard) and station Info ---------- */
 .np { cursor: pointer; }
-.np-more { display: inline-block; margin-left: 6px; opacity: .7; font-size: 10px; }
 .sheet-back { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .5); }
 .sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 88vh; overflow-y: auto; overscroll-behavior: contain;
@@ -525,6 +524,99 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .story-tip { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; max-width: 34ch; }
 .story .finds { justify-content: center; }
 .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); transform: translateX(-50%); z-index: 50; background: var(--ink); color: var(--bg); padding: 9px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 600; pointer-events: none; }
+
+/* ---------- Full-screen player ---------- */
+.swatch { cursor: pointer; }
+.fp { position: fixed; inset: 0; z-index: 30; background: var(--bg); color: var(--ink); overflow-y: auto; overscroll-behavior: contain; }
+.fp::before {
+  content: ""; position: absolute; left: -30%; right: -30%; top: -12%; height: 78%; pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 40%, color-mix(in srgb, var(--fc, transparent) 42%, transparent), transparent 72%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fp:not([hidden]) { animation: fp-up .3s cubic-bezier(.2, .8, .2, 1); }
+  @keyframes fp-up { from { transform: translateY(60px); opacity: 0; } }
+}
+.fp-in {
+  position: relative; box-sizing: border-box; min-height: 100%; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) max(22px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 22px) max(22px, env(safe-area-inset-left, 0px));
+}
+.fp-top { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; gap: 8px; }
+.fp-k { min-width: 0; text-align: center; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.fp-k b { display: block; margin-top: 3px; color: var(--ink); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fp-ib {
+  appearance: none; -webkit-appearance: none; border: 0; padding: 0; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  display: grid; place-items: center; background: color-mix(in srgb, var(--ink) 9%, transparent); color: var(--ink);
+}
+.fp-ib svg, .fp-act svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.fp-ib svg circle { fill: currentColor; stroke: none; }
+.fp-cover {
+  position: relative; align-self: center; flex: none; width: min(100%, 44vh); aspect-ratio: 1; border-radius: 22px; overflow: hidden; isolation: isolate;
+  background: var(--c); color: var(--t); box-shadow: 0 30px 60px -28px rgba(0, 0, 0, .7);
+}
+.fp-cover::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: repeating-radial-gradient(circle at var(--ox) var(--oy), transparent 0, transparent calc(var(--gap) * 1.2 - 1.5px), var(--ring) calc(var(--gap) * 1.2 - 1.5px), var(--ring) calc(var(--gap) * 1.2));
+}
+.fp-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.fp-cover.has-art::before { background: linear-gradient(to top, var(--c) 18%, color-mix(in srgb, var(--c) 55%, transparent) 42%, transparent 70%); }
+.fp-ck { position: absolute; left: 16px; top: 16px; font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+.fp-cover.has-art .fp-ck { color: #fff; opacity: 1; text-shadow: 0 1px 6px rgba(0, 0, 0, .6); }
+.fp-tag {
+  position: absolute; right: 14px; top: 12px; font-family: var(--f-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  padding: 5px 8px; border-radius: 6px; background: rgba(0, 0, 0, .4); color: #fff;
+}
+.fp-tag.on { border: 1.5px solid #FF4D3F; background: #3A1210; color: #FFE9E6; }
+.fp-tag.on::before { content: "● "; color: #FF4D3F; }
+.fp-nm {
+  position: absolute; left: 16px; right: 16px; bottom: 14px; font-family: var(--f-display); font-weight: 850; font-stretch: 62%;
+  line-height: .86; text-transform: uppercase; overflow-wrap: normal; word-break: keep-all;
+}
+.fp-nm.keepcase { text-transform: none; }
+.fp-meta { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; }
+.fp-mt h2 { margin: 0; font-size: 21px; line-height: 1.18; font-weight: 600; overflow-wrap: anywhere; }
+.fp-mt p { margin: 4px 0 0; color: var(--muted); font-size: 14px; line-height: 1.35; }
+.fp-mt p b { color: var(--ink); font-weight: 500; }
+.fp-star { appearance: none; -webkit-appearance: none; border: 0; background: none; padding: 2px 0 0; cursor: pointer; font-size: 26px; line-height: 1; color: var(--fc, var(--ink)); }
+.fp-bar { display: grid; gap: 7px; }
+.fp-line { height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 16%, transparent); position: relative; }
+.fp-line i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--ink); }
+.fp-line i::after { content: ""; position: absolute; right: -6px; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); }
+.fp-times { display: flex; justify-content: space-between; gap: 8px; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .06em; color: var(--muted); }
+.fp-times.one { justify-content: center; }
+.fp-ctrl { display: flex; justify-content: center; align-items: center; gap: 42px; }
+.fp-skip, .fp-big, .fp-act, .fp-copy { appearance: none; -webkit-appearance: none; border: 0; background: none; color: var(--ink); cursor: pointer; padding: 0; font: inherit; }
+.fp-skip { display: grid; justify-items: center; gap: 5px; font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.fp-skip svg { width: 30px; height: 30px; fill: var(--ink); }
+.fp-big { width: 76px; height: 76px; border-radius: 50%; background: var(--ink); display: grid; place-items: center; }
+.fp-big svg { width: 24px; height: 24px; fill: var(--bg); }
+body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite; }
+.fp-track {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 16px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+}
+.fp-tk { font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.fp-track b { display: block; margin-top: 3px; font-size: 16px; overflow-wrap: anywhere; }
+.fp-track span:not(.fp-tk) { color: var(--muted); font-size: 13.5px; }
+.fp-copy { font-size: 12.5px; border: 1px solid var(--line); border-radius: 999px; padding: 7px 11px; }
+.fp-nosong { margin: 0; text-align: center; color: var(--muted); font-size: 13px; }
+.fp-acts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); padding-top: 2px; margin-top: auto; }
+.fp-act { display: grid; justify-items: center; gap: 6px; padding: 6px 0; font-size: 11px; color: var(--muted); }
+.fp-act svg { color: var(--ink); }
+.fp-act.on span { color: var(--ink); font-weight: 600; }
+.fp-act.dim svg { opacity: .45; }
+@media (max-height: 720px) {
+  .fp-in { gap: 13px; }
+  .fp-cover { width: min(100%, 40vh); }
+  .fp-big { width: 66px; height: 66px; }
+}
+.sheet-pad { padding-top: 12px; }
+.sh-title { margin: 0; padding-right: 46px; font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: 30px; line-height: .9; text-transform: uppercase; }
+.sh-opts { display: grid; gap: 8px; }
+.sh-opt {
+  appearance: none; -webkit-appearance: none; display: flex; justify-content: space-between; gap: 10px; width: 100%; text-align: left; cursor: pointer;
+  padding: 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); color: var(--ink); font: inherit; font-weight: 600; font-size: 15px;
+}
+.sh-opt span { color: var(--muted); font-weight: 400; }
 
 /* ---------- Rights notice: a slow ticker under the logo ---------- */
 .notice {
@@ -1002,13 +1094,15 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   <div id="sheet-body"></div>
 </section>
 
+<section class="fp" id="fp" role="dialog" aria-modal="true" aria-labelledby="fp-title" hidden><div class="fp-in" id="fp-in"></div></section>
+
 <div class="dock">
 <div class="player" role="region" aria-label="Player">
   <div class="progress" aria-hidden="true"><i id="prog"></i></div>
   <div class="player-inner">
     <div class="swatch" id="swatch"><img id="np-art" alt="" hidden><span class="eq"><i></i><i></i><i></i></span></div>
-    <div class="np" id="np" role="button" tabindex="0" aria-label="Now playing: details, track and history">
-      <div class="np-status"><span class="dot"></span><span id="np-status">Tap a station to listen</span><span class="np-more" aria-hidden="true">▲</span></div>
+    <div class="np" id="np" role="button" tabindex="0" aria-label="Open the player">
+      <div class="np-status"><span class="dot"></span><span id="np-status">Tap a station to listen</span></div>
       <div class="np-name" id="np-name">Sintonia</div>
       <div class="np-show" id="np-show" hidden></div>
     </div>
@@ -2239,7 +2333,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     sheet.hidden = true; sheetBack.hidden = true;
   }
   function renderSheet() {
-    if (sheetOpen === "now") renderNow();
+    if (sheetOpen === "heard") renderHeard();
+    else if (sheetOpen === "sleep") renderSleep();
     else if (sheetOpen === "info") renderInfo(sheetId);
     else if (sheetOpen === "share") renderShare(sheetId);
   }
@@ -2270,21 +2365,18 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const keep = st.el.querySelector(".name").classList.contains("keepcase") ? " keepcase" : "";
     return `<div class="sh-head" data-id="${st.id}"><span class="sh-k">${esc(kicker)}</span><h2 class="sh-name${keep}" id="sheet-title">${esc(st.name)}</h2>${extra}<div class="sh-acts">${acts}</div></div>`;
   }
-  function renderNow() {
-    const st = current ? byId[current] : null;
-    if (!st) { sheetBody.innerHTML = '<div class="sheet-in"><p class="empty">Pick a station to start listening.</p>' + heardHtml() + "</div>"; return; }
-    const info = live[st.id], playing = state === "live" || state === "loading";
-    const k = { loading: "Tuning in · " + st.city, live: "Live from " + st.city, error: "Can’t reach " + st.name }[state] || "Paused · " + st.city;
-    const show = info && info.title ? `<p class="sh-show">${esc(info.title)}${info.sub ? `<span> · ${esc(info.sub)}</span>` : ""}</p>` : "";
-    let h = '<div class="sheet-in">' + headHtml(st, k, show,
-      `<button class="sh-btn" type="button" data-act="toggle">${playing ? "Stop" : "Play"}</button>` +
-      `<button class="sh-btn ghost" type="button" data-act="share" data-id="${st.id}">Share</button>` +
-      `<button class="sh-btn ghost" type="button" data-act="info" data-id="${st.id}">About</button>`);
-    h += '<section class="sh-sec"><h3><span>What’s this track?</span></h3>';
-    if (info && info.song) h += `<div class="song"><b>${esc(info.song.title)}</b><span>${esc(info.song.artist)}</span></div>` + findsHtml(info.song);
-    else h += `<p class="empty">${esc(st.name)} doesn’t say which song is playing${info && info.title ? ", only the show above" : ""}.</p>`;
-    h += "</section>" + heardHtml() + "</div>";
-    sheetBody.innerHTML = h;
+  function renderHeard() {
+    sheetBody.innerHTML = '<div class="sheet-in sheet-pad">' + heardHtml().replace("<span>Recently heard</span>", '<span id="sheet-title">Recently heard</span>') + "</div>";
+  }
+  function renderSleep() {
+    const st = current ? byId[current] : null, info = st ? live[st.id] : null, left = sleepLeft();
+    const opts = [[15, "15 minutes"], [30, "30 minutes"], [45, "45 minutes"], [60, "1 hour"]];
+    if (info && isFinite(info.end) && info.end - Date.now() > 2 * 60000) opts.push([Math.round((info.end - Date.now()) / 60000), "When the show ends", hhmm(info.end, st.tz)]);
+    let h = '<div class="sheet-in sheet-pad"><h2 class="sh-title" id="sheet-title">Sleep timer</h2>' +
+      `<p class="empty">${left ? "The radio stops in " + left + " min." : "The radio stops by itself after:"}</p><div class="sh-opts">`;
+    h += opts.map(([m, label, at]) => `<button class="sh-opt" type="button" data-act="sleepset" data-min="${m}">${label}<span>${at || ""}</span></button>`).join("");
+    if (left) h += '<button class="sh-opt" type="button" data-act="sleepset" data-min="0">Turn off the timer</button>';
+    sheetBody.innerHTML = h + "</div></div>";
   }
   function renderInfo(id) {
     const st = byId[id];
@@ -2312,6 +2404,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     else if (act === "pin") togglePin(id);
     else if (act === "share") { openSheet("share", id); return; }
     else if (act === "story") { if (STORY.file) navigator.share({ files: [STORY.file] }).catch(() => {}); return; }
+    else if (act === "sleepset") { setSleep(+a.dataset.min); closeSheet(); toast(+a.dataset.min ? "Sleep in " + sleepLeft() + " min" : "Timer off"); return; }
     else if (act === "copylink") { copyText(stationUrl(id), "Link copied"); return; }
     else if (act === "smode") writeKey("sintonia:story", a.dataset.mode);
     else if (act === "link") { shareStation(id); return; }
@@ -2323,9 +2416,173 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   sheetBack.addEventListener("click", closeSheet);
   sheetBack.addEventListener("touchmove", (ev) => ev.preventDefault(), { passive: false });
   $("sheet-x").addEventListener("click", closeSheet);
-  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && sheetOpen) closeSheet(); });
-  $("np").addEventListener("click", () => openSheet("now"));
-  $("np").addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); openSheet("now"); } });
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key !== "Escape") return;
+    if (sheetOpen) closeSheet(); else if (!$("fp").hidden) closePlayer();
+  });
+  $("np").addEventListener("click", () => openPlayer());
+  $("np").addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); openPlayer(); } });
+  swatch.addEventListener("click", () => openPlayer());
+
+  /* ---------- the full-screen player: tap the bar to open it, swipe down to close ---------- */
+  const fp = $("fp"), fpIn = $("fp-in");
+  let fpOpen = false, sleepAt = 0, sleepTimer = 0, airplayAvail = false;
+  const airplayOk = typeof audio.webkitShowPlaybackTargetPicker === "function";
+  if (window.WebKitPlaybackTargetAvailabilityEvent) {
+    audio.addEventListener("webkitplaybacktargetavailabilitychanged", (e) => { airplayAvail = e.availability === "available"; if (fpOpen) renderFP(); });
+  }
+  const FPI = {
+    down: '<path d="M6 9l6 6 6-6"/>',
+    more: '<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+    airplay: '<path d="M5 17H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-1"/><path d="M12 15l5 6H7z"/>',
+    sleep: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+    share: '<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
+    map: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-3 3-3 15 0 18M12 3c3 3 3 15 0 18"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+  };
+  const fpIcon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true">${FPI[k]}</svg>`;
+
+  function openPlayer() {
+    if (!current) return;
+    fpOpen = true;
+    fp.hidden = false; // visible first, so the name can be measured
+    renderFP();
+    fp.scrollTop = 0;
+  }
+  function closePlayer() {
+    fpOpen = false;
+    fp.hidden = true;
+    fpIn.style.transform = "";
+  }
+  const sleepLeft = () => sleepAt ? Math.max(1, Math.ceil((sleepAt - Date.now()) / 60000)) : 0;
+  function setSleep(min) {
+    clearTimeout(sleepTimer);
+    sleepAt = min > 0 ? Date.now() + min * 60000 : 0;
+    if (sleepAt) sleepTimer = setTimeout(sleepCheck, min * 60000 + 200);
+    if (fpOpen) renderFP();
+  }
+  function sleepCheck() { // timers can be late with the screen locked, so playback events check too
+    if (!sleepAt || Date.now() < sleepAt) return;
+    sleepAt = 0; clearTimeout(sleepTimer);
+    if (state === "live" || state === "loading") stop();
+    if (fpOpen) renderFP();
+  }
+  audio.addEventListener("timeupdate", sleepCheck);
+
+  function renderFP() {
+    const st = current ? byId[current] : null;
+    if (!st) { closePlayer(); return; }
+    const info = live[st.id] || null, playing = state === "live" || state === "loading", now = Date.now();
+    const keep = st.el.querySelector(".name").classList.contains("keepcase") ? " keepcase" : "";
+    const k = { loading: "Tuning in to", live: "Live from", error: "Can’t reach" }[state] || "Paused";
+    const where = state === "error" ? st.name : st.city + ", " + st.country;
+    const tag = info && info.title ? (info.rerun ? `<span class="fp-tag">${esc(info.tag || "Rerun")}</span>` : '<span class="fp-tag on">On air</span>') : "";
+    const art = info && info.art && st.el.classList.contains("has-art") ? `<img class="fp-art" src="${esc(info.art)}" alt="">` : ""; // only once the tile has shown it
+    let h = `<div class="fp-top"><button class="fp-ib" type="button" data-fp="close" aria-label="Close player">${fpIcon("down")}</button>` +
+      `<div class="fp-k">${esc(k)}<b>${esc(where)}</b></div>` +
+      `<button class="fp-ib" type="button" data-fp="heard" aria-label="Songs you heard">${fpIcon("more")}</button></div>`;
+    h += `<div class="fp-cover${art ? " has-art" : ""}" data-id="${st.id}">${art}<span class="fp-ck">${esc(st.code)} · ${hhmm(now, st.tz)}</span>${tag}` +
+      `<span class="fp-nm${keep}" id="fp-title">${esc(st.name)}</span></div>`;
+    const sub = [];
+    if (info && info.title) sub.push(`<b>${esc(st.name)}</b>`);
+    if (info && info.sub && !(info.song && info.song.title && info.sub.toLowerCase().includes(info.song.title.toLowerCase())) &&
+      !(info.song && info.sub === info.song.artist)) sub.push(esc(info.sub)); // the song has its own card below
+    if (info && isFinite(info.end)) sub.push("until " + hhmm(info.end, st.tz));
+    if (!info || !info.title) sub.push(esc(st.city) + ", " + esc(st.country));
+    const pinned = favs.includes(st.id);
+    h += `<div class="fp-meta"><div class="fp-mt"><h2>${esc(info && info.title ? info.title : st.name)}</h2><p>${sub.join(" · ")}</p></div>` +
+      `<button class="fp-star${pinned ? " on" : ""}" type="button" data-fp="pin" aria-pressed="${pinned}" aria-label="${pinned ? "Unpin" : "Pin"} ${esc(st.name)}">${pinned ? "★" : "☆"}</button></div>`;
+    if (info && isFinite(info.start) && isFinite(info.end) && info.end > info.start) {
+      const pct = Math.min(100, Math.max(0, (now - info.start) / (info.end - info.start) * 100));
+      h += `<div class="fp-bar"><div class="fp-line"><i style="width:${pct.toFixed(1)}%"></i></div>` +
+        `<div class="fp-times"><span>${hhmm(info.start, st.tz)}</span><span>${hhmm(now, st.tz)} in ${esc(st.city)}</span><span>${hhmm(info.end, st.tz)}</span></div></div>`;
+    } else {
+      h += `<div class="fp-times one"><span>${hhmm(now, st.tz)} in ${esc(st.city)}</span></div>`;
+    }
+    h += '<div class="fp-ctrl">' +
+      '<button class="fp-skip" type="button" data-fp="prev" aria-label="Previous station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2.4v14H6zM20 5v14L9.5 12z"/></svg><span>Prev</span></button>' +
+      `<button class="fp-big" type="button" data-fp="toggle" aria-label="${playing ? "Stop" : "Play"}">` +
+      (playing ? '<svg viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg>' : '<svg viewBox="0 0 10 12" aria-hidden="true"><path d="M1 0 10 6 1 12z"/></svg>') + "</button>" +
+      '<button class="fp-skip" type="button" data-fp="next" aria-label="Next station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.6 5H18v14h-2.4zM4 5v14l10.5-7z"/></svg><span>Next</span></button></div>';
+    if (info && info.song && info.song.title) {
+      const q = (info.song.artist ? info.song.artist + " " : "") + info.song.title;
+      h += `<div class="fp-track"><div><span class="fp-tk">♪ Playing now</span><b>${esc(info.song.title)}</b><span>${esc(info.song.artist || "")}</span></div>` +
+        `<button class="fp-copy" type="button" data-fp="copy" data-q="${esc(q)}">Copy</button></div>`;
+    } else {
+      h += `<p class="fp-nosong">${esc(st.name)} doesn’t say which song is playing.</p>`;
+    }
+    const left = sleepLeft();
+    h += '<div class="fp-acts">' +
+      (airplayOk ? `<button class="fp-act${airplayAvail ? "" : " dim"}" type="button" data-fp="airplay">${fpIcon("airplay")}<span>AirPlay</span></button>` : "") +
+      `<button class="fp-act${left ? " on" : ""}" type="button" data-fp="sleep">${fpIcon("sleep")}<span>${left ? left + " min" : "Sleep"}</span></button>` +
+      `<button class="fp-act" type="button" data-fp="share">${fpIcon("share")}<span>Share</span></button>` +
+      `<button class="fp-act" type="button" data-fp="map">${fpIcon("map")}<span>Map</span></button>` +
+      `<button class="fp-act" type="button" data-fp="info">${fpIcon("info")}<span>Info</span></button></div>`;
+    fp.style.setProperty("--fc", st.dot);
+    fpIn.innerHTML = h;
+    fitCover();
+  }
+  function fitCover() { // the station's name as big as the cover allows
+    const cv = fpIn.querySelector(".fp-cover"), nm = cv && cv.querySelector(".fp-nm");
+    if (!nm || !cv.clientWidth) return;
+    let px = Math.round(cv.clientWidth * 0.3), guard = 0;
+    nm.style.fontSize = px + "px";
+    while ((nm.scrollWidth > nm.clientWidth + 1 || nm.offsetHeight > cv.clientHeight * 0.62) && px > 24 && guard++ < 80) { px -= 3; nm.style.fontSize = px + "px"; }
+  }
+  function showOnMap(id) {
+    const st = byId[id];
+    closePlayer();
+    if (location.hash !== "#map") history.replaceState(null, "", "#map");
+    showView("map");
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (!measure()) return;
+      const [x, y] = proj(st.lat, st.lon);
+      flyTo({ x, y, k: Math.min(W, H) / 2 / (700 / 6371 / Math.cos(st.lat * RAD)) }, 900);
+    }));
+  }
+
+  fp.addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-fp]");
+    if (!b || !current) return;
+    const a = b.dataset.fp, id = current;
+    if (a === "close") closePlayer();
+    else if (a === "toggle") { if (state === "live" || state === "loading") stop(); else start(id); }
+    else if (a === "prev") step(-1);
+    else if (a === "next") step(1);
+    else if (a === "pin") { togglePin(id); renderFP(); }
+    else if (a === "copy") copyText(b.dataset.q, "Copied");
+    else if (a === "airplay") { try { audio.webkitShowPlaybackTargetPicker(); } catch (e) {} }
+    else if (a === "sleep") openSheet("sleep", id);
+    else if (a === "share") openSheet("share", id);
+    else if (a === "info") openSheet("info", id);
+    else if (a === "heard") openSheet("heard");
+    else if (a === "map") showOnMap(id);
+  });
+  // swipe down from the top to close; nothing behind the player scrolls meanwhile
+  let fpDrag = null;
+  fp.addEventListener("touchstart", (e) => {
+    fpDrag = e.touches.length === 1 && fp.scrollTop <= 0 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, dy: 0, on: false } : null;
+  }, { passive: true });
+  fp.addEventListener("touchmove", (e) => {
+    if (fpDrag) {
+      const dx = e.touches[0].clientX - fpDrag.x, dy = e.touches[0].clientY - fpDrag.y;
+      if (!fpDrag.on) {
+        if (dy > 8 && dy > Math.abs(dx)) fpDrag.on = true;
+        else if (dy < -6 || Math.abs(dx) > 10) fpDrag = null;
+      }
+      if (fpDrag && fpDrag.on) { e.preventDefault(); fpDrag.dy = dy; fpIn.style.transform = "translateY(" + Math.max(0, dy) + "px)"; return; }
+    }
+    if (fp.scrollHeight <= fp.clientHeight + 1 && e.cancelable) e.preventDefault();
+  }, { passive: false });
+  fp.addEventListener("touchend", () => {
+    if (fpDrag && fpDrag.on) {
+      if (fpDrag.dy > 110) closePlayer();
+      else { fpIn.style.transition = "transform .2s ease"; fpIn.style.transform = ""; setTimeout(() => { fpIn.style.transition = ""; }, 220); }
+    }
+    fpDrag = null;
+  });
+  window.addEventListener("resize", () => { if (fpOpen) fitCover(); });
+
 
   /* ---------- playback ---------- */
   let current = null;
@@ -2395,6 +2652,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     }
     noteHeard();
     if (sheetOpen) renderSheet();
+    if (!$("fp").hidden) renderFP();
   }
 
   function updateProgress() {
@@ -2596,6 +2854,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     updateProgress();
     renderGreeting();
     if (view === "map") renderMap();
+    if (!$("fp").hidden) renderFP();
   }
 
   /* ---------- boot ---------- */
