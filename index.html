@@ -371,14 +371,13 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="alhara"]   { --c:#8C1D35; --t:#F8E9EC; --ring:rgba(255,255,255,.11); --pill:rgba(255,255,255,.18); --ox:20%;  --oy:110%; --gap:12px; --dot:#D63B5C; }
 [data-id="batuta"]   { --c:#8FD3F4; --t:#08202C; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:-10%; --oy:20%;  --gap:10px; }
 [data-id="super45"]  { --c:#F1EEE6; --t:#1A1915; --ring:rgba(0,0,0,.09);       --pill:rgba(0,0,0,.09);       --ox:60%;  --oy:-15%; --gap:13px; }
-[data-id="radionica"]{ --c:#F7D046; --t:#1F1A05; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.12);       --ox:0%;   --oy:55%;  --gap:11px; }
 [data-id="deepspace"]{ --c:#AEB4BF; --t:#12151B; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:50%;  --oy:50%;  --gap:9px;  --art-o:.55; }
 [data-id="newtown"]  { --c:#3E64A8; --t:#EEF2FA; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:-10%; --oy:110%; --gap:13px; --dot:#6F93D8; }
-[data-id="wfmu"]     { --c:#F2B5A0; --t:#2A140C; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:105%; --oy:30%;  --gap:15px; }
 [data-id="hanoi"]    { --c:#A6E3C8; --t:#0B2219; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:90%;  --oy:80%;  --gap:12px; }
-[data-id="shonan"]   { --c:#8A5A3B; --t:#FBEFE6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:70%;  --oy:120%; --gap:14px; --dot:#C08457; }
+[data-id="lithium"]  { --c:#16120F; --t:#FF4A2E; --ring:rgba(255,74,46,.16);   --pill:rgba(255,74,46,.18);   --ox:85%;  --oy:-15%; --gap:12px; --dot:#FF5A3C; }
+[data-id="bcr"]      { --c:#3F4697; --t:#F4EBE0; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:10%;  --oy:115%; --gap:13px; --dot:#7C84E0; }
+[data-id="zzz"]      { --c:#C2187A; --t:#FCE8F3; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:40%;  --oy:-25%; --gap:9px;  --dot:#E23C9C; }
 [data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
-[data-id="bfm"]      { --c:#C2187A; --t:#FCE8F3; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:40%;  --oy:-25%; --gap:9px;  --dot:#E23C9C; }
 .name.keepcase { text-transform: none; }
 
 /* ---------- Glass and glow: stations are tinted glass; the one you play lights up and colours the app ---------- */
@@ -859,13 +858,9 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     <p class="mood-empty" id="when-empty" hidden>No stations here at this hour. Try another time of day.</p>
   </section>
 
-  <section class="sec" id="sec-live" aria-labelledby="live-h" hidden>
-    <h2 class="sec-h"><span id="live-h"><i class="live-i"></i>Live now</span><small id="live-n"></small></h2>
-    <ol class="crate" id="crate-live"></ol>
-  </section>
 
   <section class="sec" id="sec-more" aria-labelledby="more-h">
-    <h2 class="sec-h"><span id="more-h">All stations</span></h2>
+    <h2 class="sec-h"><span id="more-h">All stations</span><small id="more-n"></small></h2>
   <ol class="crate" id="crate">
     <li class="tile" data-id="nts1" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
@@ -921,11 +916,20 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <button class="sched" type="button" data-site="https://www.kioskradio.com/schedule">Info</button>
     </li>
 
+    <li class="tile" data-id="lithium" data-country="France" data-code="PAR" data-lat="48.857" data-lon="2.401" data-region="Europe" data-city="Paris" data-tz="Europe/Paris" data-src="https://a13.my-control-panel.com/listen/lithium_radio/radio.mp3">
+      <img class="art" alt="" hidden><span class="shade"></span>
+      <button class="tune" type="button" aria-label="Listen to Lithium">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Lithium</span><span class="meta"><span>P7 · Paris</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://lithium.fm/">Info</button>
+    </li>
+
     <li class="tile" data-id="raheem" data-country="Italy" data-code="MIL" data-lat="45.46" data-lon="9.19" data-region="Europe" data-city="Milan" data-tz="Europe/Rome" data-src="https://radioraheem.out.airtime.pro/radioraheem_a">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Radio Raheem">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Raheem</span><span class="meta"><span>P7 · Milan</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Raheem</span><span class="meta"><span>P8 · Milan</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://www.radioraheem.it/">Info</button>
     </li>
@@ -934,7 +938,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Cashmere Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Cashmere Radio</span><span class="meta"><span>P8 · Berlin</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Cashmere Radio</span><span class="meta"><span>P9 · Berlin</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://cashmereradio.com/">Info</button>
     </li>
@@ -943,7 +947,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Noods Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Noods Radio</span><span class="meta"><span>P9 · Bristol</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Noods Radio</span><span class="meta"><span>P10 · Bristol</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://www.noodsradio.com/">Info</button>
     </li>
@@ -952,7 +956,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Stegi Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Stegi.Radio</span><span class="meta"><span>P10 · Athens</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Stegi.Radio</span><span class="meta"><span>P11 · Athens</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://stegi.radio/">Info</button>
     </li>
@@ -961,7 +965,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Radio alHara">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio alHara</span><span class="meta"><span>P11 · Bethlehem</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio alHara</span><span class="meta"><span>P12 · Bethlehem</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://radioalhara.net/">Info</button>
     </li>
@@ -971,7 +975,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Rádio Batuta">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rádio Batuta</span><span class="meta"><span>P12 · Rio</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rádio Batuta</span><span class="meta"><span>P13 · Rio</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://radiobatuta.com.br/">Info</button>
     </li>
@@ -980,19 +984,11 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Super45">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Super45</span><span class="meta"><span>P13 · Santiago</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Super45</span><span class="meta"><span>P14 · Santiago</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://www.super45.fm/">Info</button>
     </li>
 
-    <li class="tile" data-id="radionica" data-country="Colombia" data-code="BOG" data-lat="4.71" data-lon="-74.07" data-region="Americas" data-city="Bogotá" data-tz="America/Bogota" data-src="https://streaming.rtvc.gov.co/Radio_Radionica/Radionica.stream/playlist.m3u8">
-      <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Listen to Radiónica">
-        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radiónica</span><span class="meta"><span>P14 · Bogotá</span><span class="clock"></span></span></span>
-      </button>
-      <button class="sched" type="button" data-site="https://www.radionica.rocks/">Info</button>
-    </li>
 
     <li class="tile" data-id="deepspace" data-country="United States" data-code="DET" data-lat="42.33" data-lon="-83.05" data-region="Americas" data-city="Detroit" data-tz="America/Detroit" data-src="https://streaming.live365.com/a71161">
       <img class="art" alt="" hidden><span class="shade"></span>
@@ -1012,49 +1008,43 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <button class="sched" type="button" data-site="https://newtownradio.com/">Info</button>
     </li>
 
-    <li class="tile" data-id="wfmu" data-country="United States" data-code="NYC" data-lat="40.72" data-lon="-74.04" data-region="Americas" data-city="New York" data-tz="America/New_York" data-src="https://stream0.wfmu.org/freeform-128k">
-      <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Listen to WFMU">
-        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">WFMU</span><span class="meta"><span>P17 · New York</span><span class="clock"></span></span></span>
-      </button>
-      <button class="sched" type="button" data-site="https://wfmu.org/">Info</button>
-    </li>
 
     <li class="tile" data-id="hanoi" data-country="Vietnam" data-code="HAN" data-lat="21.03" data-lon="105.85" data-region="Asia–Pac" data-city="Hanoi" data-tz="Asia/Ho_Chi_Minh" data-src="https://ha-noi-community-radio.radiocult.fm/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Hà Nội Community Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Hà Nội Community Radio</span><span class="meta"><span>P18 · Hanoi</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Hà Nội Community Radio</span><span class="meta"><span>P17 · Hanoi</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://www.hanoicommunityradio.com/">Info</button>
     </li>
 
-    <li class="tile" data-id="bfm" data-country="Aotearoa New Zealand" data-code="AKL" data-lat="-36.85" data-lon="174.76" data-region="Asia–Pac" data-city="Auckland" data-tz="Pacific/Auckland" data-src="https://streams.95bfm.com/stream95">
+    <li class="tile" data-id="bcr" data-country="Thailand" data-code="BKK" data-lat="13.75" data-lon="100.52" data-region="Asia–Pac" data-city="Bangkok" data-tz="Asia/Bangkok" data-src="https://bcr.radiocult.fm/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Listen to 95bFM">
+      <button class="tune" type="button" aria-label="Listen to Bangkok Community Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name keepcase">95bFM</span><span class="meta"><span>P19 · Auckland</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Bangkok Community Radio</span><span class="meta"><span>P18 · Bangkok</span><span class="clock"></span></span></span>
       </button>
-      <button class="sched" type="button" data-site="https://95bfm.com/">Info</button>
+      <button class="sched" type="button" data-site="https://www.bangkokcommunityradio.com/">Info</button>
     </li>
 
-    <li class="tile" data-id="shonan" data-country="Japan" data-code="SHN" data-lat="35.30" data-lon="139.58" data-region="Asia–Pac" data-city="Shonan" data-tz="Asia/Tokyo" data-src="https://shonanbeachfm.out.airtime.pro/shonanbeachfm_a">
-      <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Listen to Shonan Beach FM">
-        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Shonan Beach FM</span><span class="meta"><span>P20 · Shonan</span><span class="clock"></span></span></span>
-      </button>
-      <button class="sched" type="button" data-site="https://www.beachfm.co.jp/">Info</button>
-    </li>
+
 
     <li class="tile" data-id="setagaya" data-country="Japan" data-code="TYO" data-lat="35.65" data-lon="139.65" data-region="Asia–Pac" data-city="Tokyo" data-tz="Asia/Tokyo" data-src="https://fmsetagaya834.out.airtime.pro/fmsetagaya834_a">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to FM Setagaya">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">FM Setagaya</span><span class="meta"><span>P21 · Tokyo</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">FM Setagaya</span><span class="meta"><span>P19 · Tokyo</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://fmsetagaya.com/">Info</button>
+    </li>
+
+    <li class="tile" data-id="zzz" data-country="Australia" data-code="BNE" data-lat="-27.457" data-lon="153.035" data-region="Asia–Pac" data-city="Brisbane" data-tz="Australia/Brisbane" data-src="https://iheart.4zzz.org.au/4zzz">
+      <img class="art" alt="" hidden><span class="shade"></span>
+      <button class="tune" type="button" aria-label="Listen to 4ZZZ">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">4ZZZ</span><span class="meta"><span>P20 · Brisbane</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://www.4zzz.org.au/">Info</button>
     </li>
   </ol>
   </section>
@@ -1778,6 +1768,49 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     };
   }
 
+  function fromRadioCult(j) { // radiocult.fm: the scheduled show, and the track when it names an artist
+    const r = j && j.result, c = r && r.content;
+    if (!r || r.status !== "schedule" || !c || !c.title) return null;
+    const md = r.metadata || {}, artist = clean(md.artist), title = clean(md.title);
+    const pre = c.media && c.media.type === "playlist";
+    return {
+      title: clean(c.title), sub: "", art: "",
+      start: Date.parse(c.startDateUtc || c.start), end: Date.parse(c.endDateUtc || c.end),
+      song: artist && title ? { title, artist } : null,
+      rerun: pre, tag: pre ? "Playlist" : ""
+    };
+  }
+  function fromAirnet(list, utcOffset) { // airnet.org.au weekly guide: the show flagged as on air now (start time is local)
+    const s = Array.isArray(list) && list.find((x) => x && x.onairnow);
+    if (!s || !s.name) return null;
+    const off = utcOffset * 3600e3, now = Date.now(), loc = new Date(now + off);
+    const [hh, mm, ss] = String(s.start || "0:0:0").split(":").map(Number);
+    let start = Date.UTC(loc.getUTCFullYear(), loc.getUTCMonth(), loc.getUTCDate(), hh || 0, mm || 0, ss || 0) - off;
+    if (start > now) start -= 86400e3;
+    return {
+      title: clean(s.name), sub: clean(s.broadcasters || ""), art: s.profileImage || "",
+      start, end: s.duration ? start + s.duration * 1000 : NaN, song: null, rerun: false, tag: ""
+    };
+  }
+  function fromAzura(j) { // AzuraCast: a live DJ by name, or the recorded set now playing ("lithium radio-2026 06 27 1700-name")
+    const np = j && j.now_playing, song = np && np.song;
+    // someone is broadcasting live from the café: the "now playing" line then still shows the last recording, so ignore it
+    if (j && j.live && j.live.is_live) {
+      const dj = j.live.streamer_name && !/^lithium$/i.test(j.live.streamer_name) ? clean(j.live.streamer_name) : "";
+      return { title: dj || "Live from the café", sub: "", art: "", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false, tag: "" };
+    }
+    const raw = clean(song && (song.title || song.text));
+    if (!raw) return null;
+    const m = /^lithium radio\s*-\s*(\d{4}) (\d\d) (\d\d)[^-]*-\s*(.+)$/i.exec(raw);
+    if (!m) return { title: raw, sub: "", art: "", start: NaN, end: NaN, song: null, rerun: false, tag: "" };
+    const name = m[4].replace(/(^|[\s-])(\p{L})/gu, (x, a, b) => a + b.toUpperCase());
+    const when = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    return {
+      title: name, sub: "Recorded " + when, art: "",
+      start: np.played_at * 1000, end: np.duration && np.remaining > 0 ? (np.played_at + np.duration) * 1000 : NaN, song: null, rerun: true, tag: "Replay"
+    };
+  }
+
   function fromAirtime(j) {
     if (!j) return null;
     const sched = j.station && j.station.schedulerTime;
@@ -1826,8 +1859,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     { url: "https://public.radio.co/stations/s421105570/status", parse: (j) => ({ super45: fromRadioCo(j, "track") }) },
     { url: "https://public.radio.co/stations/s0d090ee43/status", parse: (j) => ({ newtown: fromRadioCo(j, "pipe") }) },
     { url: "https://api.live365.com/station/a71161", parse: (j) => ({ deepspace: fromLive365(j) }) },
-    { url: "https://shonanbeachfm.airtime.pro/api/live-info-v2", parse: (j) => ({ shonan: fromAirtime(j) }) },
-    { url: "https://fmsetagaya834.airtime.pro/api/live-info-v2", parse: (j) => ({ setagaya: fromAirtime(j) }) }
+    { url: "https://fmsetagaya834.airtime.pro/api/live-info-v2", parse: (j) => ({ setagaya: fromAirtime(j) }) },
+    { url: "https://a13.my-control-panel.com/api/nowplaying/lithium_radio", parse: (j) => ({ lithium: fromAzura(j) }) },
+    { url: "https://api.radiocult.fm/api/station/bcr/schedule/live", parse: (j) => ({ bcr: fromRadioCult(j) }) },
+    { url: "https://airnet.org.au/rest/stations/4ZZZ/guides/fm", parse: (j) => ({ zzz: fromAirnet(j, 10) }) }
   ];
 
   function getJSON(url) {
@@ -1934,7 +1969,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     });
   }
 
-  const isLiveNow = (st) => { const i = live[st.id]; return !!(i && i.title && !i.rerun); };
 
   // where it's morning, afternoon, evening or night, by the local time at each station; back to All on every launch
   let band = "all";
@@ -1947,30 +1981,18 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     band = b.dataset.band;
     arrange();
   });
-  let arrangeSig = "";
   function arrange() {
-    const liveList = [], more = [], pinned = [];
     stations.forEach((st) => {
       pinState(st.el.querySelector(".pin"), st.id);
-      if (favs.includes(st.id)) pinned.push(st);
-      else (isLiveNow(st) ? liveList : more).push(st);
-      st.el.hidden = favs.includes(st.id);
+      st.el.hidden = favs.includes(st.id); // pinned ones sit in "Your stations"
+      st.el.classList.toggle("out", !inBand(st));
     });
-    const sig = liveList.map((st) => st.id).join() + "|" + favs.join();
-    if (sig !== arrangeSig) { // move tiles only when the grouping changes
-      arrangeSig = sig;
-      liveList.forEach((st) => $("crate-live").appendChild(st.el));
-      more.concat(pinned).forEach((st) => crate.appendChild(st.el));
-    }
-    stations.forEach((st) => st.el.classList.toggle("out", !inBand(st)));
-    const shownLive = liveList.filter(inBand), shownMore = more.filter(inBand);
-    $("sec-live").hidden = !shownLive.length;
-    $("live-n").textContent = shownLive.length === 1 ? "1 station" : shownLive.length + " stations";
-    $("more-h").textContent = shownLive.length ? "More stations" : "All stations";
-    $("sec-more").hidden = !shownMore.length;
+    const shown = stations.filter((st) => !favs.includes(st.id) && inBand(st));
+    $("sec-more").hidden = !shown.length;
+    $("more-n").textContent = shown.length === 1 ? "1 station" : shown.length + " stations";
     document.querySelectorAll(".mood").forEach((b) => b.setAttribute("aria-checked", b.dataset.band === band ? "true" : "false"));
     const where = $("when-where");
-    const cities = [...new Set(shownLive.concat(shownMore).map((st) => st.city))];
+    const cities = [...new Set(shown.map((st) => st.city))];
     where.hidden = band === "all" || !cities.length;
     if (!where.hidden) {
       where.textContent = "It’s " + band + " in ";
@@ -1997,13 +2019,12 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     alhara: { desc: "Started in Bethlehem by a group of friends in the spring of 2020, connecting Palestine and the Arab world through music.", since: "2020", plays: "Arabic music old and new, electronic, experimental", lang: "Arabic, English", by: "Radio alHara, Bethlehem" },
     batuta: { desc: "The music radio of Instituto Moreira Salles in Rio de Janeiro, drawing on its archive of Brazilian music.", plays: "Samba, choro, MPB and Brazilian popular music", lang: "Portuguese", by: "Instituto Moreira Salles, Rio" },
     super45: { desc: "Independent online radio from Santiago de Chile focused on new and independent music.", plays: "Indie, alternative, pop, electronic", lang: "Spanish", by: "Super45, Santiago" },
-    radionica: { desc: "The music station for young listeners of RTVC, Colombia’s public broadcaster.", plays: "Rock, alternative, electronic and Colombian independent music", lang: "Spanish", by: "RTVC, public broadcaster" },
     deepspace: { desc: "Founded by Juan Atkins, one of the inventors of techno, with hosts such as DJ Minx and Stacey “Hotwaxx” Hale.", since: "2014", plays: "Detroit techno, house, electro and the soul and funk behind them", lang: "English", by: "Deep Space Radio, Detroit" },
     newtown: { desc: "Independent internet radio from Bushwick, Brooklyn: mostly live two-hour shows by local DJs, musicians and artists.", since: "2009", plays: "Open format: indie, rap, electronic, live sessions", lang: "English", by: "Newtown Radio, Brooklyn" },
-    wfmu: { desc: "Freeform, listener-supported, non-commercial radio: every DJ plays whatever they like.", since: "1958", plays: "Anything at all", lang: "English", by: "Auricle Communications, non-profit" },
     hanoi: { desc: "Community radio from Hanoi, giving space to the city’s DJs, musicians and creative scene.", plays: "Electronic, experimental, Vietnamese sounds", lang: "Vietnamese, English", by: "Hà Nội Community Radio" },
-    bfm: { desc: "Auckland’s student radio, a home for alternative and local New Zealand music.", plays: "Alternative, local New Zealand music, talk", lang: "English", by: "95bFM, Auckland" },
-    shonan: { desc: "Community FM from Zushi and Hayama on the Shonan coast, on air at 78.9 FM.", plays: "Relaxed music by the sea: jazz, soul, bossa", lang: "Japanese", by: "Shonan Beach FM, Zushi" },
+    lithium: { desc: "A café and radio in Paris’s 20th arrondissement, broadcasting DJ sets and shows from its own room.", plays: "Electronic, club, bass and more", lang: "French, English", by: "Lithium, Paris" },
+    bcr: { desc: "Community-led, independent radio from Bangkok, launched by a collective to connect the city’s cultural communities.", since: "2021", plays: "Ambient, techno, molam, Balearic, disco, funk and soul", lang: "Thai, English", by: "Bangkok Community Radio collective" },
+    zzz: { desc: "Australia’s first community radio station, independent and subscriber-supported, on air in Brisbane since 1975.", since: "1975", plays: "Local and independent Australian music, First Nations music, punk, country and roots", lang: "English", by: "Creative Broadcasters Ltd, Brisbane" },
     setagaya: { desc: "Community FM for Tokyo’s Setagaya ward, on air at 83.4 FM.", plays: "Local programmes, music and community news", lang: "Japanese", by: "FM Setagaya, Tokyo" },
   };
 
@@ -2641,7 +2662,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   /* ---------- "The sound of…": the music, people and geography of each station's city ---------- */
   const cp = $("cp"), cpIn = $("cp-in");
   let cityData = null, geo = null, cityAsked = null, cpId = "";
-  const GEO_ORDER = ["GB", "DE", "BE", "IT", "GR", "PS", "BR", "CL", "CO", "US", "VN", "NZ", "JP"];
+  const GEO_ORDER = ["GB", "DE", "BE", "IT", "GR", "PS", "BR", "CL", "US", "VN", "JP", "FR", "TH", "AU"];
   function decodeGeo(buf) { // Natural Earth lakes, land borders and the stations' countries, packed like land.bin
     const b = new Uint8Array(buf);
     let i = 0, x = 0, y = 0;
@@ -2666,8 +2687,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   function loadCity() {
     if (!cityAsked) {
       cityAsked = Promise.all([
-        fetch("cities.json?v=1").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
-        fetch("geo.bin?v=1").then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(decodeGeo),
+        fetch("cities.json?v=2").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+        fetch("geo.bin?v=2").then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(decodeGeo),
         landReady(),
       ]).then(([c, g]) => { cityData = c; geo = g; }).catch((e) => { cityAsked = null; throw e; });
     }
@@ -2730,6 +2751,15 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       g.save(); unionJack(g, w / 2, h / 2); g.restore();
       const r = Math.min(w, h) * 0.06;
       [[0.75, 0.22], [0.62, 0.5], [0.85, 0.42], [0.75, 0.8]].forEach(([fx, fy]) => { star(g, w * fx, h * fy, r * 1.25, "#FFFFFF"); star(g, w * fx, h * fy, r, "#C8102E"); });
+    } },
+    FR: { a: ["#0055A4", "#EF4135"], draw: (g, w, h) => bands(g, w, h, ["#0055A4", "#FFFFFF", "#EF4135"], true) },
+    TH: { a: ["#A51931", "#2D2A4A"], draw: (g, w, h) => bands(g, w, h, ["#A51931", "#F4F5F8", "#2D2A4A", "#2D2A4A", "#F4F5F8", "#A51931"]) },
+    AU: { a: ["#012169", "#E4002B"], draw: (g, w, h) => {
+      g.fillStyle = "#012169"; g.fillRect(0, 0, w, h);
+      g.save(); unionJack(g, w / 2, h / 2); g.restore();
+      const r = Math.min(w, h) * 0.055;
+      star(g, w / 4, h * 0.75, r * 1.6, "#FFFFFF");
+      [[0.75, 0.84], [0.6, 0.45], [0.75, 0.17], [0.88, 0.4], [0.81, 0.56]].forEach(([fx, fy], q) => star(g, w * fx, h * fy, q === 4 ? r * 0.6 : r, "#FFFFFF"));
     } },
     JP: { a: ["#BC002D", "#BC002D"], draw: (g, w, h) => { g.fillStyle = "#FFFFFF"; g.fillRect(0, 0, w, h); g.fillStyle = "#BC002D"; g.beginPath(); g.arc(w / 2, h / 2, Math.min(w, h) * 0.3, 0, TAU); g.fill(); } },
   };
@@ -2996,7 +3026,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
 
   /* HLS (.m3u8): iPhone and Mac Safari play it natively; elsewhere hls.js does it (Chrome's own player can't read
-     some streams, e.g. Radiónica's AAC segments), and Safari falls back to it if its own player gives up. */
+     some streams' AAC segments), and Safari falls back to it if its own player gives up. */
   const HLS_JS = "https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.light.min.js";
   const isHls = (src) => /\.m3u8(\?|$)/i.test(src);
   const appleHls = /Apple/.test(navigator.vendor || "") && !!audio.canPlayType("application/vnd.apple.mpegurl");

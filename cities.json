@@ -923,115 +923,6 @@
    }
   ]
  },
- "BOG": {
-  "flag": "CO",
-  "view": {
-   "lat": [
-    -4.4,
-    13.2
-   ],
-   "lon": [
-    -80.2,
-    -66.6
-   ]
-  },
-  "intro": "Colombia has two coasts and two musics: cumbia, vallenato and champeta by the Caribbean, marimba and currulao by the Pacific. Bogotá, up in the Andes, adds rock, salsa and electronic fusion.",
-  "born": [
-   "Cumbia",
-   "Vallenato",
-   "Champeta",
-   "Currulao"
-  ],
-  "pins": [
-   {
-    "place": "Caribbean coast",
-    "lat": 10.96,
-    "lon": -74.8,
-    "year": "Roots",
-    "text": "Cumbia grows from Indigenous flutes, African drums and Spanish verse. From the 1950s orchestras and radio carry it across Latin America."
-   },
-   {
-    "place": "Valledupar",
-    "lat": 10.46,
-    "lon": -73.25,
-    "year": "1968",
-    "text": "The first Vallenato Legend Festival is held. Accordion, caja drum and guacharaca tell the stories of the region."
-   },
-   {
-    "place": "Cartagena",
-    "lat": 10.39,
-    "lon": -75.51,
-    "year": "1980s",
-    "text": "African records arriving in the port meet the local sound systems, the picós, and champeta is born."
-   },
-   {
-    "place": "Bogotá",
-    "lat": 4.65,
-    "lon": -74.09,
-    "year": "1995",
-    "text": "Rock al Parque begins: free to attend and the largest rock festival in Colombia."
-   },
-   {
-    "place": "Cali",
-    "lat": 3.45,
-    "lon": -76.53,
-    "year": "1996",
-    "text": "The first Petronio Álvarez festival celebrates the marimba and the songs of the Pacific coast."
-   }
-  ],
-  "names": [
-   [
-    "Lucho Bermúdez",
-    "big band cumbia and porro"
-   ],
-   [
-    "Totó la Momposina",
-    "the roots of the Caribbean coast"
-   ],
-   [
-    "Joe Arroyo",
-    "“Rebelión” (1986)"
-   ],
-   [
-    "Carlos Vives",
-    "vallenato meets pop"
-   ],
-   [
-    "Shakira",
-    "from Barranquilla"
-   ],
-   [
-    "Aterciopelados",
-    "Bogotá rock, 1990s"
-   ],
-   [
-    "Bomba Estéreo",
-    "electro-tropical from Bogotá"
-   ],
-   [
-    "Petrona Martínez",
-    "bullerengue singer"
-   ]
-  ],
-  "sea": [
-   {
-    "lat": 12.4,
-    "lon": -77.0,
-    "label": "Caribbean Sea"
-   },
-   {
-    "lat": 3.2,
-    "lon": -79.2,
-    "label": "Pacific Ocean"
-   }
-  ],
-  "lines": [
-   {
-    "lat": 0,
-    "label": "Equator"
-   }
-  ]
- },
  "DET": {
   "flag": "US",
   "view": {
@@ -1159,7 +1050,7 @@
     -70.4
    ]
   },
-  "intro": "New York is a city of a hundred musics: jazz in Harlem, salsa in the Latin neighbourhoods, punk downtown and, in the Bronx of the 1970s, hip hop. Today Newtown Radio broadcasts from Bushwick, Brooklyn, and freeform WFMU from Jersey City, across the Hudson.",
+  "intro": "New York is a city of a hundred musics: jazz in Harlem, salsa in the Latin neighbourhoods, punk downtown and, in the Bronx of the 1970s, hip hop. Today Newtown Radio broadcasts from Bushwick, Brooklyn.",
   "born": [
    "Bebop",
    "Salsa",
@@ -1351,193 +1242,6 @@
    }
   ]
  },
- "AKL": {
-  "flag": "NZ",
-  "view": {
-   "lat": [
-    -47.6,
-    -34.0
-   ],
-   "lon": [
-    165.8,
-    179.2
-   ]
-  },
-  "intro": "Māori and Pacific Island musicians gave Auckland its reggae, soul and hip hop, while a jangly guitar sound from the far south, the Dunedin sound, gave Aotearoa its indie rock.",
-  "born": [
-   "Pacific reggae",
-   "The Dunedin sound"
-  ],
-  "pins": [
-   {
-    "place": "Auckland",
-    "lat": -36.85,
-    "lon": 174.77,
-    "year": "1969",
-    "text": "University students start a pirate radio station on a boat in the Waitematā Harbour as a prank. The boat runs aground, but the station lives on as 95bFM."
-   },
-   {
-    "place": "Auckland",
-    "lat": -36.86,
-    "lon": 174.76,
-    "year": "1978",
-    "text": "Herbs form and pioneer Pacific reggae. Their “French Letter” (1982) sings against nuclear testing in the Pacific."
-   },
-   {
-    "place": "Pātea",
-    "lat": -39.75,
-    "lon": 174.48,
-    "year": "1983",
-    "text": "The Pātea Māori Club release “Poi E”, sung in te reo Māori. In 1984 it is the country’s biggest-selling single."
-   },
-   {
-    "place": "Dunedin",
-    "lat": -45.874,
-    "lon": 170.503,
-    "year": "1982",
-    "text": "The “Dunedin Double” EP on Flying Nun, a Christchurch label founded the year before, launches the jangly guitar pop known as the Dunedin sound."
-   },
-   {
-    "place": "Auckland",
-    "lat": -36.84,
-    "lon": 174.78,
-    "year": "2013",
-    "text": "Lorde, a teenager from Auckland, releases “Royals”. It goes on to win two Grammys."
-   }
-  ],
-  "names": [
-   [
-    "Kiri Te Kanawa",
-    "opera soprano from Gisborne"
-   ],
-   [
-    "Split Enz",
-    "art pop, formed in Auckland in 1972"
-   ],
-   [
-    "Herbs",
-    "Pacific reggae"
-   ],
-   [
-    "The Clean",
-    "Dunedin sound pioneers"
-   ],
-   [
-    "The Chills",
-    "“Pink Frost” (1984)"
-   ],
-   [
-    "Crowded House",
-    "Neil Finn’s band"
-   ],
-   [
-    "Fat Freddy’s Drop",
-    "Wellington dub and soul"
-   ],
-   [
-    "Lorde",
-    "“Royals” (2013)"
-   ]
-  ],
-  "sea": [
-   {
-    "lat": -40.5,
-    "lon": 168.6,
-    "label": "Tasman Sea"
-   },
-   {
-    "lat": -38.6,
-    "lon": 178.2,
-    "label": "Pacific Ocean"
-   }
-  ]
- },
- "SHN": {
-  "flag": "JP",
-  "view": {
-   "lat": [
-    34.85,
-    35.95
-   ],
-   "lon": [
-    138.85,
-    140.3
-   ]
-  },
-  "intro": "Shōnan, the Sagami Bay coast south-west of Tokyo, has a sound of its own: summer songs, surf guitars and reggae, and Shonan Beach FM playing jazz by the sea.",
-  "born": [],
-  "pins": [
-   {
-    "place": "Yokohama",
-    "lat": 35.44,
-    "lon": 139.64,
-    "year": "1949",
-    "text": "Misora Hibari, born in the port city in 1937, makes her first records at twelve and becomes the queen of postwar Japanese song."
-   },
-   {
-    "place": "Yokohama",
-    "lat": 35.45,
-    "lon": 139.63,
-    "year": "1965",
-    "text": "Yūzō Kayama, born in Yokohama, sells millions with “Kimi to Itsumademo” and, inspired by The Ventures, brings surf guitar to Japanese pop."
-   },
-   {
-    "place": "Chigasaki",
-    "lat": 35.333,
-    "lon": 139.404,
-    "year": "1978",
-    "text": "Southern All Stars, led by Keisuke Kuwata from Chigasaki, debut with “Katte ni Sinbad”. In 1999 the town names its beach Southern Beach after them."
-   },
-   {
-    "place": "Zushi",
-    "lat": 35.295,
-    "lon": 139.578,
-    "year": "1993",
-    "text": "Shonan Beach FM goes on air at 78.9, playing mostly jazz, with soul, city pop and Hawaiian music by the sea."
-   },
-   {
-    "place": "Shōnan",
-    "lat": 35.34,
-    "lon": 139.49,
-    "year": "2006",
-    "text": "The reggae band Shōnan no Kaze, “the wind of Shōnan”, score a huge hit with “Junrenka”."
-   }
-  ],
-  "names": [
-   [
-    "Misora Hibari",
-    "the queen of enka and kayōkyoku"
-   ],
-   [
-    "Yūzō Kayama",
-    "surf guitar star, born in Yokohama"
-   ],
-   [
-    "Southern All Stars",
-    "Chigasaki’s summer band"
-   ],
-   [
-    "Keisuke Kuwata",
-    "their singer and songwriter"
-   ],
-   [
-    "Shōnan no Kaze",
-    "reggae from the coast"
-   ]
-  ],
-  "sea": [
-   {
-    "lat": 35.12,
-    "lon": 139.32,
-    "label": "Sagami Bay"
-   },
-   {
-    "lat": 35.47,
-    "lon": 139.88,
-    "label": "Tokyo Bay"
-   }
-  ]
- },
  "TYO": {
   "flag": "JP",
   "view": {
@@ -1645,6 +1349,330 @@
     "lat": 35.0,
     "lon": 140.6,
     "label": "Pacific Ocean"
+   }
+  ]
+ },
+ "PAR": {
+  "flag": "FR",
+  "view": {
+   "lat": [
+    42.2,
+    51.3
+   ],
+   "lon": [
+    -5.2,
+    8.4
+   ]
+  },
+  "intro": "Paris made the chanson of Piaf and Gainsbourg, swung to Django’s jazz and, in the late 1990s, sent the French touch around the world. Lithium broadcasts from the east of the city, the same corner of Paris where Piaf was born.",
+  "born": [
+   "Musette",
+   "Chanson",
+   "Yé-yé",
+   "French touch"
+  ],
+  "pins": [
+   {
+    "place": "Belleville",
+    "lat": 48.872,
+    "lon": 2.384,
+    "year": "1915",
+    "text": "Édith Piaf is born in Belleville. She becomes the voice of French chanson, from “La Vie en rose” to “Non, je ne regrette rien”."
+   },
+   {
+    "place": "Paris",
+    "lat": 48.86,
+    "lon": 2.35,
+    "year": "1934",
+    "text": "Django Reinhardt and Stéphane Grappelli start the Quintette du Hot Club de France: jazz on guitars and violin, with no drums."
+   },
+   {
+    "place": "Paris",
+    "lat": 48.865,
+    "lon": 2.34,
+    "year": "1959",
+    "text": "The radio show “Salut les copains” starts on Europe 1 and launches yé-yé: Françoise Hardy, Sylvie Vartan, Johnny Hallyday."
+   },
+   {
+    "place": "Marseille",
+    "lat": 43.296,
+    "lon": 5.37,
+    "year": "1991",
+    "text": "IAM release “… de la planète Mars”, and Marseille becomes a capital of French rap."
+   },
+   {
+    "place": "Paris",
+    "lat": 48.855,
+    "lon": 2.36,
+    "year": "1997",
+    "text": "Daft Punk release “Homework”. With “Moon Safari” (1998) by Air, from Versailles, the French touch goes around the world."
+   }
+  ],
+  "names": [
+   [
+    "Édith Piaf",
+    "the voice of chanson"
+   ],
+   [
+    "Django Reinhardt",
+    "gypsy jazz guitar"
+   ],
+   [
+    "Serge Gainsbourg",
+    "“Histoire de Melody Nelson” (1971)"
+   ],
+   [
+    "Françoise Hardy",
+    "yé-yé, “Tous les garçons et les filles”"
+   ],
+   [
+    "Jean-Michel Jarre",
+    "“Oxygène” (1976)"
+   ],
+   [
+    "Daft Punk",
+    "“Homework”, “Discovery”"
+   ],
+   [
+    "Air",
+    "“Moon Safari” (1998)"
+   ],
+   [
+    "IAM",
+    "Marseille rap"
+   ],
+   [
+    "Christine and the Queens",
+    "French pop, 2010s"
+   ],
+   [
+    "Aya Nakamura",
+    "Afropop and R&B"
+   ]
+  ],
+  "sea": [
+   {
+    "lat": 50.15,
+    "lon": -2.6,
+    "label": "English Channel"
+   },
+   {
+    "lat": 45.6,
+    "lon": -3.6,
+    "label": "Bay of Biscay"
+   },
+   {
+    "lat": 42.7,
+    "lon": 5.3,
+    "label": "Mediterranean Sea"
+   }
+  ]
+ },
+ "BKK": {
+  "flag": "TH",
+  "view": {
+   "lat": [
+    5.6,
+    20.6
+   ],
+   "lon": [
+    96.8,
+    106.2
+   ]
+  },
+  "intro": "Bangkok is where Thailand’s country songs, luk thung, got their name and their records, and where the mor lam of the north-east turned electric. Bangkok Community Radio plays both next to techno, disco and ambient.",
+  "born": [
+   "Luk thung",
+   "Mor lam sing"
+  ],
+  "pins": [
+   {
+    "place": "Bangkok",
+    "lat": 13.75,
+    "lon": 100.5,
+    "year": "1938",
+    "text": "“Mae Saao Chaao Rai”, written by Hem Vejakorn, is recorded: it is considered the first luk thung song."
+   },
+   {
+    "place": "Bangkok",
+    "lat": 13.76,
+    "lon": 100.51,
+    "year": "1964",
+    "text": "A Channel 4 television show gives the country songs of rural Thailand their name: luk thung, “child of the fields”."
+   },
+   {
+    "place": "Suphan Buri",
+    "lat": 14.47,
+    "lon": 100.12,
+    "year": "1980s",
+    "text": "The province north-west of Bangkok is the heartland of luk thung. Pumpuang Duangjan, its “queen”, gives it an electronic sound."
+   },
+   {
+    "place": "Isan",
+    "lat": 16.44,
+    "lon": 102.83,
+    "year": "Roots",
+    "text": "Mor lam, sung poetry with the khaen mouth organ, comes from Laos and Thailand’s north-east. Today’s mor lam sing mixes it with electric guitars and luk thung."
+   },
+   {
+    "place": "Bangkok",
+    "lat": 13.74,
+    "lon": 100.52,
+    "year": "2021",
+    "text": "A collective launches Bangkok Community Radio, mixing molam, techno, disco and Balearic sounds."
+   }
+  ],
+  "names": [
+   [
+    "Suraphol Sombatcharoen",
+    "the king of luk thung"
+   ],
+   [
+    "Pumpuang Duangjan",
+    "the queen of luk thung"
+   ],
+   [
+    "Carabao",
+    "rock, “songs for life”"
+   ],
+   [
+    "Jintara Poonlarp",
+    "luk thung and mor lam star"
+   ],
+   [
+    "Paradise Bangkok Molam International Band",
+    "mor lam for the dancefloor"
+   ],
+   [
+    "Khun Narin’s Electric Phin Band",
+    "psychedelic phin"
+   ],
+   [
+    "Phum Viphurit",
+    "Bangkok indie, “Lover Boy”"
+   ]
+  ],
+  "sea": [
+   {
+    "lat": 10.8,
+    "lon": 101.3,
+    "label": "Gulf of Thailand"
+   },
+   {
+    "lat": 8.6,
+    "lon": 97.6,
+    "label": "Andaman Sea"
+   }
+  ]
+ },
+ "BNE": {
+  "flag": "AU",
+  "view": {
+   "lat": [
+    -34.6,
+    -23.1
+   ],
+   "lon": [
+    145.6,
+    156.2
+   ]
+  },
+  "intro": "Brisbane’s music grew up loud and independent: the Bee Gees started out at a speedway nearby, The Saints put out one of the first punk records anywhere, and community radio 4ZZZ has championed local bands since 1975.",
+  "born": [],
+  "pins": [
+   {
+    "place": "Redcliffe",
+    "lat": -27.23,
+    "lon": 153.1,
+    "year": "1960",
+    "text": "The Gibb brothers, arrived from England two years before, entertain the crowds at Redcliffe Speedway. A local radio presenter names them the BGs: the Bee Gees."
+   },
+   {
+    "place": "Sydney",
+    "lat": -33.87,
+    "lon": 151.21,
+    "year": "1973",
+    "text": "Malcolm and Angus Young form AC/DC."
+   },
+   {
+    "place": "Brisbane",
+    "lat": -27.47,
+    "lon": 153.02,
+    "year": "1975",
+    "text": "4ZZ-FM, later 4ZZZ, goes on air as Australia’s first community station. Its Hot 100 later inspires triple j’s Hottest 100."
+   },
+   {
+    "place": "Brisbane",
+    "lat": -27.48,
+    "lon": 153.03,
+    "year": "1976",
+    "text": "The Saints release “(I’m) Stranded” on their own label, ahead of the first British punk records."
+   },
+   {
+    "place": "Brisbane",
+    "lat": -27.49,
+    "lon": 153.01,
+    "year": "1977",
+    "text": "Robert Forster and Grant McLennan form The Go-Betweens."
+   },
+   {
+    "place": "Byron Bay",
+    "lat": -28.64,
+    "lon": 153.61,
+    "year": "2001",
+    "text": "The first Splendour in the Grass festival is held."
+   }
+  ],
+  "names": [
+   [
+    "Bee Gees",
+    "started out in Redcliffe"
+   ],
+   [
+    "The Saints",
+    "punk, “(I’m) Stranded” (1976)"
+   ],
+   [
+    "The Go-Betweens",
+    "Brisbane indie pop"
+   ],
+   [
+    "Powderfinger",
+    "“Odyssey Number Five” (2000)"
+   ],
+   [
+    "Savage Garden",
+    "Brisbane pop duo"
+   ],
+   [
+    "Thelma Plum",
+    "Gamilaraay singer-songwriter"
+   ],
+   [
+    "Ball Park Music",
+    "Brisbane indie"
+   ],
+   [
+    "AC/DC",
+    "Sydney rock"
+   ]
+  ],
+  "sea": [
+   {
+    "lat": -24.8,
+    "lon": 155.0,
+    "label": "Coral Sea"
+   },
+   {
+    "lat": -31.2,
+    "lon": 155.0,
+    "label": "Tasman Sea"
+   }
+  ],
+  "lines": [
+   {
+    "lat": -23.44,
+    "label": "Tropic of Capricorn"
    }
   ]
  }
