@@ -376,7 +376,6 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="hanoi"]    { --c:#A6E3C8; --t:#0B2219; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:90%;  --oy:80%;  --gap:12px; }
 [data-id="lithium"]  { --c:#16120F; --t:#FF4A2E; --ring:rgba(255,74,46,.16);   --pill:rgba(255,74,46,.18);   --ox:85%;  --oy:-15%; --gap:12px; --dot:#FF5A3C; }
 [data-id="bcr"]      { --c:#3F4697; --t:#F4EBE0; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:10%;  --oy:115%; --gap:13px; --dot:#7C84E0; }
-[data-id="zzz"]      { --c:#C2187A; --t:#FCE8F3; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:40%;  --oy:-25%; --gap:9px;  --dot:#E23C9C; }
 [data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
 .name.keepcase { text-transform: none; }
 
@@ -1038,14 +1037,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <button class="sched" type="button" data-site="https://fmsetagaya.com/">Info</button>
     </li>
 
-    <li class="tile" data-id="zzz" data-country="Australia" data-code="BNE" data-lat="-27.457" data-lon="153.035" data-region="Asia–Pac" data-city="Brisbane" data-tz="Australia/Brisbane" data-src="https://iheart.4zzz.org.au/4zzz">
-      <img class="art" alt="" hidden><span class="shade"></span>
-      <button class="tune" type="button" aria-label="Listen to 4ZZZ">
-        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">4ZZZ</span><span class="meta"><span>P20 · Brisbane</span><span class="clock"></span></span></span>
-      </button>
-      <button class="sched" type="button" data-site="https://www.4zzz.org.au/">Info</button>
-    </li>
   </ol>
   </section>
   </main>
@@ -1780,18 +1771,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       rerun: pre, tag: pre ? "Playlist" : ""
     };
   }
-  function fromAirnet(list, utcOffset) { // airnet.org.au weekly guide: the show flagged as on air now (start time is local)
-    const s = Array.isArray(list) && list.find((x) => x && x.onairnow);
-    if (!s || !s.name) return null;
-    const off = utcOffset * 3600e3, now = Date.now(), loc = new Date(now + off);
-    const [hh, mm, ss] = String(s.start || "0:0:0").split(":").map(Number);
-    let start = Date.UTC(loc.getUTCFullYear(), loc.getUTCMonth(), loc.getUTCDate(), hh || 0, mm || 0, ss || 0) - off;
-    if (start > now) start -= 86400e3;
-    return {
-      title: clean(s.name), sub: clean(s.broadcasters || ""), art: s.profileImage || "",
-      start, end: s.duration ? start + s.duration * 1000 : NaN, song: null, rerun: false, tag: ""
-    };
-  }
   function fromAzura(j) { // AzuraCast: a live DJ by name, or the recorded set now playing ("lithium radio-2026 06 27 1700-name")
     const np = j && j.now_playing, song = np && np.song;
     // someone is broadcasting live from the café: the "now playing" line then still shows the last recording, so ignore it
@@ -1861,8 +1840,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     { url: "https://api.live365.com/station/a71161", parse: (j) => ({ deepspace: fromLive365(j) }) },
     { url: "https://fmsetagaya834.airtime.pro/api/live-info-v2", parse: (j) => ({ setagaya: fromAirtime(j) }) },
     { url: "https://a13.my-control-panel.com/api/nowplaying/lithium_radio", parse: (j) => ({ lithium: fromAzura(j) }) },
-    { url: "https://api.radiocult.fm/api/station/bcr/schedule/live", parse: (j) => ({ bcr: fromRadioCult(j) }) },
-    { url: "https://airnet.org.au/rest/stations/4ZZZ/guides/fm", parse: (j) => ({ zzz: fromAirnet(j, 10) }) }
+    { url: "https://api.radiocult.fm/api/station/bcr/schedule/live", parse: (j) => ({ bcr: fromRadioCult(j) }) }
   ];
 
   function getJSON(url) {
@@ -2024,7 +2002,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     hanoi: { desc: "Community radio from Hanoi, giving space to the city’s DJs, musicians and creative scene.", plays: "Electronic, experimental, Vietnamese sounds", lang: "Vietnamese, English", by: "Hà Nội Community Radio" },
     lithium: { desc: "A café and radio in Paris’s 20th arrondissement, broadcasting DJ sets and shows from its own room.", plays: "Electronic, club, bass and more", lang: "French, English", by: "Lithium, Paris" },
     bcr: { desc: "Community-led, independent radio from Bangkok, launched by a collective to connect the city’s cultural communities.", since: "2021", plays: "Ambient, techno, molam, Balearic, disco, funk and soul", lang: "Thai, English", by: "Bangkok Community Radio collective" },
-    zzz: { desc: "Australia’s first community radio station, independent and subscriber-supported, on air in Brisbane since 1975.", since: "1975", plays: "Local and independent Australian music, First Nations music, punk, country and roots", lang: "English", by: "Creative Broadcasters Ltd, Brisbane" },
     setagaya: { desc: "Community FM for Tokyo’s Setagaya ward, on air at 83.4 FM.", plays: "Local programmes, music and community news", lang: "Japanese", by: "FM Setagaya, Tokyo" },
   };
 
