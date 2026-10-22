@@ -2475,7 +2475,17 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   let fpOpen = false, sleepAt = 0, sleepTimer = 0, airplayAvail = false;
   const airplayOk = typeof audio.webkitShowPlaybackTargetPicker === "function";
   if (window.WebKitPlaybackTargetAvailabilityEvent) {
-    audio.addEventListener("webkitplaybacktargetavailabilitychanged", (e) => { airplayAvail = e.availability === "available"; if (fpOpen) renderFP(); });
+    audio.addEventListener("webkitplaybacktargetavailabilitychanged", (e) => {
+      const was = airplayAvail;
+      airplayAvail = e.availability === "available";
+      // the headphones went away (no other place to send the sound): the iPhone would carry on through its speaker,
+      // so stop, as music apps do
+      if (was && !airplayAvail && state === "live" && audio.getAttribute("src") && Date.now() - startedAt > 3000) {
+        stop();
+        toast("Headphones disconnected: radio stopped");
+      }
+      if (fpOpen) renderFP();
+    });
   }
   const FPI = {
     down: '<path d="M6 9l6 6 6-6"/>',
@@ -2885,6 +2895,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   /* ---------- playback ---------- */
   let current = null;
+  let startedAt = 0; // when the last station was started (route signals right after a start are ignored)
   let state = "idle"; // idle | loading | live | paused | error
 
   function setState(s) { state = s; document.body.dataset.state = s; document.documentElement.dataset.state = s; renderPlayer(); }
@@ -3017,6 +3028,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const st = byId[id];
     if (!st) return;
     current = id;
+    startedAt = Date.now();
     try { localStorage.setItem(KEY, id); } catch (e) {}
     dropHls();
     triedHls = false;
