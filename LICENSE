@@ -8,3 +8,11 @@ permission of the author.
 Radio station names, streams and programme information belong to their
 respective stations. Sintonia only links to and plays their public
 broadcasts.
+
+Third-party components keep their own licences:
+- fonts/: Archivo and Instrument Sans, SIL Open Font License 1.1
+  (fonts/OFL-Archivo.txt, fonts/OFL-Instrument-Sans.txt).
+- vendor/supabase.js: supabase-js 2.117.2, MIT License
+  (vendor/LICENSE-supabase-js.txt).
+- vendor/hls.light.min.js: hls.js 1.5.17, Apache License 2.0
+  (vendor/LICENSE-hls.js.txt).

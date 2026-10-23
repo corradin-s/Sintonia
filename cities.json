@@ -1564,5 +1564,109 @@
     "label": "Andaman Sea"
    }
   ]
+ },
+ "LIS": {
+  "flag": "PT",
+  "view": {
+   "lat": [
+    36.7,
+    42.3
+   ],
+   "lon": [
+    -11.4,
+    -5.6
+   ]
+  },
+  "intro": "Lisbon is the city of fado, the song of saudade born in the taverns of Alfama and Mouraria. Since the 2000s its outskirts have also given club music a new sound, from Buraka Som Sistema’s kuduro to the batida of Príncipe Discos, carried by the city’s Cape Verdean and Angolan communities.",
+  "born": [
+   "Fado",
+   "Batida"
+  ],
+  "names": [
+   [
+    "Amália Rodrigues",
+    "the voice of fado"
+   ],
+   [
+    "Carlos Paredes",
+    "Portuguese guitar, “Movimento Perpétuo”"
+   ],
+   [
+    "José Afonso",
+    "“Grândola, Vila Morena” (1971)"
+   ],
+   [
+    "Madredeus",
+    "“Ainda”, for Wenders’ “Lisbon Story”"
+   ],
+   [
+    "Mariza",
+    "fado from Mouraria"
+   ],
+   [
+    "Ana Moura",
+    "fado, “Desfado” (2012)"
+   ],
+   [
+    "Sara Tavares",
+    "“Balancê” (2005)"
+   ],
+   [
+    "Buraka Som Sistema",
+    "“Black Diamond” (2008)"
+   ],
+   [
+    "DJ Marfox",
+    "batida, Príncipe Discos"
+   ],
+   [
+    "Dino D’Santiago",
+    "“Mundu Nôbu” (2018)"
+   ]
+  ],
+  "pins": [
+   {
+    "lat": 38.714,
+    "lon": -9.135,
+    "place": "Mouraria",
+    "year": "1840s",
+    "text": "Maria Severa sings in the taverns of the Mouraria: the first legend of fado, still remembered in its songs."
+   },
+   {
+    "lat": 38.711,
+    "lon": -9.13,
+    "place": "Lisbon",
+    "year": "1939",
+    "text": "Amália Rodrigues sings for the first time at the Retiro da Severa. She takes fado to stages around the world."
+   },
+   {
+    "lat": 38.72,
+    "lon": -9.15,
+    "place": "Lisbon",
+    "year": "1974",
+    "text": "On 25 April, Rádio Renascença plays José Afonso’s “Grândola, Vila Morena”: the signal for the Carnation Revolution."
+   },
+   {
+    "lat": 38.758,
+    "lon": -9.226,
+    "place": "Amadora",
+    "year": "2006",
+    "text": "Buraka Som Sistema start in Amadora and bring Angolan kuduro to clubs around the world."
+   },
+   {
+    "lat": 38.73,
+    "lon": -9.14,
+    "place": "Lisbon",
+    "year": "2011",
+    "text": "Príncipe Discos release DJ Marfox, and the batida of the city’s outskirts reaches the world. The same year fado joins UNESCO’s intangible heritage list."
+   }
+  ],
+  "sea": [
+   {
+    "label": "Atlantic Ocean",
+    "lat": 39.4,
+    "lon": -10.3
+   }
+  ]
  }
 }

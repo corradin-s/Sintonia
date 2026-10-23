@@ -48,9 +48,7 @@ window.SintoniaTheme = (function () {
   return { BG: BG, apply: apply };
 })();
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="fonts.css">
 <style>
 /* Layout: two views switched by a bottom tab bar, like an iPhone app.
    Stations: on-air header, your pinned stations, then the stations live right now, then the rest.
@@ -151,7 +149,6 @@ h1, .title {
 h1.logo .lg-a { display: inline-block; transform-origin: 54% 56%; } /* the middle of the letter itself, so it turns in place */
 h1.logo .lg-a.spin { animation: a-spin 1.1s cubic-bezier(.35, .05, .2, 1); }
 @keyframes a-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { h1.logo .lg-a.spin { animation: none; } }
 .onair {
   flex: none;
   font-family: var(--f-mono); font-size: 10px; font-weight: 500; letter-spacing: .16em;
@@ -167,7 +164,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; min-width: 0; }
 .world { display: grid; grid-template-columns: minmax(0, 1fr); border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); overflow: hidden; }
 .map {
-  position: relative; width: 100%; aspect-ratio: 5 / 4; max-height: 64vh; min-height: 220px;
+  position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: 64vh; min-height: 240px;
   overflow: hidden; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent; border-bottom: 1px solid var(--line);
 }
@@ -212,6 +209,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .locate { display: grid; gap: 8px; padding: 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
 .locate strong { font-family: var(--f-display); font-weight: 800; font-size: 18px; line-height: 1.15; }
 .locate p { margin: 0; color: var(--muted); font-size: 13px; max-width: 52ch; }
+.loc-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; }
 .btn {
   justify-self: start; appearance: none; -webkit-appearance: none; border: 0; cursor: pointer;
   background: var(--ink); color: var(--bg); border-radius: 10px; padding: 11px 16px; font-size: 15px; font-weight: 600;
@@ -260,6 +258,10 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .pin[aria-pressed="true"] { opacity: 1; }
 .pin[aria-pressed="true"] svg { fill: currentColor; }
 .mini .pin { top: 4px; bottom: auto; right: 4px; }
+/* in New in, and on the big tiles of stations that just arrived */
+.newtag { display: inline-block; font-family: var(--f-mono); font-size: 8.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; padding: 2px 5px; border-radius: 4px; background: var(--t); color: var(--c); }
+.mini .newtag { margin-bottom: 1px; justify-self: start; }
+.tile .meta .newtag { margin-right: 2px; }
 .tile .meta { padding-right: 28px; }
 .pin:focus-visible { outline: 2px solid var(--t); outline-offset: -2px; }
 
@@ -285,14 +287,6 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .22;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
-/* show artwork, printed in the station colour */
-.art {
-  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2;
-  filter: grayscale(1) contrast(1.15); mix-blend-mode: multiply; opacity: var(--art-o, .5);
-}
-.shade { position: absolute; inset: 0; z-index: -1; pointer-events: none; display: none;
-  background: linear-gradient(to top, var(--c) 34%, transparent 82%); }
-.tile.has-art .shade { display: block; }
 
 .tune {
   appearance: none; -webkit-appearance: none; border: 0; background: none; margin: 0;
@@ -358,8 +352,8 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 
 /* station colours (--dot is the brighter version used on the dark receiver) */
 .tile, .mini { --dot: var(--c); }
-[data-id="nts1"]     { --c:#2337D6; --t:#F4F1E8; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:100%; --oy:0%;   --gap:13px; --art-o:.62; --dot:#5468FF; }
-[data-id="nts2"]     { --c:#E8472C; --t:#1C0C08; --ring:rgba(0,0,0,.13);       --pill:rgba(0,0,0,.16);       --ox:0%;   --oy:100%; --gap:11px; --art-o:.42; }
+[data-id="nts1"]     { --c:#2337D6; --t:#F4F1E8; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:100%; --oy:0%;   --gap:13px; --dot:#5468FF; }
+[data-id="nts2"]     { --c:#E8472C; --t:#1C0C08; --ring:rgba(0,0,0,.13);       --pill:rgba(0,0,0,.16);       --ox:0%;   --oy:100%; --gap:11px; }
 [data-id="refuge"]   { --c:#BBA6F2; --t:#17112A; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.14);       --ox:50%;  --oy:125%; --gap:15px; }
 [data-id="rinse"]    { --c:#CDE650; --t:#141B05; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.14);       --ox:0%;   --oy:0%;   --gap:9px;  }
 [data-id="wwfm"]     { --c:#F3A93A; --t:#1E1203; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:100%; --oy:100%; --gap:17px; }
@@ -371,10 +365,11 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="alhara"]   { --c:#8C1D35; --t:#F8E9EC; --ring:rgba(255,255,255,.11); --pill:rgba(255,255,255,.18); --ox:20%;  --oy:110%; --gap:12px; --dot:#D63B5C; }
 [data-id="batuta"]   { --c:#8FD3F4; --t:#08202C; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:-10%; --oy:20%;  --gap:10px; }
 [data-id="super45"]  { --c:#F1EEE6; --t:#1A1915; --ring:rgba(0,0,0,.09);       --pill:rgba(0,0,0,.09);       --ox:60%;  --oy:-15%; --gap:13px; }
-[data-id="deepspace"]{ --c:#AEB4BF; --t:#12151B; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:50%;  --oy:50%;  --gap:9px;  --art-o:.55; }
+[data-id="deepspace"]{ --c:#AEB4BF; --t:#12151B; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:50%;  --oy:50%;  --gap:9px;  }
 [data-id="newtown"]  { --c:#3E64A8; --t:#EEF2FA; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:-10%; --oy:110%; --gap:13px; --dot:#6F93D8; }
 [data-id="hanoi"]    { --c:#A6E3C8; --t:#0B2219; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:90%;  --oy:80%;  --gap:12px; }
 [data-id="lithium"]  { --c:#16120F; --t:#FF4A2E; --ring:rgba(255,74,46,.16);   --pill:rgba(255,74,46,.18);   --ox:85%;  --oy:-15%; --gap:12px; --dot:#FF5A3C; }
+[data-id="satellite"]{ --c:#0E4A5A; --t:#F7D774; --ring:rgba(247,215,116,.14); --pill:rgba(247,215,116,.2);  --ox:92%;  --oy:88%;  --gap:14px; --dot:#F7D774; }
 [data-id="bcr"]      { --c:#3F4697; --t:#F4EBE0; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:10%;  --oy:115%; --gap:13px; --dot:#7C84E0; }
 [data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
 .name.keepcase { text-transform: none; }
@@ -413,8 +408,6 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .tile:not(.on) .name, .mini:not(.on) .nm, .tile:not(.on) .pin, .mini:not(.on) .pin { color: var(--hue); }
 .tile:not(.on) .sched { color: var(--ink); }
 .tile:not(.on)::after { opacity: .1; }
-.tile:not(.on) .art { mix-blend-mode: luminosity; opacity: .2; }
-.tile:not(.on) .shade { background: linear-gradient(to top, color-mix(in srgb, var(--dot) 12%, var(--bg-2)) 30%, transparent 85%); }
 .tile.out { display: none !important; }
 
 /* ---------- Where it's… (local time of day at each station) ---------- */
@@ -555,10 +548,7 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
   content: ""; position: absolute; inset: 0; z-index: -1;
   background: repeating-radial-gradient(circle at var(--ox) var(--oy), transparent 0, transparent calc(var(--gap) * 1.2 - 1.5px), var(--ring) calc(var(--gap) * 1.2 - 1.5px), var(--ring) calc(var(--gap) * 1.2));
 }
-.fp-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
-.fp-cover.has-art::before { background: linear-gradient(to top, var(--c) 18%, color-mix(in srgb, var(--c) 55%, transparent) 42%, transparent 70%); }
 .fp-ck { position: absolute; left: 16px; top: 16px; font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
-.fp-cover.has-art .fp-ck { color: #fff; opacity: 1; text-shadow: 0 1px 6px rgba(0, 0, 0, .6); }
 .fp-tag {
   position: absolute; right: 14px; top: 12px; font-family: var(--f-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
   padding: 5px 8px; border-radius: 6px; background: rgba(0, 0, 0, .4); color: #fff;
@@ -683,6 +673,18 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
 .set-k { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .set-note { margin: 0; font-size: 12.5px; color: var(--muted); }
 .legal { margin: 4px 2px 0; font-size: 11.5px; line-height: 1.5; color: var(--muted); }
+.legal a { color: inherit; text-underline-offset: 2px; }
+.set-link { display: flex; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14.5px; }
+.set-link span { color: var(--muted); }
+/* the privacy notice in the sheet (its text is read from privacy.html, so there is one copy) */
+.policy { display: grid; gap: 18px; padding-bottom: 6px; }
+.policy section { display: grid; gap: 8px; }
+.policy h3 { margin: 0; font-family: var(--f-mono); font-weight: 600; font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.policy p, .policy li { margin: 0; font-size: 14.5px; line-height: 1.5; }
+.policy ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.policy a { color: inherit; text-underline-offset: 3px; }
+.policy .pol-date { margin-top: -8px; color: var(--muted); font-size: 12.5px; }
+.policy .pol-lead { font-size: 15.5px; }
 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
 .seg button {
   appearance: none; -webkit-appearance: none; border: 0; cursor: pointer; border-radius: 9px; padding: 10px 0;
@@ -728,7 +730,7 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
 }
 .mini-logo .lg-a { display: inline-block; transform-origin: 54% 56%; }
 .mini-logo .lg-a.spin { animation: a-spin 1.1s cubic-bezier(.35, .05, .2, 1); }
-@media (prefers-reduced-motion: reduce) { .mini-logo .lg-a.spin { animation: none; } .minibar { transition: opacity .2s; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .minibar { transition: opacity .2s; transform: none; } }
 .topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 25; height: env(safe-area-inset-top, 0px); pointer-events: none;
   background: var(--dock); -webkit-backdrop-filter: blur(20px) saturate(150%); backdrop-filter: blur(20px) saturate(150%);
@@ -766,10 +768,8 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
   border: 1px solid var(--line);
   display: grid; place-items: center;
 }
-.swatch img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .swatch .eq { position: relative; display: flex; height: 16px; }
 .swatch .eq i { width: 3.5px; }
-.swatch.has-art .eq { color: #fff; filter: drop-shadow(0 1px 3px rgba(0,0,0,.6)); }
 .np { min-width: 0; display: grid; gap: 2px; }
 .np-status {
   font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase;
@@ -808,14 +808,16 @@ body[data-state="live"] .pp, body[data-state="loading"] .pp { background: var(--
 body[data-state="live"] .pp .i-play, body[data-state="loading"] .pp .i-play { display: none; }
 body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { display: block; }
 
+/* the bars of the station on air keep dancing even when the computer asks for less motion: they are small, and they mean "on air" */
+body[data-state="live"] .eq i { animation: eq-bounce 1s ease-in-out infinite; }
+body[data-state="live"] .eq i:nth-child(2) { animation-delay: -.35s; }
+body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
+@keyframes eq-bounce { 0%,100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
 @media (prefers-reduced-motion: no-preference) {
   .tune { transition: transform .15s ease; }
   .tile:active .tune { transform: scale(.98); }
   .pp:active { transform: scale(.94); }
   .progress i { transition: width 1s linear; }
-  body[data-state="live"] .eq i { animation: bounce 1s ease-in-out infinite; }
-  body[data-state="live"] .eq i:nth-child(2) { animation-delay: -.35s; }
-  body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   body[data-state="live"] .tile.on::before { animation: ripple 1.4s linear infinite; }
   body[data-state="loading"] .tile.on .knob, body[data-state="loading"] .swatch { animation: pulse 1.1s ease-in-out infinite; }
   body[data-state="live"] .onair i { animation: pulse 2.4s ease-in-out infinite; }
@@ -865,6 +867,11 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   </header>
 
+  <section class="sec" id="sec-new" aria-labelledby="new-h" hidden>
+    <h2 class="sec-h"><span id="new-h">New in</span><small>added in the last two weeks</small></h2>
+    <div class="favs" id="newin"></div>
+  </section>
+
   <section class="sec" id="sec-fav" aria-labelledby="fav-h" hidden>
     <h2 class="sec-h" id="fav-h"><span>Your stations</span></h2>
     <div class="favs" id="favs"></div>
@@ -888,7 +895,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     <h2 class="sec-h"><span id="more-h">All stations</span><small id="more-n"></small></h2>
   <ol class="crate" id="crate">
     <li class="tile" data-id="nts1" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to NTS 1">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 1</span><span class="meta"><span>P1 · London</span><span class="clock"></span></span></span>
@@ -897,7 +903,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="nts2" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream2">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to NTS 2">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 2</span><span class="meta"><span>P2 · London</span><span class="clock"></span></span></span>
@@ -906,7 +911,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="refuge" data-country="Germany" data-code="BER" data-lat="52.52" data-lon="13.4" data-region="Europe" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://streaming.radio.co/s3699c5e49/listen">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Refuge Worldwide">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Refuge Worldwide</span><span class="meta"><span>P3 · Berlin</span><span class="clock"></span></span></span>
@@ -915,7 +919,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="rinse" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://admin.stream.rinse.fm/proxy/rinse_uk/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Rinse FM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rinse FM</span><span class="meta"><span>P4 · London</span><span class="clock"></span></span></span>
@@ -924,7 +927,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="wwfm" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://worldwide-fm.radiocult.fm/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Worldwide FM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Worldwide FM</span><span class="meta"><span>P5 · London</span><span class="clock"></span></span></span>
@@ -933,7 +935,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="kiosk" data-country="Belgium" data-code="BRU" data-lat="50.84" data-lon="4.36" data-region="Europe" data-city="Brussels" data-tz="Europe/Brussels" data-src="https://kioskradiobxl.out.airtime.pro/kioskradiobxl_b">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Kiosk Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Kiosk Radio</span><span class="meta"><span>P6 · Brussels</span><span class="clock"></span></span></span>
@@ -941,8 +942,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <button class="sched" type="button" data-site="https://www.kioskradio.com/schedule">Info</button>
     </li>
 
-    <li class="tile" data-id="lithium" data-country="France" data-code="PAR" data-lat="48.857" data-lon="2.401" data-region="Europe" data-city="Paris" data-tz="Europe/Paris" data-src="https://a13.my-control-panel.com/listen/lithium_radio/radio.mp3">
-      <img class="art" alt="" hidden><span class="shade"></span>
+    <li class="tile" data-id="lithium" data-added="2026-10-22" data-country="France" data-code="PAR" data-lat="48.857" data-lon="2.401" data-region="Europe" data-city="Paris" data-tz="Europe/Paris" data-src="https://a13.my-control-panel.com/listen/lithium_radio/radio.mp3">
       <button class="tune" type="button" aria-label="Listen to Lithium">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Lithium</span><span class="meta"><span>P7 · Paris</span><span class="clock"></span></span></span>
@@ -951,7 +951,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="raheem" data-country="Italy" data-code="MIL" data-lat="45.46" data-lon="9.19" data-region="Europe" data-city="Milan" data-tz="Europe/Rome" data-src="https://radioraheem.out.airtime.pro/radioraheem_a">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Radio Raheem">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Raheem</span><span class="meta"><span>P8 · Milan</span><span class="clock"></span></span></span>
@@ -960,7 +959,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="cashmere" data-country="Germany" data-code="BER" data-lat="52.52" data-lon="13.4" data-region="Europe" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://cashmereradio.out.airtime.pro/cashmereradio_b">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Cashmere Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Cashmere Radio</span><span class="meta"><span>P9 · Berlin</span><span class="clock"></span></span></span>
@@ -969,7 +967,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="noods" data-country="United Kingdom" data-code="BRS" data-lat="51.45" data-lon="-2.59" data-region="Europe" data-city="Bristol" data-tz="Europe/London" data-src="https://noods-radio.radiocult.fm/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Noods Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Noods Radio</span><span class="meta"><span>P10 · Bristol</span><span class="clock"></span></span></span>
@@ -978,7 +975,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="stegi" data-country="Greece" data-code="ATH" data-lat="37.98" data-lon="23.73" data-region="Europe" data-city="Athens" data-tz="Europe/Athens" data-src="https://movementathens.out.airtime.pro/movementathens_a">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Stegi Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Stegi.Radio</span><span class="meta"><span>P11 · Athens</span><span class="clock"></span></span></span>
@@ -987,7 +983,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="alhara" data-country="Palestine" data-code="BTH" data-lat="31.7" data-lon="35.2" data-region="Mid East" data-city="Bethlehem" data-tz="Asia/Hebron" data-src="https://stream.radioalhara.net/ra">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Radio alHara">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio alHara</span><span class="meta"><span>P12 · Bethlehem</span><span class="clock"></span></span></span>
@@ -997,7 +992,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
 
     <li class="tile" data-id="batuta" data-country="Brazil" data-code="RIO" data-lat="-22.91" data-lon="-43.17" data-region="Americas" data-city="Rio de Janeiro" data-tz="America/Sao_Paulo" data-src="https://radioims.out.airtime.pro/radioims_a">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Rádio Batuta">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rádio Batuta</span><span class="meta"><span>P13 · Rio</span><span class="clock"></span></span></span>
@@ -1006,7 +1000,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="super45" data-country="Chile" data-code="SCL" data-lat="-33.45" data-lon="-70.67" data-region="Americas" data-city="Santiago" data-tz="America/Santiago" data-src="https://s4.radio.co/s421105570/listen">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Super45">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Super45</span><span class="meta"><span>P14 · Santiago</span><span class="clock"></span></span></span>
@@ -1016,7 +1009,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
 
     <li class="tile" data-id="deepspace" data-country="United States" data-code="DET" data-lat="42.33" data-lon="-83.05" data-region="Americas" data-city="Detroit" data-tz="America/Detroit" data-src="https://streaming.live365.com/a71161">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Deep Space Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Deep Space Radio</span><span class="meta"><span>P15 · Detroit</span><span class="clock"></span></span></span>
@@ -1025,7 +1017,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     </li>
 
     <li class="tile" data-id="newtown" data-country="United States" data-code="NYC" data-lat="40.71" data-lon="-73.94" data-region="Americas" data-city="Brooklyn" data-tz="America/New_York" data-src="https://streaming.radio.co/s0d090ee43/listen">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Newtown Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Newtown Radio</span><span class="meta"><span>P16 · Brooklyn</span><span class="clock"></span></span></span>
@@ -1035,7 +1026,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
 
     <li class="tile" data-id="hanoi" data-country="Vietnam" data-code="HAN" data-lat="21.03" data-lon="105.85" data-region="Asia–Pac" data-city="Hanoi" data-tz="Asia/Ho_Chi_Minh" data-src="https://ha-noi-community-radio.radiocult.fm/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Hà Nội Community Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Hà Nội Community Radio</span><span class="meta"><span>P17 · Hanoi</span><span class="clock"></span></span></span>
@@ -1043,8 +1033,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <button class="sched" type="button" data-site="https://www.hanoicommunityradio.com/">Info</button>
     </li>
 
-    <li class="tile" data-id="bcr" data-country="Thailand" data-code="BKK" data-lat="13.75" data-lon="100.52" data-region="Asia–Pac" data-city="Bangkok" data-tz="Asia/Bangkok" data-src="https://bcr.radiocult.fm/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
+    <li class="tile" data-id="bcr" data-added="2026-10-22" data-country="Thailand" data-code="BKK" data-lat="13.75" data-lon="100.52" data-region="Asia–Pac" data-city="Bangkok" data-tz="Asia/Bangkok" data-src="https://bcr.radiocult.fm/stream">
       <button class="tune" type="button" aria-label="Listen to Bangkok Community Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Bangkok Community Radio</span><span class="meta"><span>P18 · Bangkok</span><span class="clock"></span></span></span>
@@ -1055,12 +1044,19 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
 
     <li class="tile" data-id="setagaya" data-country="Japan" data-code="TYO" data-lat="35.65" data-lon="139.65" data-region="Asia–Pac" data-city="Tokyo" data-tz="Asia/Tokyo" data-src="https://fmsetagaya834.out.airtime.pro/fmsetagaya834_a">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to FM Setagaya">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">FM Setagaya</span><span class="meta"><span>P19 · Tokyo</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://fmsetagaya.com/">Info</button>
+    </li>
+
+    <li class="tile" data-id="satellite" data-added="2026-10-23" data-country="Portugal" data-code="LIS" data-lat="38.722" data-lon="-9.139" data-region="Europe" data-city="Lisbon" data-tz="Europe/Lisbon" data-src="https://a9.asurahosting.com/listen/satellite_radio/radio.mp3">
+      <button class="tune" type="button" aria-label="Listen to Satellite Radio">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Satellite Radio</span><span class="meta"><span>P20 · Lisbon</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://www.satelliteradio.online/">Info</button>
     </li>
 
   </ol>
@@ -1101,7 +1097,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     <div class="locate" id="locate">
       <strong id="loc-title">See yourself on the map</strong>
       <p id="loc-text">Sintonia puts a red dot where you are. Your position stays on this phone.</p>
-      <button class="btn" id="loc-btn" type="button">Use my location</button>
+      <div class="loc-acts">
+        <button class="btn" id="loc-btn" type="button">Use my location</button>
+        <button class="btn ghost" id="loc-stop" type="button" hidden>Stop sharing my location</button>
+      </div>
     </div>
 
   </section>
@@ -1135,7 +1134,13 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       <p class="set-note" id="name-note">Shown in the greeting at the top. It stays on this phone.</p>
     </form>
 
-    <p class="legal">© 2026 Sofia Corradin. All rights reserved.<br>Station names and broadcasts belong to their stations.</p>
+    <div class="set-card">
+      <span class="set-k">Privacy</span>
+      <p class="set-note">No accounts, no ads, no analytics. What Sintonia sends, what stays on this phone and how to delete it.</p>
+      <a class="set-link" id="privacy-link" href="privacy.html">Read the privacy notice <span aria-hidden="true">›</span></a>
+    </div>
+
+    <p class="legal">© 2026 Sofia Corradin. All rights reserved.<br>Station names and broadcasts belong to their stations. Stations can ask for changes or removal by writing to <a href="mailto:corradinsofia@gmail.com">corradinsofia@gmail.com</a>.</p>
   </section>
 </div>
 
@@ -1153,7 +1158,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 <div class="player" role="region" aria-label="Player">
   <div class="progress" aria-hidden="true"><i id="prog"></i></div>
   <div class="player-inner">
-    <div class="swatch" id="swatch"><img id="np-art" alt="" hidden><span class="eq"><i></i><i></i><i></i></span></div>
+    <div class="swatch" id="swatch"><span class="eq"><i></i><i></i><i></i></span></div>
     <div class="np" id="np" role="button" tabindex="0" aria-label="Open the player">
       <div class="np-status"><span class="dot"></span><span id="np-status">Tap a station to listen</span></div>
       <div class="np-name" id="np-name">Sintonia</div>
@@ -1190,7 +1195,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   const KEY = "sintonia:last";
   const $ = (id) => document.getElementById(id);
   const audio = $("audio"), crate = $("crate"), swatch = $("swatch");
-  const npName = $("np-name"), npStatus = $("np-status"), npShow = $("np-show"), npArt = $("np-art");
+  const npName = $("np-name"), npStatus = $("np-status"), npShow = $("np-show");
   const pp = $("pp"), prog = $("prog");
   const tiles = Array.from(crate.querySelectorAll(".tile"));
 
@@ -1230,6 +1235,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   function renderLocate() {
     const t = $("loc-title"), p = $("loc-text"), b = $("loc-btn");
     b.disabled = false; b.className = "btn";
+    $("loc-stop").hidden = !(locState === "ok" && me);
     if (locState === "asking") { t.textContent = "Finding you…"; b.textContent = "Locating…"; b.disabled = true; return; }
     if (locState === "ok" && me) {
       t.textContent = "You’re on the map";
@@ -1251,10 +1257,13 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     b.textContent = "Use my location";
   }
 
+  let locTok = 0; // a position that arrives after "Stop sharing" is thrown away
   function locate(quiet) {
     if (!("geolocation" in navigator)) { locState = "failed"; renderLocate(); return; }
     if (!quiet) { locState = "asking"; renderLocate(); }
+    const tok = locTok;
     navigator.geolocation.getCurrentPosition((pos) => {
+      if (tok !== locTok) return;
       // keep it coarse: one decimal is about 10 km
       me = { lat: Math.round(pos.coords.latitude * 10) / 10, lon: Math.round(pos.coords.longitude * 10) / 10 };
       writeKey(POS_KEY, JSON.stringify(me));
@@ -1262,7 +1271,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       if (!quiet) { if (W) flyTo(homeView(), 900); else viewReady = false; }
       renderMap();
     }, (err) => {
-      if (quiet && me) return;
+      if (tok !== locTok || (quiet && me)) return;
       locState = err && err.code === 1 ? "denied" : "failed"; renderLocate();
     }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 30 * 60 * 1000 });
   }
@@ -1294,7 +1303,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
   function startPresence() {
     if (!SHARING || channel) return;
-    loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js").then(() => {
+    loadScript("vendor/supabase.js").then(() => {
       const client = window.supabase.createClient(COMMUNITY.url, COMMUNITY.key, { auth: { persistSession: false, autoRefreshToken: false } });
       channel = client.channel("sintonia-listeners", { config: { presence: { key: listenerKey() } } });
       channel.on("presence", { event: "sync" }, () => {
@@ -1318,6 +1327,15 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     clearTimeout(trackTimer);
     trackTimer = setTimeout(() => { sentSig = sig; channel.track(payload).catch(() => { sentSig = ""; }); }, 600);
   }
+  // withdrawing consent: the dot leaves the map for everyone, and the position saved on this phone is deleted
+  function stopSharing() {
+    locTok++; me = null; locState = "none";
+    try { localStorage.removeItem(POS_KEY); } catch (e) {}
+    clearTimeout(trackTimer); sentSig = "";
+    if (channel) channel.untrack().catch(() => {});
+    renderLocate(); renderMap();
+    toast("Your location is no longer shared");
+  }
   function renderOthers() {
     $("lg-others-row").hidden = !SHARING;
     $("lg-others").textContent = others.length === 0 ? "No one else is tuned in right now"
@@ -1325,16 +1343,16 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     queueDraw();
   }
 
-  /* ---------- the map: dot-matrix land on Mercator; drag, pinch or tap twice to zoom; wraps round the world ---------- */
+  /* ---------- the map: a dot-matrix globe; drag to turn it, pinch or tap twice to zoom; left alone it turns by itself ---------- */
   const TAU = Math.PI * 2, RAD = Math.PI / 180, LAND_Q = 10000;
   const mercY = (lat) => -Math.log(Math.tan(Math.PI / 4 + Math.max(-80, Math.min(84, lat)) * RAD / 2));
-  const proj = (lat, lon) => [lon * RAD, mercY(lat)];
+  const proj = (lat, lon) => [lon * RAD, mercY(lat)]; // the flat projection, still used by the story picture and the city pages
   const Y_TOP = mercY(80), Y_BOT = mercY(-58);
   const mapBox = $("map"), landCv = $("map-land"), over = $("map-over");
   const cell = document.createElement("canvas"), cellCtx = cell.getContext("2d", { willReadFrequently: true });
   const cityByCode = Object.fromEntries(cities.map((c) => [c.code, c]));
-  const cam = { x: 0, y: (Y_TOP + Y_BOT) / 2, k: 1 }; // centre on the Mercator plane, pixels per radian
-  let W = 0, H = 0, DPR = 1, viewReady = false, drawQueued = 0, flyAnim = 0;
+  const cam = { lon: 12, lat: 28, R: 1 }; // the point facing us, and the globe's radius in pixels
+  let W = 0, H = 0, DPR = 1, viewReady = false, drawQueued = 0, flyAnim = 0, flying = false;
   let landPath = null, landAsked = false;
   const landWait = []; // who else is waiting for the land (the story picture)
 
@@ -1359,30 +1377,28 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     }).catch(() => { landAsked = false; landWait.splice(0).forEach((f) => f()); });
   }
 
-  const kMin = () => W / TAU;            // the whole world across the card
-  const kMax = () => kMin() * 64;
+  const rMin = () => Math.min(W, H) / 2 * 0.9;   // the whole globe in the card
+  const rMax = () => rMin() * 64;
+  const wrapLon = (l) => ((l + 180) % 360 + 360) % 360 - 180;
   function clampView() {
-    cam.k = Math.min(kMax(), Math.max(kMin(), cam.k));
-    cam.x = ((cam.x + Math.PI) % TAU + TAU) % TAU - Math.PI;
-    const half = H / 2 / cam.k;
-    cam.y = Y_BOT - Y_TOP <= 2 * half ? (Y_TOP + Y_BOT) / 2 : Math.min(Y_BOT - half, Math.max(Y_TOP + half, cam.y));
+    cam.R = Math.min(rMax(), Math.max(rMin(), cam.R));
+    cam.lat = Math.max(-70, Math.min(78, cam.lat));
+    cam.lon = wrapLon(cam.lon);
   }
-  function homeView() { // 500 km all round the listener, or the whole world
-    if (me) {
-      const [x, y] = proj(me.lat, me.lon);
-      return { x, y, k: Math.min(W, H) / 2 / (500 / 6371 / Math.cos(me.lat * RAD)) };
-    }
-    return { x: 0, y: (Y_TOP + Y_BOT) / 2, k: kMin() };
+  function homeView() { // 500 km all round the listener, or the whole globe
+    if (me) return { lon: me.lon, lat: me.lat, R: Math.min(W, H) / 2 / (500 / 6371) };
+    return worldView();
   }
+  const worldView = () => ({ lon: me ? me.lon : 12, lat: me ? Math.max(-20, Math.min(50, me.lat)) : 28, R: rMin() });
   function measure() {
     const w = mapBox.clientWidth, h = mapBox.clientHeight;
     if (!w || !h) return false;
     if (w !== W || h !== H) {
-      const old = W;
+      const old = Math.min(W, H);
       W = w; H = h; DPR = Math.min(3, window.devicePixelRatio || 1);
       landCv.width = Math.round(W * DPR); landCv.height = Math.round(H * DPR);
       over.setAttribute("viewBox", "0 0 " + W + " " + H);
-      if (old && viewReady) cam.k *= W / old;
+      if (old && viewReady) cam.R *= Math.min(W, H) / old;
     }
     if (!viewReady) { Object.assign(cam, homeView()); viewReady = true; }
     clampView();
@@ -1391,49 +1407,123 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   function queueDraw() { if (!drawQueued) drawQueued = requestAnimationFrame(() => { drawQueued = 0; drawMap(); }); }
   function drawMap() {
     if ($("view-map").hidden || !measure()) return;
+    setRot();
     drawLand();
     drawOver();
   }
-  const sx = (x) => W / 2 + (x - cam.x) * cam.k;
-  const sy = (y) => H / 2 + (y - cam.y) * cam.k;
-  const near = (x) => x + TAU * Math.round((cam.x - x) / TAU); // the copy of x closest to the centre of the map
 
+  // orthographic: the globe seen from far away
+  let s0 = 0, c0 = 1;
+  function setRot() { s0 = Math.sin(cam.lat * RAD); c0 = Math.cos(cam.lat * RAD); }
+  function project(lat, lon) { // -> [x, y, z] on screen; z <= 0 is the far side
+    const f = lat * RAD, l = (lon - cam.lon) * RAD, cf = Math.cos(f), sf = Math.sin(f), cl = Math.cos(l);
+    return [W / 2 + cf * Math.sin(l) * cam.R, H / 2 - (c0 * sf - s0 * cf * cl) * cam.R, s0 * sf + c0 * cf * cl];
+  }
+  function unproject(px, py) { // a point on screen -> [lat, lon], or null off the globe
+    const x = (px - W / 2) / cam.R, y = (H / 2 - py) / cam.R, r = Math.hypot(x, y);
+    if (r > 1) return null;
+    if (r < 1e-9) return [cam.lat, cam.lon];
+    const c = Math.asin(r), sc = Math.sin(c), cc = Math.cos(c);
+    return [Math.asin(cc * s0 + y * sc * c0 / r) / RAD, wrapLon(cam.lon + Math.atan2(x * sc, r * c0 * cc - y * s0 * sc) / RAD)];
+  }
+
+  let maskKey = "", mask = null, maskFor = {};
   function drawLand() {
     const ctx = landCv.getContext("2d");
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, landCv.width, landCv.height);
-    if (!landPath) return;
-    const k = cam.k, S = Math.min(5, 3 + 0.55 * Math.log2(k / kMin())); // dot spacing grows a little as you zoom in
-    const ox = W / 2 - cam.x * k, oy = H / 2 - cam.y * k;              // where the plane's origin sits on screen
-    const x0 = (ox % S + S) % S - S, y0 = (oy % S + S) % S - S;           // the grid travels with the map
-    const gw = Math.ceil((W - x0) / S) + 1, gh = Math.ceil((H - y0) / S) + 1;
-    if (cell.width !== gw || cell.height !== gh) { cell.width = gw; cell.height = gh; }
-    cellCtx.setTransform(1, 0, 0, 1, 0, 0);
-    cellCtx.clearRect(0, 0, gw, gh);
-    cellCtx.fillStyle = "#000";
-    const s = k / S / LAND_Q;
-    for (let m = -1; m <= 1; m++) { // one pixel per dot: how much of each cell is land
-      cellCtx.setTransform(s, 0, 0, s, (ox + m * TAU * k - x0) / S, (oy - y0) / S);
-      cellCtx.fill(landPath, "evenodd");
-    }
-    const a = cellCtx.getImageData(0, 0, gw, gh).data;
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--land").trim() || "#343947";
-    ctx.beginPath();
-    const r = S * 0.31;
-    for (let j = 0; j < gh; j++) {
-      for (let i = 0; i < gw; i++) {
-        if (a[(j * gw + i) * 4 + 3] > 72) {
-          const cx = x0 + (i + 0.5) * S, cy = y0 + (j + 0.5) * S;
-          ctx.moveTo(cx + r, cy); ctx.arc(cx, cy, r, 0, TAU);
-        }
-      }
+    const css = getComputedStyle(document.documentElement), light = document.documentElement.getAttribute("data-theme") === "light";
+    const R = cam.R, cx = W / 2, cy = H / 2;
+    // the sea: a sphere lit from the top left, with a faint halo in the colour of the station on air
+    const glow = css.getPropertyValue("--glow").trim();
+    if (glow && R < Math.hypot(W, H)) {
+      const halo = ctx.createRadialGradient(cx, cy, R * 0.96, cx, cy, R * 1.12);
+      halo.addColorStop(0, glow); halo.addColorStop(1, "transparent");
+      ctx.globalAlpha = light ? 0.18 : 0.22; ctx.fillStyle = halo; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
     }
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU);
+    ctx.fillStyle = css.getPropertyValue("--bg").trim() || "#0C0D11"; ctx.fill();
+    const lit = ctx.createRadialGradient(cx - R * 0.38, cy - R * 0.42, R * 0.05, cx, cy, R);
+    lit.addColorStop(0, light ? "rgba(255,255,255,.75)" : "rgba(255,255,255,.07)");
+    lit.addColorStop(0.7, "rgba(255,255,255,0)");
+    lit.addColorStop(1, light ? "rgba(0,0,0,.07)" : "rgba(0,0,0,.35)");
+    ctx.fillStyle = lit; ctx.fill();
+    ctx.lineWidth = 1; ctx.strokeStyle = css.getPropertyValue("--line").trim() || "rgba(255,255,255,.1)"; ctx.stroke();
+
+    // the grid of meridians and parallels, very faint, while the whole globe is in view
+    if (R < rMin() * 3) {
+      ctx.beginPath();
+      const line = (pts) => { let on = false; pts.forEach(([la, lo]) => { const [x, y, z] = project(la, lo); if (z > 0) { if (on) ctx.lineTo(x, y); else ctx.moveTo(x, y); on = true; } else on = false; }); };
+      for (let lo = -180; lo < 180; lo += 30) { const p = []; for (let la = -80; la <= 80; la += 4) p.push([la, lo]); line(p); }
+      for (let la = -60; la <= 60; la += 30) { const p = []; for (let lo = -180; lo <= 180; lo += 4) p.push([la, lo]); line(p); }
+      ctx.strokeStyle = light ? "rgba(0,0,0,.06)" : "rgba(255,255,255,.05)"; ctx.stroke();
+    }
+    if (!landPath) return;
+
+    // the dots sit on the globe itself, on a grid of latitude and longitude, so they turn with it
+    const zoom = R / rMin(), S = Math.min(5.2, 3.3 + 0.55 * Math.log2(zoom));
+    const d = Math.pow(2, -Math.round(Math.log2(R / S) * 2) / 2); // angle between dots, in steps so the grid doesn't swim while zooming
+    const D = Math.hypot(W, H) / 2, alpha = D >= R ? Math.PI / 2 : Math.asin(D / R);
+    const fc = cam.lat * RAD, lc = cam.lon * RAD, ca = Math.cos(alpha);
+    const fLo = Math.max(-1.45, fc - alpha), fHi = Math.min(1.45, fc + alpha);
+    const rows = [];
+    let full = false, span = 0;
+    for (let i = Math.ceil(fLo / d); i <= Math.floor(fHi / d); i++) {
+      const f = i * d, cf = Math.cos(f);
+      if (cf < 0.02) continue;
+      const n = Math.max(1, Math.round(TAU * cf / d)), dl = TAU / n;
+      const q = (ca - Math.sin(f) * Math.sin(fc)) / (cf * Math.cos(fc));
+      if (q > 1) continue;
+      const half = q <= -1 ? Math.PI : Math.acos(q);
+      if (half >= Math.PI - 1e-6) full = true;
+      span = Math.max(span, half);
+      rows.push({ f, dl, half, my: mercY(f / RAD) });
+    }
+    if (!rows.length) return;
+    // which of them are land: the land drawn once, flat, into a small mask
+    const nA = full ? -Math.PI : lc - span, nB = full ? Math.PI : lc + span;
+    const nYA = mercY(fHi / RAD), nYB = mercY(fLo / RAD);
+    // the mask is drawn a good way past the edges, and kept while what's in view stays inside it at the same detail
+    const fits = mask && maskFor.d === d && maskFor.full === full && (full || (nA >= maskFor.xA && nB <= maskFor.xB)) && nYA >= maskFor.yA && nYB <= maskFor.yB;
+    if (!fits) {
+      const mx = full ? 0 : (nB - nA) * 0.6, my = (nYB - nYA) * 0.6;
+      maskFor = { d, full, xA: nA - mx, xB: nB + mx, yA: Math.max(mercY(84), nYA - my), yB: Math.min(mercY(-80), nYB + my) };
+    }
+    const { xA, xB, yA, yB } = maskFor;
+    const sc = Math.min(2 / d, 2400 / (xB - xA), 2400 / Math.max(0.01, yB - yA));
+    const mw = Math.max(1, Math.ceil((xB - xA) * sc)), mh = Math.max(1, Math.ceil((yB - yA) * sc));
+    const key = [xA, xB, yA, yB, sc].map((v) => v.toFixed(4)).join();
+    if (key !== maskKey) {
+      if (cell.width !== mw || cell.height !== mh) { cell.width = mw; cell.height = mh; }
+      cellCtx.setTransform(1, 0, 0, 1, 0, 0); cellCtx.clearRect(0, 0, mw, mh); cellCtx.fillStyle = "#000";
+      const k = sc / LAND_Q;
+      for (let m = -1; m <= 1; m++) { cellCtx.setTransform(k, 0, 0, k, (m * TAU - xA) * sc, -yA * sc); cellCtx.fill(landPath, "evenodd"); }
+      mask = cellCtx.getImageData(0, 0, mw, mh).data; maskKey = key;
+    }
+    ctx.fillStyle = css.getPropertyValue("--land").trim() || "#343947";
+    ctx.beginPath();
+    const r0 = S * 0.33;
+    rows.forEach(({ f, dl, half, my }) => {
+      const py = Math.floor((my - yA) * sc);
+      if (py < 0 || py >= mh) return;
+      const j0 = Math.ceil((lc - half) / dl), j1 = Math.floor((lc + half) / dl);
+      for (let j = j0; j <= j1; j++) {
+        let l = j * dl;
+        let lx = full ? ((l + Math.PI) % TAU + TAU) % TAU - Math.PI : l + TAU * Math.round(((xA + xB) / 2 - l) / TAU);
+        const px = Math.floor((lx - xA) * sc);
+        if (px < 0 || px >= mw || mask[(py * mw + px) * 4 + 3] < 90) continue;
+        const [x, y, z] = project(f / RAD, l / RAD);
+        if (z <= 0 || x < -4 || x > W + 4 || y < -4 || y > H + 4) continue;
+        const r = r0 * (0.45 + 0.55 * z); // smaller towards the edge of the globe
+        ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, TAU);
+      }
+    });
     ctx.fill();
   }
 
   const arcs = new Map();
-  function arcPts(a, c) { // great circle from a listener to a station's city, on the plane, x kept continuous
+  function arcPts(a, c) { // great circle from a listener to a station's city, as latitude and longitude
     const key = a.lat + "," + a.lon + ">" + c.code;
     if (arcs.has(key)) return arcs.get(key);
     const v = (p) => { const la = p.lat * RAD, lo = p.lon * RAD; return [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)]; };
@@ -1442,13 +1532,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const pts = [];
     if (w > 0.004) { // further than about 25 km
       const n = Math.max(2, Math.ceil(w / 0.025)), sw = Math.sin(w);
-      let px = null;
       for (let i = 0; i <= n; i++) {
         const f = Math.sin((1 - i / n) * w) / sw, g = Math.sin(i / n * w) / sw;
         const P = [f * A[0] + g * B[0], f * A[1] + g * B[1], f * A[2] + g * B[2]];
-        let [x, y] = proj(Math.asin(Math.max(-1, Math.min(1, P[2]))) / RAD, Math.atan2(P[1], P[0]) / RAD);
-        if (px !== null) x += TAU * Math.round((px - x) / TAU);
-        pts.push([x, y]); px = x;
+        pts.push([Math.asin(Math.max(-1, Math.min(1, P[2]))) / RAD, Math.atan2(P[1], P[0]) / RAD]);
       }
     }
     if (arcs.size > 400) arcs.clear();
@@ -1460,11 +1547,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   function setG(id, html) { if (shown[id] !== html) { shown[id] = html; $(id === "st" ? "m-stations" : "m-" + id).innerHTML = html; } }
   const f1 = (v) => v.toFixed(1);
   const onScreen = (x, y, pad) => x > -pad && x < W + pad && y > -pad && y < H + pad;
-
   function drawOver() {
     const mySt = me && current && (state === "live" || state === "loading") ? current : "";
 
-    // lines: one per place and station, thicker when several people share it
+    // lines: one per place and station, thicker when several people share it; only the part on our side of the globe
     const pairs = new Map();
     const add = (p, id) => {
       const key = p.lat + "," + p.lon + ">" + id;
@@ -1478,25 +1564,22 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     pairs.forEach((e) => {
       const c = cityByCode[e.st.code];
       (tally[c.code] = tally[c.code] || {})[e.st.id] = (tally[c.code][e.st.id] || 0) + e.n;
-      const pts = arcPts(e.p, c);
-      if (pts.length < 2) return;
-      const base = near(pts[0][0]) - pts[0][0];
-      for (let m = -1; m <= 1; m++) {
-        const off = base + m * TAU;
-        const xs = pts.map((q) => sx(q[0] + off));
-        if (Math.max(...xs) < -10 || Math.min(...xs) > W + 10) continue;
-        const d = "M" + pts.map((q, i) => f1(xs[i]) + " " + f1(sy(q[1]))).join("L");
-        lines += '<path class="m-under" d="' + d + '"/><path class="m-line" d="' + d + '" style="stroke:' + e.st.dot +
-          ";stroke-width:" + Math.min(3.6, 2 + (e.n - 1) * 0.5) + '"/>';
-      }
+      let d = "", on = false;
+      arcPts(e.p, c).forEach(([la, lo]) => {
+        const [x, y, z] = project(la, lo);
+        if (z > 0.02) { d += (on ? "L" : "M") + f1(x) + " " + f1(y); on = true; } else on = false;
+      });
+      if (d) lines += '<path class="m-under" d="' + d + '"/><path class="m-line" d="' + d + '" style="stroke:' + e.st.dot +
+        ";stroke-width:" + Math.min(3.6, 2 + (e.n - 1) * 0.5) + '"/>';
     });
     setG("lines", lines);
 
     // other listeners, grouped when they sit on top of each other
     const groups = [];
     others.forEach((o) => {
-      const [x, y] = proj(o.lat, o.lon);
-      const q = { x: sx(near(x)), y: sy(y), n: 1 };
+      const [x, y, z] = project(o.lat, o.lon);
+      if (z <= 0.02) return;
+      const q = { x, y, n: 1 };
       const g = groups.find((g) => Math.hypot(g.x - q.x, g.y - q.y) < 7);
       if (g) g.n++; else groups.push(q);
     });
@@ -1504,14 +1587,14 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     // stations, one square per city; labels only where they fit
     let marks = "", labels = "";
     const boxes = groups.map((g) => ({ x0: g.x - 4, x1: g.x + (g.n > 1 ? 5 + String(g.n).length * 6.3 : 4), y0: g.y - (g.n > 1 ? 12 : 4), y1: g.y + 4 }));
-    if (me) { const [x, y] = proj(me.lat, me.lon), mx = sx(near(x)), my = sy(y); boxes.push({ x0: mx - 5, x1: mx + 5, y0: my - 5, y1: my + 5 }); }
+    if (me) { const [mx, my, mz] = project(me.lat, me.lon); if (mz > 0) boxes.push({ x0: mx - 5, x1: mx + 5, y0: my - 5, y1: my + 5 }); }
     const fits = (b) => b.x0 >= 2 && b.x1 <= W - 2 && b.y0 >= 2 && b.y1 <= H - 2 && !boxes.some((o) => b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0);
     const placed = cities.map((c) => {
-      const [x, y] = proj(c.lat, c.lon);
+      const [x, y, z] = project(c.lat, c.lon);
       const t = tally[c.code];
       const top = t ? Object.keys(t).sort((p, q) => t[q] - t[p])[0] : null;
-      return { c, x: sx(near(x)), y: sy(y), top };
-    }).filter((p) => onScreen(p.x, p.y, 12));
+      return { c, x, y, z, top };
+    }).filter((p) => p.z > 0.08 && onScreen(p.x, p.y, 12));
     placed.forEach((p) => {
       marks += '<rect class="m-st' + (p.top ? " on" : "") + '" x="' + f1(p.x - 3.5) + '" y="' + f1(p.y - 3.5) + '" width="7" height="7" rx="1.5"' +
         (p.top ? ' style="fill:' + byId[p.top].dot + '"' : "") + "/>";
@@ -1538,54 +1621,80 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     // me
     const meEl = $("me");
     if (me) {
-      const [x, y] = proj(me.lat, me.lon);
-      meEl.setAttribute("transform", "translate(" + f1(sx(near(x))) + " " + f1(sy(y)) + ")");
-      meEl.classList.add("on");
+      const [x, y, z] = project(me.lat, me.lon);
+      meEl.setAttribute("transform", "translate(" + f1(x) + " " + f1(y) + ")");
+      meEl.classList.toggle("on", z > 0);
     } else meEl.classList.remove("on");
 
-    // the round button: back to me, or out to the world
-    const h = homeView(), atHome = !!me && Math.abs(Math.log(cam.k / h.k)) < 0.25 &&
-      Math.hypot((near(h.x) - cam.x) * cam.k, (h.y - cam.y) * cam.k) < 40;
+    // the round button: back to me, or out to the whole globe
+    const h = homeView(), [hx, hy, hz] = project(h.lat, h.lon);
+    const atHome = !!me && Math.abs(Math.log(cam.R / h.R)) < 0.25 && hz > 0 && Math.hypot(hx - W / 2, hy - H / 2) < 40;
     const btn = $("z-home"), to = me && !atHome ? "me" : "world";
     if (btn.dataset.to !== to) { btn.dataset.to = to; btn.setAttribute("aria-label", to === "me" ? "Back to where you are" : "Show the whole world"); }
   }
 
   function flyTo(t, ms) {
-    cancelAnimationFrame(flyAnim);
+    cancelAnimationFrame(flyAnim); stopCoast();
     if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) ms = 0;
-    const a = { x: cam.x, y: cam.y, k: cam.k }, tx = t.x + TAU * Math.round((a.x - t.x) / TAU), t0 = performance.now();
-    const k0 = Math.log(a.k), k1 = Math.log(Math.min(kMax(), Math.max(kMin(), t.k)));
+    const a = { lon: cam.lon, lat: cam.lat, R: cam.R }, tl = a.lon + wrapLon(t.lon - a.lon), t0 = performance.now();
+    const r0 = Math.log(a.R), r1 = Math.log(Math.min(rMax(), Math.max(rMin(), t.R)));
+    // far apart: back out a little in the middle, as if lifting off
+    const far = Math.acos(Math.max(-1, Math.min(1, Math.sin(a.lat * RAD) * Math.sin(t.lat * RAD) + Math.cos(a.lat * RAD) * Math.cos(t.lat * RAD) * Math.cos((tl - a.lon) * RAD))));
+    const lift = Math.max(0, Math.min(r0, r1) - Math.log(rMin())) * Math.min(1, far / 0.6);
+    flying = true;
     const step = (now) => {
       const p = ms ? Math.min(1, (now - t0) / ms) : 1, e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-      cam.x = a.x + (tx - a.x) * e; cam.y = a.y + (t.y - a.y) * e; cam.k = Math.exp(k0 + (k1 - k0) * e);
+      cam.lon = a.lon + (tl - a.lon) * e; cam.lat = a.lat + (t.lat - a.lat) * e;
+      cam.R = Math.exp(r0 + (r1 - r0) * e - lift * Math.sin(Math.PI * e));
       clampView(); drawMap();
-      if (p < 1) flyAnim = requestAnimationFrame(step);
+      if (p < 1) flyAnim = requestAnimationFrame(step); else flying = false;
     };
     flyAnim = requestAnimationFrame(step);
   }
-  function zoomAt(c, f, ms) { // keep the point under c where it is
-    const k = Math.min(kMax(), Math.max(kMin(), cam.k * f));
-    const ax = cam.x + (c[0] - W / 2) / cam.k, ay = cam.y + (c[1] - H / 2) / cam.k;
-    const t = { x: ax - (c[0] - W / 2) / k, y: ay - (c[1] - H / 2) / k, k };
-    if (ms) flyTo(t, ms); else { Object.assign(cam, t); clampView(); queueDraw(); }
+  function keepUnder(ll, c) { // turn the globe so that the place ll sits under the screen point c
+    for (let i = 0; i < 6; i++) {
+      setRot();
+      const [x, y, z] = project(ll[0], ll[1]);
+      if (z <= 0) break;
+      const ex = c[0] - x, ey = c[1] - y;
+      if (Math.abs(ex) + Math.abs(ey) < 0.3) break;
+      cam.lon -= ex / cam.R / RAD / Math.max(0.2, Math.cos(cam.lat * RAD));
+      cam.lat += ey / cam.R / RAD;
+      clampView();
+    }
+    setRot();
+  }
+  function zoomAt(c, f, ms) { // closer to (or further from) the place under c, which stays where it is
+    const ll = unproject(c[0], c[1]);
+    const was = { lon: cam.lon, lat: cam.lat, R: cam.R };
+    cam.R = Math.min(rMax(), Math.max(rMin(), cam.R * f));
+    if (ll) keepUnder(ll, c);
+    const t = { lon: cam.lon, lat: cam.lat, R: cam.R };
+    if (ms) { Object.assign(cam, was); setRot(); flyTo(t, ms); } else { clampView(); queueDraw(); }
   }
 
-  // touch: one finger drags, two fingers pinch, a quick double tap zooms in
+  // touch: one finger turns the globe (it keeps turning a little when let go), two fingers pinch, a quick double tap zooms in
   const ptrs = new Map();
-  let g0 = null, tap = null, lastTap = null;
+  let g0 = null, tap = null, lastTap = null, coast = 0, vel = { lon: 0, lat: 0 }, moves = [], idleAt = 0, pinched = false;
   const local = (e) => { const r = mapBox.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  function stopCoast() { cancelAnimationFrame(coast); coast = 0; }
   function startGesture() {
     const p = [...ptrs.values()];
     if (!p.length) { g0 = null; return; }
     const q = p[1] || p[0];
-    g0 = { x: cam.x, y: cam.y, k: cam.k, c: [(p[0][0] + q[0]) / 2, (p[0][1] + q[1]) / 2], d: p[1] ? Math.hypot(p[0][0] - q[0], p[0][1] - q[1]) : 0 };
+    setRot();
+    const c = [(p[0][0] + q[0]) / 2, (p[0][1] + q[1]) / 2];
+    g0 = { lon: cam.lon, lat: cam.lat, R: cam.R, c, d: p[1] ? Math.hypot(p[0][0] - q[0], p[0][1] - q[1]) : 0, ll: unproject(c[0], c[1]) };
+    if (p[1]) pinched = true;
   }
   mapBox.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button") || ptrs.size >= 2) return;
-    cancelAnimationFrame(flyAnim);
+    cancelAnimationFrame(flyAnim); flying = false; stopCoast();
     try { mapBox.setPointerCapture(e.pointerId); } catch (err) {}
     ptrs.set(e.pointerId, local(e));
-    tap = ptrs.size === 1 ? { t: performance.now(), p: local(e) } : null;
+    tap = ptrs.size === 1 ? { t: performance.now(), p: local(e), x: e.clientX, y: e.clientY } : null;
+    moves = [];
+    if (ptrs.size === 1) pinched = false;
     startGesture();
     mapBox.classList.add("grabbing");
   });
@@ -1595,21 +1704,39 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const p = [...ptrs.values()];
     const c = p[1] ? [(p[0][0] + p[1][0]) / 2, (p[0][1] + p[1][1]) / 2] : p[0];
     if (tap && Math.hypot(c[0] - tap.p[0], c[1] - tap.p[1]) > 6) tap = null;
-    let k = g0.k;
-    if (p[1] && g0.d) k = g0.k * Math.hypot(p[0][0] - p[1][0], p[0][1] - p[1][1]) / g0.d;
-    k = Math.min(kMax(), Math.max(kMin(), k));
-    const ax = g0.x + (g0.c[0] - W / 2) / g0.k, ay = g0.y + (g0.c[1] - H / 2) / g0.k;
-    cam.k = k; cam.x = ax - (c[0] - W / 2) / k; cam.y = ay - (c[1] - H / 2) / k;
-    clampView(); queueDraw();
+    let R = g0.R;
+    if (p[1] && g0.d) R = g0.R * Math.hypot(p[0][0] - p[1][0], p[0][1] - p[1][1]) / g0.d;
+    cam.R = Math.min(rMax(), Math.max(rMin(), R));
+    if (g0.ll) keepUnder(g0.ll, c); // the place you grabbed stays under your finger(s)
+    else { // grabbed off the globe: just turn it
+      const per = 1 / cam.R / RAD;
+      cam.lat = g0.lat + (c[1] - g0.c[1]) * per;
+      cam.lon = g0.lon - (c[0] - g0.c[0]) * per / Math.max(0.35, Math.cos(cam.lat * RAD));
+      clampView();
+    }
+    queueDraw();
+    const now = performance.now(); moves.push({ t: now, lon: cam.lon, lat: cam.lat }); moves = moves.filter((m) => now - m.t < 100);
   });
   const endPtr = (e) => {
     if (!ptrs.delete(e.pointerId)) return;
     if (!ptrs.size) {
       mapBox.classList.remove("grabbing");
       const now = performance.now();
+      idleAt = now;
       if (tap && e.type === "pointerup" && now - tap.t < 300) {
         if (lastTap && now - lastTap.t < 350 && Math.hypot(tap.p[0] - lastTap.p[0], tap.p[1] - lastTap.p[1]) < 30) { zoomAt(tap.p, 2.5, 320); lastTap = null; }
         else lastTap = tap;
+      } else if (moves.length > 1 && !tap && !pinched) { // let it coast (not after a pinch)
+        const a = moves[0], z = moves[moves.length - 1], dt = Math.max(16, z.t - a.t);
+        vel = { lon: wrapLon(z.lon - a.lon) / dt, lat: (z.lat - a.lat) / dt };
+        let last = now;
+        const glide = (t) => {
+          const dt2 = Math.min(40, t - last); last = t;
+          cam.lon += vel.lon * dt2; cam.lat += vel.lat * dt2; vel.lon *= 0.94; vel.lat *= 0.94;
+          clampView(); drawMap();
+          if (Math.abs(vel.lon) + Math.abs(vel.lat) > 0.0005) coast = requestAnimationFrame(glide); else { coast = 0; idleAt = performance.now(); }
+        };
+        coast = requestAnimationFrame(glide);
       }
       tap = null;
     }
@@ -1617,16 +1744,30 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   };
   mapBox.addEventListener("pointerup", endPtr);
   mapBox.addEventListener("pointercancel", endPtr);
-  mapBox.addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(local(e), Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.002)), 0); }, { passive: false });
+  mapBox.addEventListener("wheel", (e) => { e.preventDefault(); idleAt = performance.now(); zoomAt(local(e), Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.002)), 0); }, { passive: false });
   mapBox.addEventListener("gesturestart", (e) => e.preventDefault());
   mapBox.addEventListener("dblclick", (e) => e.preventDefault());
-  $("z-in").addEventListener("click", () => zoomAt([W / 2, H / 2], 2.5, 300));
-  $("z-out").addEventListener("click", () => zoomAt([W / 2, H / 2], 1 / 2.5, 300));
+  $("z-in").addEventListener("click", () => { idleAt = performance.now(); zoomAt([W / 2, H / 2], 2.5, 300); });
+  $("z-out").addEventListener("click", () => { idleAt = performance.now(); zoomAt([W / 2, H / 2], 1 / 2.5, 300); });
   $("z-home").addEventListener("click", (e) => {
-    const h = homeView();
-    flyTo(e.currentTarget.dataset.to === "me" ? h : { x: me ? h.x : 0, y: (Y_TOP + Y_BOT) / 2, k: kMin() }, 800);
+    idleAt = performance.now();
+    flyTo(e.currentTarget.dataset.to === "me" ? homeView() : worldView(), 900);
   });
   if (window.ResizeObserver) new ResizeObserver(() => queueDraw()).observe(mapBox);
+
+  // left alone, with the whole globe in view, it turns slowly from west to east
+  let spinLoop = 0, spinLast = 0;
+  function globeSpin(now) {
+    spinLoop = 0;
+    if ($("view-map").hidden || document.hidden) return;
+    const calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!calm && !ptrs.size && !flying && !coast && cam.R < rMin() * 1.6 && now - idleAt > 2500 && spinLast) {
+      cam.lon += Math.min(50, now - spinLast) * 0.006; clampView(); drawMap();
+    }
+    spinLast = now;
+    spinLoop = requestAnimationFrame(globeSpin);
+  }
+  function startGlobeSpin() { if (!spinLoop) { spinLast = 0; idleAt = performance.now(); spinLoop = requestAnimationFrame(globeSpin); } }
 
   function renderMap() {
     const st = current ? byId[current] : null;
@@ -1637,7 +1778,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       $("lg-you").textContent = "You · location off";
     }
     trackMe();
-    if (!$("view-map").hidden) { loadLand(); queueDraw(); }
+    if (!$("view-map").hidden) { loadLand(); queueDraw(); startGlobeSpin(); }
   }
 
 
@@ -1673,6 +1814,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     if (t.dataset.view === view) window.scrollTo({ top: 0, behavior: "smooth" }); else go(t.dataset.view);
   }));
   $("loc-btn").addEventListener("click", () => locate(false));
+  $("loc-stop").addEventListener("click", stopSharing);
+  $("privacy-link").addEventListener("click", (e) => { e.preventDefault(); openSheet("privacy"); });
   window.addEventListener("hashchange", () => showView(viewFromHash()));
 
   /* ---------- settings ---------- */
@@ -1732,6 +1875,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   const clean = (s) => (s || "").replace(/&(amp|quot|#0?39|apos|lt|gt);/g, (m) => ENT[m]).replace(/^\s*[-–]\s*/, "").replace(/\s+/g, " ").trim();
   const RERUN = /\s*\((r|repeat|restream|replay)\)\s*$/i;
 
+  // Sintonia shows only the stations' colours: no show pictures or album covers from any source
+  // (they are photographers', designers' and labels' work, with no public licence)
   function fromNts(ch) {
     const now = ch && ch.now;
     if (!now) return null;
@@ -1739,12 +1884,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const raw = clean(d.name || now.broadcast_title);
     if (!raw) return null;
     const rerun = RERUN.test(now.broadcast_title || "") || RERUN.test(raw);
-    const media = d.media || {};
     const genres = (d.genres || []).map((g) => g && g.value).filter(Boolean).slice(0, 2).join(" · ");
     return {
       title: raw.replace(RERUN, ""),
       sub: genres,
-      art: media.picture_medium_large || media.picture_medium || media.background_medium || "",
       start: Date.parse(now.start_timestamp), end: Date.parse(now.end_timestamp), rerun
     };
   }
@@ -1778,7 +1921,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const dj = j.live_dj_on === true || j.live_dj_on === "true";
     return {
       title: title || artist, sub: title && artist ? artist : "",
-      art: (tr && tr.art) || "",
       start: tr && tr.start ? Date.parse(String(tr.start).replace(" ", "T")) : NaN, end: NaN,
       song: title ? { title, artist } : null,
       rerun: !dj, tag: dj ? "" : "Playlist" // no DJ on air: the station's own playlist
@@ -1791,7 +1933,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const md = r.metadata || {}, artist = clean(md.artist), title = clean(md.title);
     const pre = c.media && c.media.type === "playlist";
     return {
-      title: clean(c.title), sub: "", art: "",
+      title: clean(c.title), sub: "",
       start: Date.parse(c.startDateUtc || c.start), end: Date.parse(c.endDateUtc || c.end),
       song: artist && title ? { title, artist } : null,
       rerun: pre, tag: pre ? "Playlist" : ""
@@ -1802,18 +1944,26 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     // someone is broadcasting live from the café: the "now playing" line then still shows the last recording, so ignore it
     if (j && j.live && j.live.is_live) {
       const dj = j.live.streamer_name && !/^lithium$/i.test(j.live.streamer_name) ? clean(j.live.streamer_name) : "";
-      return { title: dj || "Live from the café", sub: "", art: "", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false, tag: "" };
+      return { title: dj || "Live from the café", sub: "", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false, tag: "" };
     }
     const raw = clean(song && (song.title || song.text));
     if (!raw) return null;
     const m = /^lithium radio\s*-\s*(\d{4}) (\d\d) (\d\d)[^-]*-\s*(.+)$/i.exec(raw);
-    if (!m) return { title: raw, sub: "", art: "", start: NaN, end: NaN, song: null, rerun: false, tag: "" };
+    if (!m) return { title: raw, sub: "", start: NaN, end: NaN, song: null, rerun: false, tag: "" };
     const name = m[4].replace(/(^|[\s-])(\p{L})/gu, (x, a, b) => a + b.toUpperCase());
     const when = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
     return {
-      title: name, sub: "Recorded " + when, art: "",
+      title: name, sub: "Recorded " + when,
       start: np.played_at * 1000, end: np.duration && np.remaining > 0 ? (np.played_at + np.duration) * 1000 : NaN, song: null, rerun: true, tag: "Replay"
     };
+  }
+
+  function fromAzuraTracks(j, own) { // AzuraCast that sends artist and title; a live DJ by name
+    const np = j && j.now_playing, song = np && np.song;
+    if (j && j.live && j.live.is_live && j.live.streamer_name) return { title: clean(j.live.streamer_name), sub: "Live", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false };
+    const artist = clean(song && song.artist), title = clean(song && song.title);
+    if (!title || title.toLowerCase() === own) return null;
+    return { title, sub: artist, song: artist ? { artist, title } : null, start: np.played_at * 1000, end: NaN, rerun: false };
   }
 
   function fromAirtime(j) {
@@ -1866,7 +2016,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     { url: "https://api.live365.com/station/a71161", parse: (j) => ({ deepspace: fromLive365(j) }) },
     { url: "https://fmsetagaya834.airtime.pro/api/live-info-v2", parse: (j) => ({ setagaya: fromAirtime(j) }) },
     { url: "https://a13.my-control-panel.com/api/nowplaying/lithium_radio", parse: (j) => ({ lithium: fromAzura(j) }) },
-    { url: "https://api.radiocult.fm/api/station/bcr/schedule/live", parse: (j) => ({ bcr: fromRadioCult(j) }) }
+    { url: "https://api.radiocult.fm/api/station/bcr/schedule/live", parse: (j) => ({ bcr: fromRadioCult(j) }) },
+    { url: "https://a9.asurahosting.com/api/nowplaying/satellite_radio", parse: (j) => ({ satellite: fromAzuraTracks(j, "satellite radio") }) }
   ];
 
   function getJSON(url) {
@@ -1893,8 +2044,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     stations.forEach((st) => {
       const info = live[st.id];
       const box = st.el.querySelector(".now");
-      const art = st.el.querySelector(".art");
-      if (!info) { box.hidden = true; art.hidden = true; st.el.classList.remove("has-art"); return; }
+      if (!info) { box.hidden = true; return; }
       const k = box.querySelector(".now-k");
       k.textContent = "On now";
       if (info.rerun) { const rr = document.createElement("span"); rr.className = "rr"; rr.textContent = info.tag || "Rerun"; k.appendChild(rr); }
@@ -1906,13 +2056,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       s.textContent = parts.join(" · ");
       s.hidden = !parts.length;
       box.hidden = false;
-      if (info.art) {
-        if (art.getAttribute("src") !== info.art) {
-          art.onload = () => { art.hidden = false; st.el.classList.add("has-art"); };
-          art.onerror = () => { art.hidden = true; st.el.classList.remove("has-art"); };
-          art.src = info.art;
-        }
-      } else { art.hidden = true; st.el.classList.remove("has-art"); }
     });
     arrange();
     renderPlayer();
@@ -1941,17 +2084,33 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     favs = favs.includes(id) ? favs.filter((x) => x !== id) : favs.concat(id);
     writeKey(FAV_KEY, JSON.stringify(favs));
     renderFavs();
+    renderNew();
     arrange();
     renderPlayer();
   }
 
+  // stations that arrived in the last two weeks: their own row at the top, and a small tag on their tile
+  const NEW_DAYS = 14;
+  const isNew = (st) => { const d = Date.parse(st.el.dataset.added || ""); return d > 0 && Date.now() - d < NEW_DAYS * 864e5; };
+  function renderNew() {
+    const fresh = stations.filter(isNew).sort((a, b) => Date.parse(b.el.dataset.added) - Date.parse(a.el.dataset.added));
+    $("sec-new").hidden = !fresh.length;
+    fillMinis($("newin"), fresh.map((st) => st.id), true);
+    stations.forEach((st) => {
+      const meta = st.el.querySelector(".meta"), tag = meta.querySelector(".newtag");
+      if (isNew(st) && !tag) { const t = document.createElement("span"); t.className = "newtag"; t.textContent = "New"; meta.prepend(t); }
+      else if (!isNew(st) && tag) tag.remove();
+    });
+  }
   function renderFavs() {
-    const box = $("favs");
-    box.textContent = "";
     $("sec-fav").hidden = !favs.length;
-    if (!favs.length) return;
+    fillMinis($("favs"), favs, false);
+  }
+  function fillMinis(box, ids, tagged) {
+    box.textContent = "";
+    if (!ids.length) return;
     const now = Date.now();
-    favs.forEach((id) => {
+    ids.forEach((id) => {
       const st = byId[id];
       const m = document.createElement("div");
       m.className = "mini"; m.dataset.id = id;
@@ -1964,6 +2123,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       const mm = document.createElement("span"); mm.className = "mm";
       const ck = document.createElement("span"); ck.className = "clock"; ck.textContent = hhmm(now, st.tz);
       mm.append(st.city + " · ", ck);
+      if (tagged) { const tg = document.createElement("span"); tg.className = "newtag"; tg.textContent = "New"; t.append(tg); }
       t.append(nm, mm);
       b.append(st.el.querySelector(".knob").cloneNode(true), t);
       const pin = pinButton(st);
@@ -2006,6 +2166,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     fitNames();
   }
   renderFavs();
+  renderNew();
   arrange();
 
   /* ---------- station info for the Info sheet (draft texts, to be checked) ---------- */
@@ -2027,6 +2188,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     newtown: { desc: "Independent internet radio from Bushwick, Brooklyn: mostly live two-hour shows by local DJs, musicians and artists.", since: "2009", plays: "Open format: indie, rap, electronic, live sessions", lang: "English", by: "Newtown Radio, Brooklyn" },
     hanoi: { desc: "Community radio from Hanoi, giving space to the city’s DJs, musicians and creative scene.", plays: "Electronic, experimental, Vietnamese sounds", lang: "Vietnamese, English", by: "Hà Nội Community Radio" },
     lithium: { desc: "A café and radio in Paris’s 20th arrondissement, broadcasting DJ sets and shows from its own room.", plays: "Electronic, club, bass and more", lang: "French, English", by: "Lithium, Paris" },
+    satellite: { desc: "Independent radio from Lisbon, live around the clock: rhythms from across continents and sounds still to be discovered, with live sets and talks with artists.", plays: "World, jazz, dub, Afrobeat, electronica and experimental", lang: "English, Portuguese", by: "Satellite Radio, Lisbon" },
     bcr: { desc: "Community-led, independent radio from Bangkok, launched by a collective to connect the city’s cultural communities.", since: "2021", plays: "Ambient, techno, molam, Balearic, disco, funk and soul", lang: "Thai, English", by: "Bangkok Community Radio collective" },
     setagaya: { desc: "Community FM for Tokyo’s Setagaya ward, on air at 83.4 FM.", plays: "Local programmes, music and community news", lang: "Japanese", by: "FM Setagaya, Tokyo" },
   };
@@ -2302,11 +2464,13 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   let facesP = null;
   function storyFaces() { // Safari's canvas ignores font-stretch: Archivo is added twice more with the width fixed, narrow for names and wide for the wordmark
     if (!facesP) {
-      facesP = !window.FontFace ? Promise.resolve() : fetch("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap")
+      const cssUrl = new URL("fonts.css", location.href); // FontFace reads url() against the page, so make them absolute first
+      facesP = !window.FontFace ? Promise.resolve() : fetch(cssUrl)
         .then((r) => r.text()).then((css) => {
           for (const m of css.matchAll(/@font-face\s*{([^}]*)}/g)) {
             const src = /src:\s*([^;]+);/.exec(m[1]), ur = /unicode-range:\s*([^;]+);/.exec(m[1]);
             if (!src || !/font-family:\s*['"]?Archivo['"]?\s*;/.test(m[1])) continue;
+            src[1] = src[1].replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/g, (_, q, u) => 'url("' + new URL(u, cssUrl).href + '")');
             const d = ur ? { unicodeRange: ur[1].trim() } : {};
             document.fonts.add(new FontFace("Sintonia Narrow", src[1], Object.assign({ weight: "500 900", stretch: "62.5%" }, d)));
             document.fonts.add(new FontFace("Sintonia Wide", src[1], Object.assign({ weight: "500 900", stretch: "125%" }, d)));
@@ -2394,6 +2558,27 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     else if (sheetOpen === "sleep") renderSleep();
     else if (sheetOpen === "info") renderInfo(sheetId);
     else if (sheetOpen === "share") renderShare(sheetId);
+    else if (sheetOpen === "privacy") renderPrivacy();
+  }
+
+  // the privacy notice: read from privacy.html, the same page that opens on its own
+  let policyHtml = "";
+  function renderPrivacy() {
+    if (sheetBody.querySelector(".policy")) return; // already showing (the sheet is redrawn while open)
+    const show = (inner) => { if (sheetOpen === "privacy") sheetBody.innerHTML = '<div class="sheet-in sheet-pad">' + inner + "</div>"; };
+    if (policyHtml) return show(policyHtml);
+    show('<h2 class="sh-title" id="sheet-title">Privacy</h2><p class="empty">Loading…</p>');
+    fetch("privacy.html", { cache: "no-cache" }).then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); }).then((html) => {
+      const doc = new DOMParser().parseFromString(html, "text/html"), art = doc.getElementById("policy");
+      if (!art) throw new Error("no notice");
+      art.querySelectorAll("script, style").forEach((n) => n.remove());
+      art.querySelectorAll("h2").forEach((h) => { const n = doc.createElement("h3"); n.innerHTML = h.innerHTML; h.replaceWith(n); });
+      const h1 = art.querySelector("h1");
+      if (h1) { const t = doc.createElement("h2"); t.className = "sh-title"; t.id = "sheet-title"; t.textContent = h1.textContent; h1.replaceWith(t); }
+      art.querySelectorAll('a[href^="http"]').forEach((a) => { a.target = "_blank"; a.rel = "noopener"; });
+      policyHtml = art.outerHTML;
+      show(policyHtml);
+    }).catch(() => show('<h2 class="sh-title" id="sheet-title">Privacy</h2><p class="empty">The privacy notice couldn’t load. Check your connection, or <a href="privacy.html" target="_blank" rel="noopener">open it as a page</a>.</p>'));
   }
 
   function findsHtml(song) {
@@ -2543,11 +2728,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const k = { loading: "Tuning in to", live: "Live from", error: "Can’t reach" }[state] || "Paused";
     const where = state === "error" ? st.name : st.city + ", " + st.country;
     const tag = info && info.title ? (info.rerun ? `<span class="fp-tag">${esc(info.tag || "Rerun")}</span>` : '<span class="fp-tag on">On air</span>') : "";
-    const art = info && info.art && st.el.classList.contains("has-art") ? `<img class="fp-art" src="${esc(info.art)}" alt="">` : ""; // only once the tile has shown it
     let h = `<div class="fp-top"><button class="fp-ib" type="button" data-fp="close" aria-label="Close player">${fpIcon("down")}</button>` +
       `<div class="fp-k">${esc(k)}<b>${esc(where)}</b></div>` +
       `<button class="fp-ib" type="button" data-fp="heard" aria-label="Songs you heard">${fpIcon("more")}</button></div>`;
-    h += `<div class="fp-cover${art ? " has-art" : ""}" data-id="${st.id}">${art}<span class="fp-ck">${esc(st.code)} · ${hhmm(now, st.tz)}</span>${tag}` +
+    h += `<div class="fp-cover" data-id="${st.id}"><span class="fp-ck">${esc(st.code)} · ${hhmm(now, st.tz)}</span>${tag}` +
       `<span class="fp-nm${keep}" id="fp-title">${esc(st.name)}</span></div>`;
     const sub = [];
     if (info && info.title) sub.push(`<b>${esc(st.name)}</b>`);
@@ -2582,7 +2766,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       (airplayOk ? `<button class="fp-act${airplayAvail ? "" : " dim"}" type="button" data-fp="airplay">${fpIcon("airplay")}<span>AirPlay</span></button>` : "") +
       `<button class="fp-act${left ? " on" : ""}" type="button" data-fp="sleep">${fpIcon("sleep")}<span>${left ? left + " min" : "Sleep"}</span></button>` +
       `<button class="fp-act" type="button" data-fp="share">${fpIcon("share")}<span>Share</span></button>` +
-      `<button class="fp-act" type="button" data-fp="map">${fpIcon("map")}<span>Map</span></button>` +
       `<button class="fp-act" type="button" data-fp="info">${fpIcon("info")}<span>Info</span></button></div>`;
     fp.style.setProperty("--fc", st.dot);
     fpIn.innerHTML = h;
@@ -2602,8 +2785,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     showView("map");
     requestAnimationFrame(() => requestAnimationFrame(() => {
       if (!measure()) return;
-      const [x, y] = proj(st.lat, st.lon);
-      flyTo({ x, y, k: Math.min(W, H) / 2 / (700 / 6371 / Math.cos(st.lat * RAD)) }, 900);
+      flyTo({ lon: st.lon, lat: st.lat, R: Math.min(W, H) / 2 / (700 / 6371) }, 1100);
     }));
   }
 
@@ -2652,7 +2834,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   /* ---------- "The sound of…": the music, people and geography of each station's city ---------- */
   const cp = $("cp"), cpIn = $("cp-in");
   let cityData = null, geo = null, cityAsked = null, cpId = "";
-  const GEO_ORDER = ["GB", "DE", "BE", "IT", "GR", "PS", "BR", "CL", "US", "VN", "JP", "FR", "TH", "AU"];
+  const GEO_ORDER = ["GB", "DE", "BE", "IT", "GR", "PS", "BR", "CL", "US", "VN", "JP", "FR", "TH", "AU", "PT"];
   function decodeGeo(buf) { // Natural Earth lakes, land borders and the stations' countries, packed like land.bin
     const b = new Uint8Array(buf);
     let i = 0, x = 0, y = 0;
@@ -2677,8 +2859,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   function loadCity() {
     if (!cityAsked) {
       cityAsked = Promise.all([
-        fetch("cities.json?v=2").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
-        fetch("geo.bin?v=2").then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(decodeGeo),
+        fetch("cities.json?v=3").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+        fetch("geo.bin?v=3").then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(decodeGeo),
         landReady(),
       ]).then(([c, g]) => { cityData = c; geo = g; }).catch((e) => { cityAsked = null; throw e; });
     }
@@ -2741,6 +2923,13 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
       g.save(); unionJack(g, w / 2, h / 2); g.restore();
       const r = Math.min(w, h) * 0.06;
       [[0.75, 0.22], [0.62, 0.5], [0.85, 0.42], [0.75, 0.8]].forEach(([fx, fy]) => { star(g, w * fx, h * fy, r * 1.25, "#FFFFFF"); star(g, w * fx, h * fy, r, "#C8102E"); });
+    } },
+    PT: { a: ["#006600", "#FF0000"], draw: (g, w, h) => { // green and red, the armillary sphere where they meet
+      g.fillStyle = "#006600"; g.fillRect(0, 0, w * 0.4, h); g.fillStyle = "#FF0000"; g.fillRect(w * 0.4, 0, w * 0.6 + 1, h);
+      const r = Math.min(w, h) * 0.22;
+      g.fillStyle = "#FFE000"; g.beginPath(); g.arc(w * 0.4, h / 2, r, 0, TAU); g.fill();
+      g.fillStyle = "#FF0000"; g.fillRect(w * 0.4 - r * 0.45, h / 2 - r * 0.55, r * 0.9, r * 1.05);
+      g.fillStyle = "#FFFFFF"; g.fillRect(w * 0.4 - r * 0.28, h / 2 - r * 0.38, r * 0.56, r * 0.7);
     } },
     FR: { a: ["#0055A4", "#EF4135"], draw: (g, w, h) => bands(g, w, h, ["#0055A4", "#FFFFFF", "#EF4135"], true) },
     TH: { a: ["#A51931", "#2D2A4A"], draw: (g, w, h) => bands(g, w, h, ["#A51931", "#F4F5F8", "#2D2A4A", "#2D2A4A", "#F4F5F8", "#A51931"]) },
@@ -2958,14 +3147,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     npShow.hidden = !(info && info.title);
     npShow.textContent = info ? info.title + (info.sub ? " · " + info.sub : "") : "";
 
-    if (info && info.art) {
-      if (npArt.getAttribute("src") !== info.art) {
-        npArt.onload = () => { npArt.hidden = false; swatch.classList.add("has-art"); };
-        npArt.onerror = () => { npArt.hidden = true; swatch.classList.remove("has-art"); };
-        npArt.src = info.art;
-      }
-    } else { npArt.hidden = true; npArt.removeAttribute("src"); swatch.classList.remove("has-art"); }
-
     let text = "Tap a station to listen";
     if (st) {
       if (state === "loading") text = "Tuning in…";
@@ -3000,8 +3181,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     if (!current || !("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;
     const st = byId[current], info = live[current];
     const title = info ? info.title : st.name;
-    const art = info && info.art;
-    const sig = [st.id, title, art].join("|");
+    const sig = [st.id, title].join("|");
     if (sig === lastMeta) return;
     lastMeta = sig;
     try {
@@ -3009,7 +3189,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
         title,
         artist: info ? st.name + " · " + st.city : st.city + " · live",
         album: "Sintonia",
-        artwork: art ? [{ src: art }] : [
+        artwork: [ // Sintonia's own icon: no cover pictures, from anyone
           { src: "icon-512.png?v=7", sizes: "512x512", type: "image/png" },
           { src: "icon-192.png?v=7", sizes: "192x192", type: "image/png" }
         ]
@@ -3019,7 +3199,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   /* HLS (.m3u8): iPhone and Mac Safari play it natively; elsewhere hls.js does it (Chrome's own player can't read
      some streams' AAC segments), and Safari falls back to it if its own player gives up. */
-  const HLS_JS = "https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.light.min.js";
+  const HLS_JS = "vendor/hls.light.min.js"; // hls.js 1.5.17, served from this site
   const isHls = (src) => /\.m3u8(\?|$)/i.test(src);
   const appleHls = /Apple/.test(navigator.vendor || "") && !!audio.canPlayType("application/vnd.apple.mpegurl");
   const canMse = () => !!(window.MediaSource || window.ManagedMediaSource);
@@ -3203,7 +3383,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   function tickClocks() {
     const now = Date.now();
     stations.forEach((st) => { st.el.querySelector(".clock").textContent = hhmm(now, st.tz); });
-    $("favs").querySelectorAll(".mini").forEach((m) => { m.querySelector(".clock").textContent = hhmm(now, byId[m.dataset.id].tz); });
+    document.querySelectorAll("#favs .mini, #newin .mini").forEach((m) => { m.querySelector(".clock").textContent = hhmm(now, byId[m.dataset.id].tz); });
     if (band !== "all") arrange();
     updateProgress();
     renderGreeting();
@@ -3227,11 +3407,11 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
   allA.forEach((a) => a.addEventListener("animationend", () => a.classList.remove("spin")));
 
-  // the small wordmark shows once the big one has gone up under the top of the screen, on the stations only
-  const minibar = $("minibar"), bigLogo = document.querySelector("h1.logo");
+  // the small wordmark shows once the big title of the section has gone up under the top of the screen
+  const minibar = $("minibar");
   function minibarCheck() {
-    const show = view === "stations" && bigLogo.getBoundingClientRect().bottom < minibar.offsetHeight - 6;
-    minibar.classList.toggle("show", show);
+    const big = views[view] && views[view].querySelector("h1.logo, .hero .title");
+    minibar.classList.toggle("show", !!big && big.getBoundingClientRect().bottom < minibar.offsetHeight - 6);
   }
   window.addEventListener("scroll", minibarCheck, { passive: true });
   window.addEventListener("resize", minibarCheck);
