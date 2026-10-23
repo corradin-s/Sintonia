@@ -196,16 +196,6 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 }
 .m-code.on, .m-n { fill: var(--ink); }
 
-/* close up, each station shows as its own round icon */
-.m-ic { cursor: pointer; }
-.m-ic circle { stroke: var(--bg-2); stroke-width: 2; }
-.m-ic.on circle { stroke: var(--ink); stroke-width: 2.5; }
-.m-ic text { font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: 12px; text-anchor: middle; dominant-baseline: central; text-transform: uppercase; pointer-events: none; }
-.m-ic-n {
-  font-family: var(--f-mono); font-size: 9px; font-weight: 500; letter-spacing: .06em; fill: var(--ink); pointer-events: none;
-  paint-order: stroke; stroke: var(--bg-2); stroke-width: 3px; stroke-linejoin: round;
-}
-.m-tick { stroke: var(--muted); stroke-width: 1; opacity: .6; }
 .me { display: none; }
 .me.on { display: inline; }
 .me .core { fill: var(--live); }
@@ -271,6 +261,10 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .pin[aria-pressed="true"] { opacity: 1; }
 .pin[aria-pressed="true"] svg { fill: currentColor; }
 .mini .pin { top: 4px; bottom: auto; right: 4px; }
+/* in New in, and on the big tiles of stations that just arrived */
+.newtag { display: inline-block; font-family: var(--f-mono); font-size: 8.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; padding: 2px 5px; border-radius: 4px; background: var(--t); color: var(--c); }
+.mini .newtag { margin-bottom: 1px; justify-self: start; }
+.tile .meta .newtag { margin-right: 2px; }
 .tile .meta { padding-right: 28px; }
 .pin:focus-visible { outline: 2px solid var(--t); outline-offset: -2px; }
 
@@ -386,6 +380,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="newtown"]  { --c:#3E64A8; --t:#EEF2FA; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:-10%; --oy:110%; --gap:13px; --dot:#6F93D8; }
 [data-id="hanoi"]    { --c:#A6E3C8; --t:#0B2219; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:90%;  --oy:80%;  --gap:12px; }
 [data-id="lithium"]  { --c:#16120F; --t:#FF4A2E; --ring:rgba(255,74,46,.16);   --pill:rgba(255,74,46,.18);   --ox:85%;  --oy:-15%; --gap:12px; --dot:#FF5A3C; }
+[data-id="satellite"]{ --c:#0E4A5A; --t:#F7D774; --ring:rgba(247,215,116,.14); --pill:rgba(247,215,116,.2);  --ox:92%;  --oy:88%;  --gap:14px; --dot:#F7D774; }
 [data-id="bcr"]      { --c:#3F4697; --t:#F4EBE0; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:10%;  --oy:115%; --gap:13px; --dot:#7C84E0; }
 [data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
 .name.keepcase { text-transform: none; }
@@ -879,6 +874,11 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
   </header>
 
+  <section class="sec" id="sec-new" aria-labelledby="new-h" hidden>
+    <h2 class="sec-h"><span id="new-h">New in</span><small>added in the last two weeks</small></h2>
+    <div class="favs" id="newin"></div>
+  </section>
+
   <section class="sec" id="sec-fav" aria-labelledby="fav-h" hidden>
     <h2 class="sec-h" id="fav-h"><span>Your stations</span></h2>
     <div class="favs" id="favs"></div>
@@ -955,7 +955,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       <button class="sched" type="button" data-site="https://www.kioskradio.com/schedule">Info</button>
     </li>
 
-    <li class="tile" data-id="lithium" data-country="France" data-code="PAR" data-lat="48.857" data-lon="2.401" data-region="Europe" data-city="Paris" data-tz="Europe/Paris" data-src="https://a13.my-control-panel.com/listen/lithium_radio/radio.mp3">
+    <li class="tile" data-id="lithium" data-added="2026-10-22" data-country="France" data-code="PAR" data-lat="48.857" data-lon="2.401" data-region="Europe" data-city="Paris" data-tz="Europe/Paris" data-src="https://a13.my-control-panel.com/listen/lithium_radio/radio.mp3">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Lithium">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -1057,7 +1057,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       <button class="sched" type="button" data-site="https://www.hanoicommunityradio.com/">Info</button>
     </li>
 
-    <li class="tile" data-id="bcr" data-country="Thailand" data-code="BKK" data-lat="13.75" data-lon="100.52" data-region="Asia–Pac" data-city="Bangkok" data-tz="Asia/Bangkok" data-src="https://bcr.radiocult.fm/stream">
+    <li class="tile" data-id="bcr" data-added="2026-10-22" data-country="Thailand" data-code="BKK" data-lat="13.75" data-lon="100.52" data-region="Asia–Pac" data-city="Bangkok" data-tz="Asia/Bangkok" data-src="https://bcr.radiocult.fm/stream">
       <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Bangkok Community Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
@@ -1075,6 +1075,15 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">FM Setagaya</span><span class="meta"><span>P19 · Tokyo</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://fmsetagaya.com/">Info</button>
+    </li>
+
+    <li class="tile" data-id="satellite" data-added="2026-10-23" data-country="Portugal" data-code="LIS" data-lat="38.722" data-lon="-9.139" data-region="Europe" data-city="Lisbon" data-tz="Europe/Lisbon" data-src="https://a9.asurahosting.com/listen/satellite_radio/radio.mp3">
+      <img class="art" alt="" hidden><span class="shade"></span>
+      <button class="tune" type="button" aria-label="Listen to Satellite Radio">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Satellite Radio</span><span class="meta"><span>P20 · Lisbon</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://www.satelliteradio.online/">Info</button>
     </li>
 
   </ol>
@@ -1423,7 +1432,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     return [Math.asin(cc * s0 + y * sc * c0 / r) / RAD, wrapLon(cam.lon + Math.atan2(x * sc, r * c0 * cc - y * s0 * sc) / RAD)];
   }
 
-  let maskKey = "", mask = null;
+  let maskKey = "", mask = null, maskFor = {};
   function drawLand() {
     const ctx = landCv.getContext("2d");
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1478,9 +1487,16 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     }
     if (!rows.length) return;
     // which of them are land: the land drawn once, flat, into a small mask
-    const xA = full ? -Math.PI : lc - span, xB = full ? Math.PI : lc + span;
-    const yA = mercY(fHi / RAD), yB = mercY(fLo / RAD);
-    const sc = Math.min(2 / d, 1800 / (xB - xA), 1800 / Math.max(0.01, yB - yA));
+    const nA = full ? -Math.PI : lc - span, nB = full ? Math.PI : lc + span;
+    const nYA = mercY(fHi / RAD), nYB = mercY(fLo / RAD);
+    // the mask is drawn a good way past the edges, and kept while what's in view stays inside it at the same detail
+    const fits = mask && maskFor.d === d && maskFor.full === full && (full || (nA >= maskFor.xA && nB <= maskFor.xB)) && nYA >= maskFor.yA && nYB <= maskFor.yB;
+    if (!fits) {
+      const mx = full ? 0 : (nB - nA) * 0.6, my = (nYB - nYA) * 0.6;
+      maskFor = { d, full, xA: nA - mx, xB: nB + mx, yA: Math.max(mercY(84), nYA - my), yB: Math.min(mercY(-80), nYB + my) };
+    }
+    const { xA, xB, yA, yB } = maskFor;
+    const sc = Math.min(2 / d, 2400 / (xB - xA), 2400 / Math.max(0.01, yB - yA));
     const mw = Math.max(1, Math.ceil((xB - xA) * sc)), mh = Math.max(1, Math.ceil((yB - yA) * sc));
     const key = [xA, xB, yA, yB, sc].map((v) => v.toFixed(4)).join();
     if (key !== maskKey) {
@@ -1536,14 +1552,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function setG(id, html) { if (shown[id] !== html) { shown[id] = html; $(id === "st" ? "m-stations" : "m-" + id).innerHTML = html; } }
   const f1 = (v) => v.toFixed(1);
   const onScreen = (x, y, pad) => x > -pad && x < W + pad && y > -pad && y < H + pad;
-  const ICONS_AT = 5; // how close (times the whole globe) before stations show as icons
-  const mono = (st) => { // two or three letters for the icon: the initials, and any number in the name
-    const words = st.name.replace(/[.]/g, " ").split(/\s+/).filter((w) => w && !/^(radio|rádio|fm|community)$/i.test(w));
-    const num = (st.name.match(/\d+/) || [""])[0];
-    const ini = words.filter((w) => !/^\d+$/.test(w)).map((w) => w[0]).join("").slice(0, num ? 1 : 2);
-    return (ini + num).slice(0, 3) || st.name.slice(0, 2);
-  };
-
   function drawOver() {
     const mySt = me && current && (state === "live" || state === "loading") ? current : "";
 
@@ -1581,75 +1589,30 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       if (g) g.n++; else groups.push(q);
     });
 
-    // stations: one square per city from afar; close up, an icon for each station
+    // stations, one square per city; labels only where they fit
     let marks = "", labels = "";
     const boxes = groups.map((g) => ({ x0: g.x - 4, x1: g.x + (g.n > 1 ? 5 + String(g.n).length * 6.3 : 4), y0: g.y - (g.n > 1 ? 12 : 4), y1: g.y + 4 }));
     if (me) { const [mx, my, mz] = project(me.lat, me.lon); if (mz > 0) boxes.push({ x0: mx - 5, x1: mx + 5, y0: my - 5, y1: my + 5 }); }
     const fits = (b) => b.x0 >= 2 && b.x1 <= W - 2 && b.y0 >= 2 && b.y1 <= H - 2 && !boxes.some((o) => b.x0 < o.x1 && b.x1 > o.x0 && b.y0 < o.y1 && b.y1 > o.y0);
-    const icons = cam.R >= rMin() * ICONS_AT;
     const placed = cities.map((c) => {
       const [x, y, z] = project(c.lat, c.lon);
       const t = tally[c.code];
       const top = t ? Object.keys(t).sort((p, q) => t[q] - t[p])[0] : null;
       return { c, x, y, z, top };
-    }).filter((p) => p.z > 0.08 && onScreen(p.x, p.y, icons ? 60 : 12));
-    if (!icons) {
-      placed.forEach((p) => {
-        marks += '<rect class="m-st' + (p.top ? " on" : "") + '" x="' + f1(p.x - 3.5) + '" y="' + f1(p.y - 3.5) + '" width="7" height="7" rx="1.5"' +
-          (p.top ? ' style="fill:' + byId[p.top].dot + '"' : "") + "/>";
-        boxes.push({ x0: p.x - 5, x1: p.x + 5, y0: p.y - 5, y1: p.y + 5 });
-      });
-      placed.sort((p, q) => (q.top ? 1 : 0) - (p.top ? 1 : 0)).forEach((p) => {
-        const w = p.c.code.length * 6.3;
-        for (const side of [1, -1]) {
-          const x = side > 0 ? p.x + 7 : p.x - 7 - w;
-          const b = { x0: x - 1, x1: x + w + 1, y0: p.y - 6, y1: p.y + 5 };
-          if (fits(b)) { boxes.push(b); labels += '<text class="m-code' + (p.top ? " on" : "") + '" x="' + f1(x) + '" y="' + f1(p.y + 3.2) + '">' + p.c.code + "</text>"; break; }
-        }
-      });
-    } else {
-      const RI = 14, names = [], ics = [];
-      placed.forEach((p) => { // a ring of icons round each city
-        const list = p.c.stations, n = list.length, ring = n > 1 ? RI + 6 + n * 2.5 : 0;
-        list.forEach((st, i) => {
-          const a = -Math.PI / 2 + i * TAU / n;
-          ics.push({ st, p, x: p.x + Math.cos(a) * ring, y: p.y + Math.sin(a) * ring, a, ring });
-        });
-      });
-      for (let it = 0; it < 12; it++) { // icons of nearby cities push each other apart
-        let moved = false;
-        for (let i = 0; i < ics.length; i++) for (let j = i + 1; j < ics.length; j++) {
-          const A = ics[i], B = ics[j];
-          if (A.p === B.p) continue;
-          let dx = B.x - A.x, dy = B.y - A.y, dd = Math.hypot(dx, dy);
-          if (dd >= RI * 2 + 3) continue;
-          if (dd < 0.01) { dx = 1; dy = 0; dd = 1; }
-          const push = (RI * 2 + 3 - dd) / 2;
-          A.x -= dx / dd * push; A.y -= dy / dd * push; B.x += dx / dd * push; B.y += dy / dd * push; moved = true;
-        }
-        if (!moved) break;
+    }).filter((p) => p.z > 0.08 && onScreen(p.x, p.y, 12));
+    placed.forEach((p) => {
+      marks += '<rect class="m-st' + (p.top ? " on" : "") + '" x="' + f1(p.x - 3.5) + '" y="' + f1(p.y - 3.5) + '" width="7" height="7" rx="1.5"' +
+        (p.top ? ' style="fill:' + byId[p.top].dot + '"' : "") + "/>";
+      boxes.push({ x0: p.x - 5, x1: p.x + 5, y0: p.y - 5, y1: p.y + 5 });
+    });
+    placed.sort((p, q) => (q.top ? 1 : 0) - (p.top ? 1 : 0)).forEach((p) => {
+      const w = p.c.code.length * 6.3;
+      for (const side of [1, -1]) {
+        const x = side > 0 ? p.x + 7 : p.x - 7 - w;
+        const b = { x0: x - 1, x1: x + w + 1, y0: p.y - 6, y1: p.y + 5 };
+        if (fits(b)) { boxes.push(b); labels += '<text class="m-code' + (p.top ? " on" : "") + '" x="' + f1(x) + '" y="' + f1(p.y + 3.2) + '">' + p.c.code + "</text>"; break; }
       }
-      ics.forEach(({ st, p, x, y, a }) => {
-        if (Math.hypot(x - p.x, y - p.y) > 3) marks += '<line class="m-tick" x1="' + f1(p.x) + '" y1="' + f1(p.y) + '" x2="' + f1(x) + '" y2="' + f1(y) + '"/>';
-      });
-      placed.forEach((p) => { if (p.c.stations.length > 1 || ics.some((m) => m.p === p && Math.hypot(m.x - p.x, m.y - p.y) > 3)) marks += '<circle cx="' + f1(p.x) + '" cy="' + f1(p.y) + '" r="2.2" style="fill:var(--ink)"/>'; });
-      ics.forEach(({ st, x, y, a }) => {
-        const on = st.id === current && (state === "live" || state === "loading");
-        marks += '<g class="m-ic' + (on ? " on" : "") + '" data-st="' + st.id + '" role="button" aria-label="' + esc(st.name) + '">' +
-          '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + RI + '" style="fill:' + st.c + '"/>' +
-          '<text x="' + f1(x) + '" y="' + f1(y + 0.5) + '" style="fill:' + st.t + '">' + esc(mono(st)) + "</text></g>";
-        boxes.push({ x0: x - RI, x1: x + RI, y0: y - RI, y1: y + RI });
-        names.push({ st, x, y, dir: Math.cos(a) < -0.2 ? -1 : 1 });
-      });
-      names.forEach((m) => { // the name beside the icon, where it fits
-        const w = m.st.name.length * 5.9;
-        for (const side of [m.dir, -m.dir]) {
-          const x = side > 0 ? m.x + RI + 4 : m.x - RI - 4 - w;
-          const b = { x0: x - 1, x1: x + w + 1, y0: m.y - 6, y1: m.y + 6 };
-          if (fits(b)) { boxes.push(b); labels += '<text class="m-ic-n" x="' + f1(x) + '" y="' + f1(m.y + 3.2) + '">' + esc(m.st.name) + "</text>"; break; }
-        }
-      });
-    }
+    });
     setG("st", marks + labels);
 
     let dots = "";
@@ -1693,23 +1656,41 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     };
     flyAnim = requestAnimationFrame(step);
   }
-  function zoomAt(c, f, ms) { // closer to the point under c, which comes towards the middle
-    const ll = unproject(c[0], c[1]) || [cam.lat, cam.lon];
-    const R = Math.min(rMax(), Math.max(rMin(), cam.R * f)), k = f > 1 ? 0.6 : 0;
-    const t = { lat: cam.lat + (ll[0] - cam.lat) * k, lon: cam.lon + wrapLon(ll[1] - cam.lon) * k, R };
-    if (ms) flyTo(t, ms); else { Object.assign(cam, t); clampView(); queueDraw(); }
+  function keepUnder(ll, c) { // turn the globe so that the place ll sits under the screen point c
+    for (let i = 0; i < 6; i++) {
+      setRot();
+      const [x, y, z] = project(ll[0], ll[1]);
+      if (z <= 0) break;
+      const ex = c[0] - x, ey = c[1] - y;
+      if (Math.abs(ex) + Math.abs(ey) < 0.3) break;
+      cam.lon -= ex / cam.R / RAD / Math.max(0.2, Math.cos(cam.lat * RAD));
+      cam.lat += ey / cam.R / RAD;
+      clampView();
+    }
+    setRot();
+  }
+  function zoomAt(c, f, ms) { // closer to (or further from) the place under c, which stays where it is
+    const ll = unproject(c[0], c[1]);
+    const was = { lon: cam.lon, lat: cam.lat, R: cam.R };
+    cam.R = Math.min(rMax(), Math.max(rMin(), cam.R * f));
+    if (ll) keepUnder(ll, c);
+    const t = { lon: cam.lon, lat: cam.lat, R: cam.R };
+    if (ms) { Object.assign(cam, was); setRot(); flyTo(t, ms); } else { clampView(); queueDraw(); }
   }
 
   // touch: one finger turns the globe (it keeps turning a little when let go), two fingers pinch, a quick double tap zooms in
   const ptrs = new Map();
-  let g0 = null, tap = null, lastTap = null, coast = 0, vel = { lon: 0, lat: 0 }, moves = [], idleAt = 0;
+  let g0 = null, tap = null, lastTap = null, coast = 0, vel = { lon: 0, lat: 0 }, moves = [], idleAt = 0, pinched = false;
   const local = (e) => { const r = mapBox.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
   function stopCoast() { cancelAnimationFrame(coast); coast = 0; }
   function startGesture() {
     const p = [...ptrs.values()];
     if (!p.length) { g0 = null; return; }
     const q = p[1] || p[0];
-    g0 = { lon: cam.lon, lat: cam.lat, R: cam.R, c: [(p[0][0] + q[0]) / 2, (p[0][1] + q[1]) / 2], d: p[1] ? Math.hypot(p[0][0] - q[0], p[0][1] - q[1]) : 0 };
+    setRot();
+    const c = [(p[0][0] + q[0]) / 2, (p[0][1] + q[1]) / 2];
+    g0 = { lon: cam.lon, lat: cam.lat, R: cam.R, c, d: p[1] ? Math.hypot(p[0][0] - q[0], p[0][1] - q[1]) : 0, ll: unproject(c[0], c[1]) };
+    if (p[1]) pinched = true;
   }
   mapBox.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button") || ptrs.size >= 2) return;
@@ -1718,6 +1699,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     ptrs.set(e.pointerId, local(e));
     tap = ptrs.size === 1 ? { t: performance.now(), p: local(e), x: e.clientX, y: e.clientY } : null;
     moves = [];
+    if (ptrs.size === 1) pinched = false;
     startGesture();
     mapBox.classList.add("grabbing");
   });
@@ -1730,10 +1712,14 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     let R = g0.R;
     if (p[1] && g0.d) R = g0.R * Math.hypot(p[0][0] - p[1][0], p[0][1] - p[1][1]) / g0.d;
     cam.R = Math.min(rMax(), Math.max(rMin(), R));
-    const per = 1 / cam.R / RAD; // degrees per pixel at the middle of the globe
-    cam.lat = g0.lat + (c[1] - g0.c[1]) * per;
-    cam.lon = g0.lon - (c[0] - g0.c[0]) * per / Math.max(0.35, Math.cos(cam.lat * RAD));
-    clampView(); queueDraw();
+    if (g0.ll) keepUnder(g0.ll, c); // the place you grabbed stays under your finger(s)
+    else { // grabbed off the globe: just turn it
+      const per = 1 / cam.R / RAD;
+      cam.lat = g0.lat + (c[1] - g0.c[1]) * per;
+      cam.lon = g0.lon - (c[0] - g0.c[0]) * per / Math.max(0.35, Math.cos(cam.lat * RAD));
+      clampView();
+    }
+    queueDraw();
     const now = performance.now(); moves.push({ t: now, lon: cam.lon, lat: cam.lat }); moves = moves.filter((m) => now - m.t < 100);
   });
   const endPtr = (e) => {
@@ -1743,14 +1729,9 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       const now = performance.now();
       idleAt = now;
       if (tap && e.type === "pointerup" && now - tap.t < 300) {
-        const hit = document.elementFromPoint(tap.x, tap.y), ic = hit && hit.closest && hit.closest("[data-st]");
-        if (ic) { // a station's icon: play it, or stop it
-          const id = ic.getAttribute("data-st");
-          if (id === current && (state === "live" || state === "loading")) stop(); else start(id);
-          lastTap = null;
-        } else if (lastTap && now - lastTap.t < 350 && Math.hypot(tap.p[0] - lastTap.p[0], tap.p[1] - lastTap.p[1]) < 30) { zoomAt(tap.p, 2.5, 320); lastTap = null; }
+        if (lastTap && now - lastTap.t < 350 && Math.hypot(tap.p[0] - lastTap.p[0], tap.p[1] - lastTap.p[1]) < 30) { zoomAt(tap.p, 2.5, 320); lastTap = null; }
         else lastTap = tap;
-      } else if (moves.length > 1 && !tap) { // let it coast
+      } else if (moves.length > 1 && !tap && !pinched) { // let it coast (not after a pinch)
         const a = moves[0], z = moves[moves.length - 1], dt = Math.max(16, z.t - a.t);
         vel = { lon: wrapLon(z.lon - a.lon) / dt, lat: (z.lat - a.lat) / dt };
         let last = now;
@@ -1981,6 +1962,14 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     };
   }
 
+  function fromAzuraTracks(j, own) { // AzuraCast that sends artist and title; a live DJ by name
+    const np = j && j.now_playing, song = np && np.song;
+    if (j && j.live && j.live.is_live && j.live.streamer_name) return { title: clean(j.live.streamer_name), sub: "Live", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false };
+    const artist = clean(song && song.artist), title = clean(song && song.title);
+    if (!title || title.toLowerCase() === own) return null;
+    return { title, sub: artist, song: artist ? { artist, title } : null, start: np.played_at * 1000, end: NaN, rerun: false };
+  }
+
   function fromAirtime(j) {
     if (!j) return null;
     const sched = j.station && j.station.schedulerTime;
@@ -2031,7 +2020,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     { url: "https://api.live365.com/station/a71161", parse: (j) => ({ deepspace: fromLive365(j) }) },
     { url: "https://fmsetagaya834.airtime.pro/api/live-info-v2", parse: (j) => ({ setagaya: fromAirtime(j) }) },
     { url: "https://a13.my-control-panel.com/api/nowplaying/lithium_radio", parse: (j) => ({ lithium: fromAzura(j) }) },
-    { url: "https://api.radiocult.fm/api/station/bcr/schedule/live", parse: (j) => ({ bcr: fromRadioCult(j) }) }
+    { url: "https://api.radiocult.fm/api/station/bcr/schedule/live", parse: (j) => ({ bcr: fromRadioCult(j) }) },
+    { url: "https://a9.asurahosting.com/api/nowplaying/satellite_radio", parse: (j) => ({ satellite: fromAzuraTracks(j, "satellite radio") }) }
   ];
 
   function getJSON(url) {
@@ -2106,17 +2096,33 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     favs = favs.includes(id) ? favs.filter((x) => x !== id) : favs.concat(id);
     writeKey(FAV_KEY, JSON.stringify(favs));
     renderFavs();
+    renderNew();
     arrange();
     renderPlayer();
   }
 
+  // stations that arrived in the last two weeks: their own row at the top, and a small tag on their tile
+  const NEW_DAYS = 14;
+  const isNew = (st) => { const d = Date.parse(st.el.dataset.added || ""); return d > 0 && Date.now() - d < NEW_DAYS * 864e5; };
+  function renderNew() {
+    const fresh = stations.filter(isNew).sort((a, b) => Date.parse(b.el.dataset.added) - Date.parse(a.el.dataset.added));
+    $("sec-new").hidden = !fresh.length;
+    fillMinis($("newin"), fresh.map((st) => st.id), true);
+    stations.forEach((st) => {
+      const meta = st.el.querySelector(".meta"), tag = meta.querySelector(".newtag");
+      if (isNew(st) && !tag) { const t = document.createElement("span"); t.className = "newtag"; t.textContent = "New"; meta.prepend(t); }
+      else if (!isNew(st) && tag) tag.remove();
+    });
+  }
   function renderFavs() {
-    const box = $("favs");
-    box.textContent = "";
     $("sec-fav").hidden = !favs.length;
-    if (!favs.length) return;
+    fillMinis($("favs"), favs, false);
+  }
+  function fillMinis(box, ids, tagged) {
+    box.textContent = "";
+    if (!ids.length) return;
     const now = Date.now();
-    favs.forEach((id) => {
+    ids.forEach((id) => {
       const st = byId[id];
       const m = document.createElement("div");
       m.className = "mini"; m.dataset.id = id;
@@ -2129,6 +2135,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       const mm = document.createElement("span"); mm.className = "mm";
       const ck = document.createElement("span"); ck.className = "clock"; ck.textContent = hhmm(now, st.tz);
       mm.append(st.city + " · ", ck);
+      if (tagged) { const tg = document.createElement("span"); tg.className = "newtag"; tg.textContent = "New"; t.append(tg); }
       t.append(nm, mm);
       b.append(st.el.querySelector(".knob").cloneNode(true), t);
       const pin = pinButton(st);
@@ -2171,6 +2178,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     fitNames();
   }
   renderFavs();
+  renderNew();
   arrange();
 
   /* ---------- station info for the Info sheet (draft texts, to be checked) ---------- */
@@ -2192,6 +2200,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     newtown: { desc: "Independent internet radio from Bushwick, Brooklyn: mostly live two-hour shows by local DJs, musicians and artists.", since: "2009", plays: "Open format: indie, rap, electronic, live sessions", lang: "English", by: "Newtown Radio, Brooklyn" },
     hanoi: { desc: "Community radio from Hanoi, giving space to the city’s DJs, musicians and creative scene.", plays: "Electronic, experimental, Vietnamese sounds", lang: "Vietnamese, English", by: "Hà Nội Community Radio" },
     lithium: { desc: "A café and radio in Paris’s 20th arrondissement, broadcasting DJ sets and shows from its own room.", plays: "Electronic, club, bass and more", lang: "French, English", by: "Lithium, Paris" },
+    satellite: { desc: "Independent radio from Lisbon, live around the clock: rhythms from across continents and sounds still to be discovered, with live sets and talks with artists.", plays: "World, jazz, dub, Afrobeat, electronica and experimental", lang: "English, Portuguese", by: "Satellite Radio, Lisbon" },
     bcr: { desc: "Community-led, independent radio from Bangkok, launched by a collective to connect the city’s cultural communities.", since: "2021", plays: "Ambient, techno, molam, Balearic, disco, funk and soul", lang: "Thai, English", by: "Bangkok Community Radio collective" },
     setagaya: { desc: "Community FM for Tokyo’s Setagaya ward, on air at 83.4 FM.", plays: "Local programmes, music and community news", lang: "Japanese", by: "FM Setagaya, Tokyo" },
   };
@@ -2816,7 +2825,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   /* ---------- "The sound of…": the music, people and geography of each station's city ---------- */
   const cp = $("cp"), cpIn = $("cp-in");
   let cityData = null, geo = null, cityAsked = null, cpId = "";
-  const GEO_ORDER = ["GB", "DE", "BE", "IT", "GR", "PS", "BR", "CL", "US", "VN", "JP", "FR", "TH", "AU"];
+  const GEO_ORDER = ["GB", "DE", "BE", "IT", "GR", "PS", "BR", "CL", "US", "VN", "JP", "FR", "TH", "AU", "PT"];
   function decodeGeo(buf) { // Natural Earth lakes, land borders and the stations' countries, packed like land.bin
     const b = new Uint8Array(buf);
     let i = 0, x = 0, y = 0;
@@ -2841,8 +2850,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function loadCity() {
     if (!cityAsked) {
       cityAsked = Promise.all([
-        fetch("cities.json?v=2").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
-        fetch("geo.bin?v=2").then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(decodeGeo),
+        fetch("cities.json?v=3").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+        fetch("geo.bin?v=3").then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(decodeGeo),
         landReady(),
       ]).then(([c, g]) => { cityData = c; geo = g; }).catch((e) => { cityAsked = null; throw e; });
     }
@@ -2905,6 +2914,13 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       g.save(); unionJack(g, w / 2, h / 2); g.restore();
       const r = Math.min(w, h) * 0.06;
       [[0.75, 0.22], [0.62, 0.5], [0.85, 0.42], [0.75, 0.8]].forEach(([fx, fy]) => { star(g, w * fx, h * fy, r * 1.25, "#FFFFFF"); star(g, w * fx, h * fy, r, "#C8102E"); });
+    } },
+    PT: { a: ["#006600", "#FF0000"], draw: (g, w, h) => { // green and red, the armillary sphere where they meet
+      g.fillStyle = "#006600"; g.fillRect(0, 0, w * 0.4, h); g.fillStyle = "#FF0000"; g.fillRect(w * 0.4, 0, w * 0.6 + 1, h);
+      const r = Math.min(w, h) * 0.22;
+      g.fillStyle = "#FFE000"; g.beginPath(); g.arc(w * 0.4, h / 2, r, 0, TAU); g.fill();
+      g.fillStyle = "#FF0000"; g.fillRect(w * 0.4 - r * 0.45, h / 2 - r * 0.55, r * 0.9, r * 1.05);
+      g.fillStyle = "#FFFFFF"; g.fillRect(w * 0.4 - r * 0.28, h / 2 - r * 0.38, r * 0.56, r * 0.7);
     } },
     FR: { a: ["#0055A4", "#EF4135"], draw: (g, w, h) => bands(g, w, h, ["#0055A4", "#FFFFFF", "#EF4135"], true) },
     TH: { a: ["#A51931", "#2D2A4A"], draw: (g, w, h) => bands(g, w, h, ["#A51931", "#F4F5F8", "#2D2A4A", "#2D2A4A", "#F4F5F8", "#A51931"]) },
@@ -3367,7 +3383,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function tickClocks() {
     const now = Date.now();
     stations.forEach((st) => { st.el.querySelector(".clock").textContent = hhmm(now, st.tz); });
-    $("favs").querySelectorAll(".mini").forEach((m) => { m.querySelector(".clock").textContent = hhmm(now, byId[m.dataset.id].tz); });
+    document.querySelectorAll("#favs .mini, #newin .mini").forEach((m) => { m.querySelector(".clock").textContent = hhmm(now, byId[m.dataset.id].tz); });
     if (band !== "all") arrange();
     updateProgress();
     renderGreeting();
