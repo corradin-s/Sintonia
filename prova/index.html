@@ -211,6 +211,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .locate { display: grid; gap: 8px; padding: 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
 .locate strong { font-family: var(--f-display); font-weight: 800; font-size: 18px; line-height: 1.15; }
 .locate p { margin: 0; color: var(--muted); font-size: 13px; max-width: 52ch; }
+.loc-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; }
 .btn {
   justify-self: start; appearance: none; -webkit-appearance: none; border: 0; cursor: pointer;
   background: var(--ink); color: var(--bg); border-radius: 10px; padding: 11px 16px; font-size: 15px; font-weight: 600;
@@ -288,14 +289,6 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .22;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
-/* show artwork, printed in the station colour */
-.art {
-  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2;
-  filter: grayscale(1) contrast(1.15); mix-blend-mode: multiply; opacity: var(--art-o, .5);
-}
-.shade { position: absolute; inset: 0; z-index: -1; pointer-events: none; display: none;
-  background: linear-gradient(to top, var(--c) 34%, transparent 82%); }
-.tile.has-art .shade { display: block; }
 
 .tune {
   appearance: none; -webkit-appearance: none; border: 0; background: none; margin: 0;
@@ -361,8 +354,8 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 
 /* station colours (--dot is the brighter version used on the dark receiver) */
 .tile, .mini { --dot: var(--c); }
-[data-id="nts1"]     { --c:#2337D6; --t:#F4F1E8; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:100%; --oy:0%;   --gap:13px; --art-o:.62; --dot:#5468FF; }
-[data-id="nts2"]     { --c:#E8472C; --t:#1C0C08; --ring:rgba(0,0,0,.13);       --pill:rgba(0,0,0,.16);       --ox:0%;   --oy:100%; --gap:11px; --art-o:.42; }
+[data-id="nts1"]     { --c:#2337D6; --t:#F4F1E8; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:100%; --oy:0%;   --gap:13px; --dot:#5468FF; }
+[data-id="nts2"]     { --c:#E8472C; --t:#1C0C08; --ring:rgba(0,0,0,.13);       --pill:rgba(0,0,0,.16);       --ox:0%;   --oy:100%; --gap:11px; }
 [data-id="refuge"]   { --c:#BBA6F2; --t:#17112A; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.14);       --ox:50%;  --oy:125%; --gap:15px; }
 [data-id="rinse"]    { --c:#CDE650; --t:#141B05; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.14);       --ox:0%;   --oy:0%;   --gap:9px;  }
 [data-id="wwfm"]     { --c:#F3A93A; --t:#1E1203; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:100%; --oy:100%; --gap:17px; }
@@ -374,7 +367,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="alhara"]   { --c:#8C1D35; --t:#F8E9EC; --ring:rgba(255,255,255,.11); --pill:rgba(255,255,255,.18); --ox:20%;  --oy:110%; --gap:12px; --dot:#D63B5C; }
 [data-id="batuta"]   { --c:#8FD3F4; --t:#08202C; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:-10%; --oy:20%;  --gap:10px; }
 [data-id="super45"]  { --c:#F1EEE6; --t:#1A1915; --ring:rgba(0,0,0,.09);       --pill:rgba(0,0,0,.09);       --ox:60%;  --oy:-15%; --gap:13px; }
-[data-id="deepspace"]{ --c:#AEB4BF; --t:#12151B; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:50%;  --oy:50%;  --gap:9px;  --art-o:.55; }
+[data-id="deepspace"]{ --c:#AEB4BF; --t:#12151B; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:50%;  --oy:50%;  --gap:9px;  }
 [data-id="newtown"]  { --c:#3E64A8; --t:#EEF2FA; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:-10%; --oy:110%; --gap:13px; --dot:#6F93D8; }
 [data-id="hanoi"]    { --c:#A6E3C8; --t:#0B2219; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:90%;  --oy:80%;  --gap:12px; }
 [data-id="lithium"]  { --c:#16120F; --t:#FF4A2E; --ring:rgba(255,74,46,.16);   --pill:rgba(255,74,46,.18);   --ox:85%;  --oy:-15%; --gap:12px; --dot:#FF5A3C; }
@@ -417,8 +410,6 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .tile:not(.on) .name, .mini:not(.on) .nm, .tile:not(.on) .pin, .mini:not(.on) .pin { color: var(--hue); }
 .tile:not(.on) .sched { color: var(--ink); }
 .tile:not(.on)::after { opacity: .1; }
-.tile:not(.on) .art { mix-blend-mode: luminosity; opacity: .2; }
-.tile:not(.on) .shade { background: linear-gradient(to top, color-mix(in srgb, var(--dot) 12%, var(--bg-2)) 30%, transparent 85%); }
 .tile.out { display: none !important; }
 
 /* ---------- Where it's… (local time of day at each station) ---------- */
@@ -559,10 +550,7 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
   content: ""; position: absolute; inset: 0; z-index: -1;
   background: repeating-radial-gradient(circle at var(--ox) var(--oy), transparent 0, transparent calc(var(--gap) * 1.2 - 1.5px), var(--ring) calc(var(--gap) * 1.2 - 1.5px), var(--ring) calc(var(--gap) * 1.2));
 }
-.fp-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
-.fp-cover.has-art::before { background: linear-gradient(to top, var(--c) 18%, color-mix(in srgb, var(--c) 55%, transparent) 42%, transparent 70%); }
 .fp-ck { position: absolute; left: 16px; top: 16px; font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
-.fp-cover.has-art .fp-ck { color: #fff; opacity: 1; text-shadow: 0 1px 6px rgba(0, 0, 0, .6); }
 .fp-tag {
   position: absolute; right: 14px; top: 12px; font-family: var(--f-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
   padding: 5px 8px; border-radius: 6px; background: rgba(0, 0, 0, .4); color: #fff;
@@ -782,10 +770,8 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
   border: 1px solid var(--line);
   display: grid; place-items: center;
 }
-.swatch img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .swatch .eq { position: relative; display: flex; height: 16px; }
 .swatch .eq i { width: 3.5px; }
-.swatch.has-art .eq { color: #fff; filter: drop-shadow(0 1px 3px rgba(0,0,0,.6)); }
 .np { min-width: 0; display: grid; gap: 2px; }
 .np-status {
   font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase;
@@ -912,7 +898,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     <h2 class="sec-h"><span id="more-h">All stations</span><small id="more-n"></small></h2>
   <ol class="crate" id="crate">
     <li class="tile" data-id="nts1" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to NTS 1">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 1</span><span class="meta"><span>P1 · London</span><span class="clock"></span></span></span>
@@ -921,7 +906,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="nts2" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://stream-relay-geo.ntslive.net/stream2">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to NTS 2">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">NTS 2</span><span class="meta"><span>P2 · London</span><span class="clock"></span></span></span>
@@ -930,7 +914,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="refuge" data-country="Germany" data-code="BER" data-lat="52.52" data-lon="13.4" data-region="Europe" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://streaming.radio.co/s3699c5e49/listen">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Refuge Worldwide">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Refuge Worldwide</span><span class="meta"><span>P3 · Berlin</span><span class="clock"></span></span></span>
@@ -939,7 +922,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="rinse" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://admin.stream.rinse.fm/proxy/rinse_uk/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Rinse FM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rinse FM</span><span class="meta"><span>P4 · London</span><span class="clock"></span></span></span>
@@ -948,7 +930,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="wwfm" data-country="United Kingdom" data-code="LON" data-lat="51.51" data-lon="-0.13" data-region="Europe" data-city="London" data-tz="Europe/London" data-src="https://worldwide-fm.radiocult.fm/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Worldwide FM">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Worldwide FM</span><span class="meta"><span>P5 · London</span><span class="clock"></span></span></span>
@@ -957,7 +938,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="kiosk" data-country="Belgium" data-code="BRU" data-lat="50.84" data-lon="4.36" data-region="Europe" data-city="Brussels" data-tz="Europe/Brussels" data-src="https://kioskradiobxl.out.airtime.pro/kioskradiobxl_b">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Kiosk Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Kiosk Radio</span><span class="meta"><span>P6 · Brussels</span><span class="clock"></span></span></span>
@@ -966,7 +946,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="lithium" data-added="2026-10-22" data-country="France" data-code="PAR" data-lat="48.857" data-lon="2.401" data-region="Europe" data-city="Paris" data-tz="Europe/Paris" data-src="https://a13.my-control-panel.com/listen/lithium_radio/radio.mp3">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Lithium">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Lithium</span><span class="meta"><span>P7 · Paris</span><span class="clock"></span></span></span>
@@ -975,7 +954,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="raheem" data-country="Italy" data-code="MIL" data-lat="45.46" data-lon="9.19" data-region="Europe" data-city="Milan" data-tz="Europe/Rome" data-src="https://radioraheem.out.airtime.pro/radioraheem_a">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Radio Raheem">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Raheem</span><span class="meta"><span>P8 · Milan</span><span class="clock"></span></span></span>
@@ -984,7 +962,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="cashmere" data-country="Germany" data-code="BER" data-lat="52.52" data-lon="13.4" data-region="Europe" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://cashmereradio.out.airtime.pro/cashmereradio_b">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Cashmere Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Cashmere Radio</span><span class="meta"><span>P9 · Berlin</span><span class="clock"></span></span></span>
@@ -993,7 +970,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="noods" data-country="United Kingdom" data-code="BRS" data-lat="51.45" data-lon="-2.59" data-region="Europe" data-city="Bristol" data-tz="Europe/London" data-src="https://noods-radio.radiocult.fm/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Noods Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Noods Radio</span><span class="meta"><span>P10 · Bristol</span><span class="clock"></span></span></span>
@@ -1002,7 +978,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="stegi" data-country="Greece" data-code="ATH" data-lat="37.98" data-lon="23.73" data-region="Europe" data-city="Athens" data-tz="Europe/Athens" data-src="https://movementathens.out.airtime.pro/movementathens_a">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Stegi Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Stegi.Radio</span><span class="meta"><span>P11 · Athens</span><span class="clock"></span></span></span>
@@ -1011,7 +986,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="alhara" data-country="Palestine" data-code="BTH" data-lat="31.7" data-lon="35.2" data-region="Mid East" data-city="Bethlehem" data-tz="Asia/Hebron" data-src="https://stream.radioalhara.net/ra">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Radio alHara">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio alHara</span><span class="meta"><span>P12 · Bethlehem</span><span class="clock"></span></span></span>
@@ -1021,7 +995,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
 
     <li class="tile" data-id="batuta" data-country="Brazil" data-code="RIO" data-lat="-22.91" data-lon="-43.17" data-region="Americas" data-city="Rio de Janeiro" data-tz="America/Sao_Paulo" data-src="https://radioims.out.airtime.pro/radioims_a">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Rádio Batuta">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rádio Batuta</span><span class="meta"><span>P13 · Rio</span><span class="clock"></span></span></span>
@@ -1030,7 +1003,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="super45" data-country="Chile" data-code="SCL" data-lat="-33.45" data-lon="-70.67" data-region="Americas" data-city="Santiago" data-tz="America/Santiago" data-src="https://s4.radio.co/s421105570/listen">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Super45">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Super45</span><span class="meta"><span>P14 · Santiago</span><span class="clock"></span></span></span>
@@ -1040,7 +1012,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
 
     <li class="tile" data-id="deepspace" data-country="United States" data-code="DET" data-lat="42.33" data-lon="-83.05" data-region="Americas" data-city="Detroit" data-tz="America/Detroit" data-src="https://streaming.live365.com/a71161">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Deep Space Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Deep Space Radio</span><span class="meta"><span>P15 · Detroit</span><span class="clock"></span></span></span>
@@ -1049,7 +1020,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="newtown" data-country="United States" data-code="NYC" data-lat="40.71" data-lon="-73.94" data-region="Americas" data-city="Brooklyn" data-tz="America/New_York" data-src="https://streaming.radio.co/s0d090ee43/listen">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Newtown Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Newtown Radio</span><span class="meta"><span>P16 · Brooklyn</span><span class="clock"></span></span></span>
@@ -1059,7 +1029,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
 
     <li class="tile" data-id="hanoi" data-country="Vietnam" data-code="HAN" data-lat="21.03" data-lon="105.85" data-region="Asia–Pac" data-city="Hanoi" data-tz="Asia/Ho_Chi_Minh" data-src="https://ha-noi-community-radio.radiocult.fm/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Hà Nội Community Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Hà Nội Community Radio</span><span class="meta"><span>P17 · Hanoi</span><span class="clock"></span></span></span>
@@ -1068,7 +1037,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="bcr" data-added="2026-10-22" data-country="Thailand" data-code="BKK" data-lat="13.75" data-lon="100.52" data-region="Asia–Pac" data-city="Bangkok" data-tz="Asia/Bangkok" data-src="https://bcr.radiocult.fm/stream">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Bangkok Community Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Bangkok Community Radio</span><span class="meta"><span>P18 · Bangkok</span><span class="clock"></span></span></span>
@@ -1079,7 +1047,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
 
     <li class="tile" data-id="setagaya" data-country="Japan" data-code="TYO" data-lat="35.65" data-lon="139.65" data-region="Asia–Pac" data-city="Tokyo" data-tz="Asia/Tokyo" data-src="https://fmsetagaya834.out.airtime.pro/fmsetagaya834_a">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to FM Setagaya">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">FM Setagaya</span><span class="meta"><span>P19 · Tokyo</span><span class="clock"></span></span></span>
@@ -1088,7 +1055,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
     <li class="tile" data-id="satellite" data-added="2026-10-23" data-country="Portugal" data-code="LIS" data-lat="38.722" data-lon="-9.139" data-region="Europe" data-city="Lisbon" data-tz="Europe/Lisbon" data-src="https://a9.asurahosting.com/listen/satellite_radio/radio.mp3">
-      <img class="art" alt="" hidden><span class="shade"></span>
       <button class="tune" type="button" aria-label="Listen to Satellite Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Satellite Radio</span><span class="meta"><span>P20 · Lisbon</span><span class="clock"></span></span></span>
@@ -1134,7 +1100,10 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     <div class="locate" id="locate">
       <strong id="loc-title">See yourself on the map</strong>
       <p id="loc-text">Sintonia puts a red dot where you are. Your position stays on this phone.</p>
-      <button class="btn" id="loc-btn" type="button">Use my location</button>
+      <div class="loc-acts">
+        <button class="btn" id="loc-btn" type="button">Use my location</button>
+        <button class="btn ghost" id="loc-stop" type="button" hidden>Stop sharing my location</button>
+      </div>
     </div>
 
   </section>
@@ -1192,7 +1161,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 <div class="player" role="region" aria-label="Player">
   <div class="progress" aria-hidden="true"><i id="prog"></i></div>
   <div class="player-inner">
-    <div class="swatch" id="swatch"><img id="np-art" alt="" hidden><span class="eq"><i></i><i></i><i></i></span></div>
+    <div class="swatch" id="swatch"><span class="eq"><i></i><i></i><i></i></span></div>
     <div class="np" id="np" role="button" tabindex="0" aria-label="Open the player">
       <div class="np-status"><span class="dot"></span><span id="np-status">Tap a station to listen</span></div>
       <div class="np-name" id="np-name">Sintonia</div>
@@ -1229,7 +1198,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   const KEY = "sintonia:last";
   const $ = (id) => document.getElementById(id);
   const audio = $("audio"), crate = $("crate"), swatch = $("swatch");
-  const npName = $("np-name"), npStatus = $("np-status"), npShow = $("np-show"), npArt = $("np-art");
+  const npName = $("np-name"), npStatus = $("np-status"), npShow = $("np-show");
   const pp = $("pp"), prog = $("prog");
   const tiles = Array.from(crate.querySelectorAll(".tile"));
 
@@ -1269,6 +1238,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function renderLocate() {
     const t = $("loc-title"), p = $("loc-text"), b = $("loc-btn");
     b.disabled = false; b.className = "btn";
+    $("loc-stop").hidden = !(locState === "ok" && me);
     if (locState === "asking") { t.textContent = "Finding you…"; b.textContent = "Locating…"; b.disabled = true; return; }
     if (locState === "ok" && me) {
       t.textContent = "You’re on the map";
@@ -1290,10 +1260,13 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     b.textContent = "Use my location";
   }
 
+  let locTok = 0; // a position that arrives after "Stop sharing" is thrown away
   function locate(quiet) {
     if (!("geolocation" in navigator)) { locState = "failed"; renderLocate(); return; }
     if (!quiet) { locState = "asking"; renderLocate(); }
+    const tok = locTok;
     navigator.geolocation.getCurrentPosition((pos) => {
+      if (tok !== locTok) return;
       // keep it coarse: one decimal is about 10 km
       me = { lat: Math.round(pos.coords.latitude * 10) / 10, lon: Math.round(pos.coords.longitude * 10) / 10 };
       writeKey(POS_KEY, JSON.stringify(me));
@@ -1301,7 +1274,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       if (!quiet) { if (W) flyTo(homeView(), 900); else viewReady = false; }
       renderMap();
     }, (err) => {
-      if (quiet && me) return;
+      if (tok !== locTok || (quiet && me)) return;
       locState = err && err.code === 1 ? "denied" : "failed"; renderLocate();
     }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 30 * 60 * 1000 });
   }
@@ -1356,6 +1329,15 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     if (sig === sentSig) return;
     clearTimeout(trackTimer);
     trackTimer = setTimeout(() => { sentSig = sig; channel.track(payload).catch(() => { sentSig = ""; }); }, 600);
+  }
+  // withdrawing consent: the dot leaves the map for everyone, and the position saved on this phone is deleted
+  function stopSharing() {
+    locTok++; me = null; locState = "none";
+    try { localStorage.removeItem(POS_KEY); } catch (e) {}
+    clearTimeout(trackTimer); sentSig = "";
+    if (channel) channel.untrack().catch(() => {});
+    renderLocate(); renderMap();
+    toast("Your location is no longer shared");
   }
   function renderOthers() {
     $("lg-others-row").hidden = !SHARING;
@@ -1835,6 +1817,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     if (t.dataset.view === view) window.scrollTo({ top: 0, behavior: "smooth" }); else go(t.dataset.view);
   }));
   $("loc-btn").addEventListener("click", () => locate(false));
+  $("loc-stop").addEventListener("click", stopSharing);
   $("privacy-link").addEventListener("click", (e) => { e.preventDefault(); openSheet("privacy"); });
   window.addEventListener("hashchange", () => showView(viewFromHash()));
 
@@ -1895,6 +1878,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   const clean = (s) => (s || "").replace(/&(amp|quot|#0?39|apos|lt|gt);/g, (m) => ENT[m]).replace(/^\s*[-–]\s*/, "").replace(/\s+/g, " ").trim();
   const RERUN = /\s*\((r|repeat|restream|replay)\)\s*$/i;
 
+  // Sintonia shows only the stations' colours: no show pictures or album covers from any source
+  // (they are photographers', designers' and labels' work, with no public licence)
   function fromNts(ch) {
     const now = ch && ch.now;
     if (!now) return null;
@@ -1906,7 +1891,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     return {
       title: raw.replace(RERUN, ""),
       sub: genres,
-      art: "", // NTS show pictures are photographers' and designers' work, with no public licence
       start: Date.parse(now.start_timestamp), end: Date.parse(now.end_timestamp), rerun
     };
   }
@@ -1940,7 +1924,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     const dj = j.live_dj_on === true || j.live_dj_on === "true";
     return {
       title: title || artist, sub: title && artist ? artist : "",
-      art: (tr && tr.art) || "",
       start: tr && tr.start ? Date.parse(String(tr.start).replace(" ", "T")) : NaN, end: NaN,
       song: title ? { title, artist } : null,
       rerun: !dj, tag: dj ? "" : "Playlist" // no DJ on air: the station's own playlist
@@ -1953,7 +1936,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     const md = r.metadata || {}, artist = clean(md.artist), title = clean(md.title);
     const pre = c.media && c.media.type === "playlist";
     return {
-      title: clean(c.title), sub: "", art: "",
+      title: clean(c.title), sub: "",
       start: Date.parse(c.startDateUtc || c.start), end: Date.parse(c.endDateUtc || c.end),
       song: artist && title ? { title, artist } : null,
       rerun: pre, tag: pre ? "Playlist" : ""
@@ -1964,16 +1947,16 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     // someone is broadcasting live from the café: the "now playing" line then still shows the last recording, so ignore it
     if (j && j.live && j.live.is_live) {
       const dj = j.live.streamer_name && !/^lithium$/i.test(j.live.streamer_name) ? clean(j.live.streamer_name) : "";
-      return { title: dj || "Live from the café", sub: "", art: "", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false, tag: "" };
+      return { title: dj || "Live from the café", sub: "", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false, tag: "" };
     }
     const raw = clean(song && (song.title || song.text));
     if (!raw) return null;
     const m = /^lithium radio\s*-\s*(\d{4}) (\d\d) (\d\d)[^-]*-\s*(.+)$/i.exec(raw);
-    if (!m) return { title: raw, sub: "", art: "", start: NaN, end: NaN, song: null, rerun: false, tag: "" };
+    if (!m) return { title: raw, sub: "", start: NaN, end: NaN, song: null, rerun: false, tag: "" };
     const name = m[4].replace(/(^|[\s-])(\p{L})/gu, (x, a, b) => a + b.toUpperCase());
     const when = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
     return {
-      title: name, sub: "Recorded " + when, art: "",
+      title: name, sub: "Recorded " + when,
       start: np.played_at * 1000, end: np.duration && np.remaining > 0 ? (np.played_at + np.duration) * 1000 : NaN, song: null, rerun: true, tag: "Replay"
     };
   }
@@ -2064,8 +2047,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     stations.forEach((st) => {
       const info = live[st.id];
       const box = st.el.querySelector(".now");
-      const art = st.el.querySelector(".art");
-      if (!info) { box.hidden = true; art.hidden = true; st.el.classList.remove("has-art"); return; }
+      if (!info) { box.hidden = true; return; }
       const k = box.querySelector(".now-k");
       k.textContent = "On now";
       if (info.rerun) { const rr = document.createElement("span"); rr.className = "rr"; rr.textContent = info.tag || "Rerun"; k.appendChild(rr); }
@@ -2077,13 +2059,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       s.textContent = parts.join(" · ");
       s.hidden = !parts.length;
       box.hidden = false;
-      if (info.art) {
-        if (art.getAttribute("src") !== info.art) {
-          art.onload = () => { art.hidden = false; st.el.classList.add("has-art"); };
-          art.onerror = () => { art.hidden = true; st.el.classList.remove("has-art"); };
-          art.src = info.art;
-        }
-      } else { art.hidden = true; st.el.classList.remove("has-art"); }
     });
     arrange();
     renderPlayer();
@@ -2756,11 +2731,10 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     const k = { loading: "Tuning in to", live: "Live from", error: "Can’t reach" }[state] || "Paused";
     const where = state === "error" ? st.name : st.city + ", " + st.country;
     const tag = info && info.title ? (info.rerun ? `<span class="fp-tag">${esc(info.tag || "Rerun")}</span>` : '<span class="fp-tag on">On air</span>') : "";
-    const art = info && info.art && st.el.classList.contains("has-art") ? `<img class="fp-art" src="${esc(info.art)}" alt="">` : ""; // only once the tile has shown it
     let h = `<div class="fp-top"><button class="fp-ib" type="button" data-fp="close" aria-label="Close player">${fpIcon("down")}</button>` +
       `<div class="fp-k">${esc(k)}<b>${esc(where)}</b></div>` +
       `<button class="fp-ib" type="button" data-fp="heard" aria-label="Songs you heard">${fpIcon("more")}</button></div>`;
-    h += `<div class="fp-cover${art ? " has-art" : ""}" data-id="${st.id}">${art}<span class="fp-ck">${esc(st.code)} · ${hhmm(now, st.tz)}</span>${tag}` +
+    h += `<div class="fp-cover" data-id="${st.id}"><span class="fp-ck">${esc(st.code)} · ${hhmm(now, st.tz)}</span>${tag}` +
       `<span class="fp-nm${keep}" id="fp-title">${esc(st.name)}</span></div>`;
     const sub = [];
     if (info && info.title) sub.push(`<b>${esc(st.name)}</b>`);
@@ -3176,14 +3150,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     npShow.hidden = !(info && info.title);
     npShow.textContent = info ? info.title + (info.sub ? " · " + info.sub : "") : "";
 
-    if (info && info.art) {
-      if (npArt.getAttribute("src") !== info.art) {
-        npArt.onload = () => { npArt.hidden = false; swatch.classList.add("has-art"); };
-        npArt.onerror = () => { npArt.hidden = true; swatch.classList.remove("has-art"); };
-        npArt.src = info.art;
-      }
-    } else { npArt.hidden = true; npArt.removeAttribute("src"); swatch.classList.remove("has-art"); }
-
     let text = "Tap a station to listen";
     if (st) {
       if (state === "loading") text = "Tuning in…";
@@ -3218,8 +3184,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     if (!current || !("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;
     const st = byId[current], info = live[current];
     const title = info ? info.title : st.name;
-    const art = info && info.art;
-    const sig = [st.id, title, art].join("|");
+    const sig = [st.id, title].join("|");
     if (sig === lastMeta) return;
     lastMeta = sig;
     try {
@@ -3227,7 +3192,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
         title,
         artist: info ? st.name + " · " + st.city : st.city + " · live",
         album: "Sintonia",
-        artwork: art ? [{ src: art }] : [
+        artwork: [ // Sintonia's own icon: no cover pictures, from anyone
           { src: "icon-512.png?v=7", sizes: "512x512", type: "image/png" },
           { src: "icon-192.png?v=7", sizes: "192x192", type: "image/png" }
         ]
