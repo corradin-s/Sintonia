@@ -2756,7 +2756,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       (airplayOk ? `<button class="fp-act${airplayAvail ? "" : " dim"}" type="button" data-fp="airplay">${fpIcon("airplay")}<span>AirPlay</span></button>` : "") +
       `<button class="fp-act${left ? " on" : ""}" type="button" data-fp="sleep">${fpIcon("sleep")}<span>${left ? left + " min" : "Sleep"}</span></button>` +
       `<button class="fp-act" type="button" data-fp="share">${fpIcon("share")}<span>Share</span></button>` +
-      `<button class="fp-act" type="button" data-fp="map">${fpIcon("map")}<span>Map</span></button>` +
       `<button class="fp-act" type="button" data-fp="info">${fpIcon("info")}<span>Info</span></button></div>`;
     fp.style.setProperty("--fc", st.dot);
     fpIn.innerHTML = h;
