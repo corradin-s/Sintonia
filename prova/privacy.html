@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy · Sintonia (test copy)</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="What Sintonia does with your data: no accounts, no ads, no analytics.">
+<meta name="theme-color" content="#0C0D11">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=7">
+<link rel="stylesheet" href="fonts.css">
+<script>
+/* the same theme as the app (dark unless you chose Light, or Auto with a light iPhone) */
+(function () {
+  var pref = "dark";
+  try { pref = localStorage.getItem("sintonia:theme") || "dark"; } catch (e) {}
+  var light = pref === "light" || (pref === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches);
+  document.documentElement.setAttribute("data-theme", light ? "light" : "dark");
+})();
+</script>
+<style>
+:root { color-scheme: dark; --bg: #0C0D11; --bg-2: #15171E; --ink: #F3EFE6; --muted: #9B9BA8; --line: #2B2E39;
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", sans-serif; --f-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+:root[data-theme="light"] { color-scheme: light; --bg: #F1F2F4; --bg-2: #FFFFFF; --ink: #15171C; --muted: #5E6371; --line: #D9DCE2; }
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; -webkit-text-size-adjust: 100%;
+  padding: calc(env(safe-area-inset-top, 0px) + 22px) max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 40px) max(16px, env(safe-area-inset-left, 0px));
+}
+main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
+.back { justify-self: start; color: var(--muted); font-size: 13px; font-weight: 500; text-decoration: none; letter-spacing: .02em; }
+.back:hover { color: var(--ink); }
+/* the notice itself: the app shows the same block in its sheet */
+.policy { display: grid; gap: 20px; }
+.policy h1 { margin: 0; font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: 44px; line-height: .9; text-transform: uppercase; }
+.policy section { display: grid; gap: 8px; }
+.policy h2 { margin: 0; font-family: var(--f-body); font-weight: 600; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.policy p, .policy li { margin: 0; }
+.policy ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.policy a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.policy .pol-date { margin-top: -10px; color: var(--muted); font-size: 13px; }
+.policy .pol-lead { font-size: 17px; line-height: 1.45; }
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="./">‹ Sintonia</a>
+
+<article class="policy" id="policy">
+  <h1>Privacy</h1>
+  <p class="pol-date">Last updated 23 October 2026</p>
+  <p class="pol-lead">Sintonia is a small, independent app for listening to independent radio. It has no accounts, no advertising, no analytics and no tracking cookies. This notice describes what the app’s code actually does with your data.</p>
+
+  <section>
+    <h2>Who is responsible</h2>
+    <p>Sofia Corradin is responsible for the data described here (the controller). You can write to her at <a href="mailto:corradinsofia@gmail.com">corradinsofia@gmail.com</a>.</p>
+  </section>
+
+  <section>
+    <h2>Opening the app</h2>
+    <p>Sintonia is hosted on GitHub Pages, a service of GitHub, Inc. When you open it, GitHub receives your IP address, as any web server does, so that it can deliver the page. GitHub logs visitors’ IP addresses for security purposes.</p>
+    <p>The fonts and code Sintonia uses come from the same site. Nothing is loaded from Google Fonts or from other content delivery networks.</p>
+    <p>Sintonia doesn’t set cookies.</p>
+  </section>
+
+  <section>
+    <h2>What’s on air, and listening</h2>
+    <p>While Sintonia is open, it asks the stations and their broadcasting providers what’s on air, through their public APIs (NTS, radio.co, Airtime, Radio Cult, Live365 and AzuraCast servers), so that the cards can show it. When you play a station, your phone connects directly to that station’s streaming server.</p>
+    <p>Each of these servers receives your IP address, as any website does, and handles it under its own privacy policy. When a provider publishes a cover picture for the song on air, Sintonia loads the picture from the server where the provider keeps it, which receives your IP address too. Live365, for example, uses Apple’s image servers.</p>
+    <p>A station’s website, opened from its Info page, is outside Sintonia and follows its own policy.</p>
+  </section>
+
+  <section>
+    <h2>The map and other listeners</h2>
+    <p>When Sintonia opens, it connects to Supabase, the service that shows on the map how many other people are listening and roughly where. Supabase receives your IP address.</p>
+    <p>Your own dot is shared only after you tap “Use my location” on the map and allow it. From then on, whenever Sintonia is open, it sends:</p>
+    <ul>
+      <li>your position, rounded to half a degree (about 50 km);</li>
+      <li>the station you’re playing, if any;</li>
+      <li>a random code, so that reopening the app doesn’t count you twice.</li>
+    </ul>
+    <p>Other people with Sintonia open see this as an anonymous dot. It isn’t written to any database: it exists only in Supabase’s live channel and disappears when you close the app.</p>
+    <p>On your phone, Sintonia keeps your position rounded to about 10 km, so that the map can show where you are. While location access is allowed, it refreshes this position when you open the app. Turning location access off stops the refresh, but the rounded position already saved stays until you delete Sintonia’s data (see below).</p>
+  </section>
+
+  <section>
+    <h2>What stays on your phone</h2>
+    <p>Sintonia keeps the following in your browser’s storage on this phone. None of it is sent anywhere, except what the map section describes:</p>
+    <ul>
+      <li>your first name, if you give it, and whether Sintonia has already asked for it;</li>
+      <li>your theme and background, and the colours you chose for story pictures;</li>
+      <li>the last station you played;</li>
+      <li>your pinned stations;</li>
+      <li>the songs you’ve heard, under Recently heard;</li>
+      <li>your rounded position, if you used “Use my location”;</li>
+      <li>the random code used on the map;</li>
+      <li>your settings;</li>
+      <li>a short-lived note used when the app updates itself, cleared when you close it.</li>
+    </ul>
+    <p>To delete them one by one, clear Recently heard from its sheet, unpin stations, or empty your name in Settings. To delete everything at once, clear Sintonia’s website data in your browser’s settings, and if you added Sintonia to your Home Screen, delete it from there too.</p>
+  </section>
+
+  <section>
+    <h2>Story pictures</h2>
+    <p>The picture for Instagram stories is drawn on your phone. Sintonia doesn’t upload it anywhere: it goes only where you choose to share or save it.</p>
+  </section>
+
+  <section>
+    <h2>Legal bases</h2>
+    <p>Sharing your dot on the map is based on your consent (Article 6(1)(a) GDPR), which you give by tapping “Use my location” and allowing it. You can withdraw it at any time by deleting Sintonia’s data, as described above. Withdrawing doesn’t affect what was shared before.</p>
+    <p>Everything else (delivering the app, showing what’s on air, playing stations and showing how many people are listening) is based on the legitimate interest in running a working radio app (Article 6(1)(f) GDPR).</p>
+  </section>
+
+  <section>
+    <h2>Providers outside the EU</h2>
+    <p>GitHub and Supabase are providers based outside the European Union (GitHub, Inc. in the United States), so your IP address may be processed in the United States. They apply the safeguards set out in their data processing agreements. Their own privacy policies: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub</a>, <a href="https://supabase.com/privacy">Supabase</a>.</p>
+    <p>Sintonia itself has no server and keeps no records about you.</p>
+  </section>
+
+  <section>
+    <h2>Your rights</h2>
+    <p>Under the GDPR you can ask to access, correct or delete your data, to restrict or object to its processing, and to receive it in a portable form. You can also withdraw your consent at any time. Sintonia keeps nothing about you on a server, so most of your data is on your phone, where you can delete it yourself. For anything else, write to <a href="mailto:corradinsofia@gmail.com">corradinsofia@gmail.com</a>.</p>
+    <p>You can also lodge a complaint with the Italian data protection authority, the <a href="https://www.garanteprivacy.it">Garante per la protezione dei dati personali</a>, or with the authority in the country where you live or work.</p>
+  </section>
+
+  <section id="stations">
+    <h2>For radio stations</h2>
+    <p>Sintonia is an independent project and isn’t affiliated with any of the stations it lists. It plays each station’s public stream from the station’s own servers and shows the information the station publishes. It carries no advertising and doesn’t record broadcasts.</p>
+    <p>If you run a station and would like something changed or removed, write to <a href="mailto:corradinsofia@gmail.com">corradinsofia@gmail.com</a>.</p>
+  </section>
+
+  <section>
+    <h2>Changes</h2>
+    <p>If this notice changes, the date at the top changes too.</p>
+  </section>
+</article>
+</main>
+</body>
+</html>

@@ -49,9 +49,7 @@ window.SintoniaTheme = (function () {
   return { BG: BG, apply: apply };
 })();
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="fonts.css">
 <style>
 /* Layout: two views switched by a bottom tab bar, like an iPhone app.
    Stations: on-air header, your pinned stations, then the stations live right now, then the rest.
@@ -689,6 +687,18 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
 .set-k { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .set-note { margin: 0; font-size: 12.5px; color: var(--muted); }
 .legal { margin: 4px 2px 0; font-size: 11.5px; line-height: 1.5; color: var(--muted); }
+.legal a { color: inherit; text-underline-offset: 2px; }
+.set-link { display: flex; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14.5px; }
+.set-link span { color: var(--muted); }
+/* the privacy notice in the sheet (its text is read from privacy.html, so there is one copy) */
+.policy { display: grid; gap: 18px; padding-bottom: 6px; }
+.policy section { display: grid; gap: 8px; }
+.policy h3 { margin: 0; font-family: var(--f-mono); font-weight: 600; font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.policy p, .policy li { margin: 0; font-size: 14.5px; line-height: 1.5; }
+.policy ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.policy a { color: inherit; text-underline-offset: 3px; }
+.policy .pol-date { margin-top: -8px; color: var(--muted); font-size: 12.5px; }
+.policy .pol-lead { font-size: 15.5px; }
 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
 .seg button {
   appearance: none; -webkit-appearance: none; border: 0; cursor: pointer; border-radius: 9px; padding: 10px 0;
@@ -1158,7 +1168,13 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       <p class="set-note" id="name-note">Shown in the greeting at the top. It stays on this phone.</p>
     </form>
 
-    <p class="legal">© 2026 Sofia Corradin. All rights reserved.<br>Station names and broadcasts belong to their stations.</p>
+    <div class="set-card">
+      <span class="set-k">Privacy</span>
+      <p class="set-note">No accounts, no ads, no analytics. What Sintonia sends, what stays on this phone and how to delete it.</p>
+      <a class="set-link" id="privacy-link" href="privacy.html">Read the privacy notice <span aria-hidden="true">›</span></a>
+    </div>
+
+    <p class="legal">© 2026 Sofia Corradin. All rights reserved.<br>Station names and broadcasts belong to their stations. Stations can ask for changes or removal by writing to <a href="mailto:corradinsofia@gmail.com">corradinsofia@gmail.com</a>.</p>
   </section>
 </div>
 
@@ -1317,7 +1333,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   }
   function startPresence() {
     if (!SHARING || channel) return;
-    loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js").then(() => {
+    loadScript("vendor/supabase.js").then(() => {
       const client = window.supabase.createClient(COMMUNITY.url, COMMUNITY.key, { auth: { persistSession: false, autoRefreshToken: false } });
       channel = client.channel("sintonia-listeners", { config: { presence: { key: listenerKey() } } });
       channel.on("presence", { event: "sync" }, () => {
@@ -1819,6 +1835,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     if (t.dataset.view === view) window.scrollTo({ top: 0, behavior: "smooth" }); else go(t.dataset.view);
   }));
   $("loc-btn").addEventListener("click", () => locate(false));
+  $("privacy-link").addEventListener("click", (e) => { e.preventDefault(); openSheet("privacy"); });
   window.addEventListener("hashchange", () => showView(viewFromHash()));
 
   /* ---------- settings ---------- */
@@ -1885,12 +1902,11 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     const raw = clean(d.name || now.broadcast_title);
     if (!raw) return null;
     const rerun = RERUN.test(now.broadcast_title || "") || RERUN.test(raw);
-    const media = d.media || {};
     const genres = (d.genres || []).map((g) => g && g.value).filter(Boolean).slice(0, 2).join(" · ");
     return {
       title: raw.replace(RERUN, ""),
       sub: genres,
-      art: media.picture_medium_large || media.picture_medium || media.background_medium || "",
+      art: "", // NTS show pictures are photographers' and designers' work, with no public licence
       start: Date.parse(now.start_timestamp), end: Date.parse(now.end_timestamp), rerun
     };
   }
@@ -2476,11 +2492,13 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   let facesP = null;
   function storyFaces() { // Safari's canvas ignores font-stretch: Archivo is added twice more with the width fixed, narrow for names and wide for the wordmark
     if (!facesP) {
-      facesP = !window.FontFace ? Promise.resolve() : fetch("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&display=swap")
+      const cssUrl = new URL("fonts.css", location.href); // FontFace reads url() against the page, so make them absolute first
+      facesP = !window.FontFace ? Promise.resolve() : fetch(cssUrl)
         .then((r) => r.text()).then((css) => {
           for (const m of css.matchAll(/@font-face\s*{([^}]*)}/g)) {
             const src = /src:\s*([^;]+);/.exec(m[1]), ur = /unicode-range:\s*([^;]+);/.exec(m[1]);
             if (!src || !/font-family:\s*['"]?Archivo['"]?\s*;/.test(m[1])) continue;
+            src[1] = src[1].replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/g, (_, q, u) => 'url("' + new URL(u, cssUrl).href + '")');
             const d = ur ? { unicodeRange: ur[1].trim() } : {};
             document.fonts.add(new FontFace("Sintonia Narrow", src[1], Object.assign({ weight: "500 900", stretch: "62.5%" }, d)));
             document.fonts.add(new FontFace("Sintonia Wide", src[1], Object.assign({ weight: "500 900", stretch: "125%" }, d)));
@@ -2568,6 +2586,27 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     else if (sheetOpen === "sleep") renderSleep();
     else if (sheetOpen === "info") renderInfo(sheetId);
     else if (sheetOpen === "share") renderShare(sheetId);
+    else if (sheetOpen === "privacy") renderPrivacy();
+  }
+
+  // the privacy notice: read from privacy.html, the same page that opens on its own
+  let policyHtml = "";
+  function renderPrivacy() {
+    if (sheetBody.querySelector(".policy")) return; // already showing (the sheet is redrawn while open)
+    const show = (inner) => { if (sheetOpen === "privacy") sheetBody.innerHTML = '<div class="sheet-in sheet-pad">' + inner + "</div>"; };
+    if (policyHtml) return show(policyHtml);
+    show('<h2 class="sh-title" id="sheet-title">Privacy</h2><p class="empty">Loading…</p>');
+    fetch("privacy.html", { cache: "no-cache" }).then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); }).then((html) => {
+      const doc = new DOMParser().parseFromString(html, "text/html"), art = doc.getElementById("policy");
+      if (!art) throw new Error("no notice");
+      art.querySelectorAll("script, style").forEach((n) => n.remove());
+      art.querySelectorAll("h2").forEach((h) => { const n = doc.createElement("h3"); n.innerHTML = h.innerHTML; h.replaceWith(n); });
+      const h1 = art.querySelector("h1");
+      if (h1) { const t = doc.createElement("h2"); t.className = "sh-title"; t.id = "sheet-title"; t.textContent = h1.textContent; h1.replaceWith(t); }
+      art.querySelectorAll('a[href^="http"]').forEach((a) => { a.target = "_blank"; a.rel = "noopener"; });
+      policyHtml = art.outerHTML;
+      show(policyHtml);
+    }).catch(() => show('<h2 class="sh-title" id="sheet-title">Privacy</h2><p class="empty">The privacy notice couldn’t load. Check your connection, or <a href="privacy.html" target="_blank" rel="noopener">open it as a page</a>.</p>'));
   }
 
   function findsHtml(song) {
@@ -3198,7 +3237,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
   /* HLS (.m3u8): iPhone and Mac Safari play it natively; elsewhere hls.js does it (Chrome's own player can't read
      some streams' AAC segments), and Safari falls back to it if its own player gives up. */
-  const HLS_JS = "https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.light.min.js";
+  const HLS_JS = "vendor/hls.light.min.js"; // hls.js 1.5.17, served from this site
   const isHls = (src) => /\.m3u8(\?|$)/i.test(src);
   const appleHls = /Apple/.test(navigator.vendor || "") && !!audio.canPlayType("application/vnd.apple.mpegurl");
   const canMse = () => !!(window.MediaSource || window.ManagedMediaSource);
