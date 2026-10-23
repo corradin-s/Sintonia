@@ -150,7 +150,7 @@ h1, .title {
 /* the logo: the original wordmark, Archivo wide and black like the page titles */
 /* the last "a" turns once, like a knob being tuned */
 h1.logo .lg-a { display: inline-block; transform-origin: 54% 56%; } /* the middle of the letter itself, so it turns in place */
-h1.logo .lg-a.spin { animation: a-spin 1s cubic-bezier(.35, .05, .2, 1); }
+h1.logo .lg-a.spin { animation: a-spin 1.1s cubic-bezier(.35, .05, .2, 1); }
 @keyframes a-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { h1.logo .lg-a.spin { animation: none; } }
 .testtag { flex: none; font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; background: #FFD84D; color: #1A1400; margin-left: auto; margin-right: 8px; }
@@ -3208,7 +3208,15 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     lgA.classList.remove("spin"); void lgA.offsetWidth; lgA.classList.add("spin");
   }
   lgA && lgA.addEventListener("animationend", () => lgA.classList.remove("spin"));
-  if (!document.hidden) setTimeout(() => spinA(), 350); // at launch
+  // at launch, once the wordmark is drawn in its own font (on a phone the fonts arrive a moment after the page)
+  const fontsIn = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  fontsIn.then(() => setTimeout(() => { if (!document.hidden) spinA(); }, 500));
+  // and when the app comes back to the front after a while, which on the iPhone is how it usually "opens"
+  let awayAt = 0;
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) awayAt = Date.now();
+    else if (awayAt && Date.now() - awayAt > 20000) setTimeout(() => spinA(), 400);
+  });
 
   /* ---------- boot ---------- */
   try {
