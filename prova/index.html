@@ -148,17 +148,11 @@ h1, .title {
   white-space: nowrap;
 }
 /* the logo: the original wordmark, Archivo wide and black like the page titles */
-/* the wordmark takes the colour of the station on air (bright on dark, deeper on light) */
-:root { --logo-c: var(--st-dot, var(--ink)); }
-:root[data-theme="light"] { --logo-c: color-mix(in srgb, var(--st-c, var(--ink)) 66%, #000); }
-h1.logo span { display: inline-block; transition: color .5s; }
-body[data-state="live"] h1.logo span, body[data-state="loading"] h1.logo span {
-  color: var(--logo-c); /* full colour, fading a little towards the background at the end of the word */
-  background-image: linear-gradient(100deg, var(--logo-c) 30%, color-mix(in srgb, var(--logo-c) 55%, var(--bg)));
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-}
-/* while it tunes in: drawn in big pixels by the #logo-px filter, filled with the stations' colours */
-h1.logo span.px { filter: url(#logo-px); -webkit-background-clip: text; background-clip: text; color: transparent !important; -webkit-text-fill-color: transparent; transition: none; }
+/* the last "a" turns once, like a knob being tuned */
+h1.logo .lg-a { display: inline-block; transform-origin: 54% 56%; } /* the middle of the letter itself, so it turns in place */
+h1.logo .lg-a.spin { animation: a-spin 1s cubic-bezier(.35, .05, .2, 1); }
+@keyframes a-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { h1.logo .lg-a.spin { animation: none; } }
 .testtag { flex: none; font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; background: #FFD84D; color: #1A1400; margin-left: auto; margin-right: 8px; }
 .onair {
   flex: none;
@@ -827,15 +821,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 </style>
 </head>
 <body data-state="idle">
-<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-  <filter id="logo-px" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
-    <feFlood id="px-f" x="5" y="5" width="2" height="2"/>
-    <feComposite id="px-c" width="12" height="12"/>
-    <feTile result="grid"/>
-    <feComposite in="SourceGraphic" in2="grid" operator="in"/>
-    <feMorphology id="px-m" operator="dilate" radius="6"/>
-  </filter>
-</svg>
 <div class="topbar" aria-hidden="true"></div>
 
 <div class="wrap">
@@ -847,7 +832,7 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 
   <main class="view" id="view-stations">
   <header class="hero">
-    <h1 class="logo" aria-label="Sintonia"><span aria-hidden="true">Sintonìa</span></h1>
+    <h1 class="logo" aria-label="Sintonia"><span aria-hidden="true">Sintonì<span class="lg-a">a</span></span></h1>
 
     <div class="notice" role="note" aria-label="Rights notice"><div class="notice-track"><span>All broadcasts, shows, music and station names belong to their respective radio stations and rights holders <i>·</i> Sintonia plays their public streams and is not affiliated with any station <i>·</i> Support the stations you love <i>·</i> </span><span aria-hidden="true">All broadcasts, shows, music and station names belong to their respective radio stations and rights holders <i>·</i> Sintonia plays their public streams and is not affiliated with any station <i>·</i> Support the stations you love <i>·</i> </span></div></div>
 
@@ -2937,9 +2922,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     const root = document.documentElement.style;
     if (st) {
       root.setProperty("--glow", st.dot);
-      root.setProperty("--st-dot", st.dot); root.setProperty("--st-c", st.c);
       root.setProperty("--bar-c", st.c); root.setProperty("--bar-t", st.t);
-      if (typeof logoRetune === "function") logoRetune(st.id);
+      if (typeof spinA === "function" && spinOn) spinA(st.id);
       root.setProperty("--dock-glow", "color-mix(in srgb, " + st.dot + " 20%, var(--dock))");
       root.setProperty("--chip", st.dot);
       root.setProperty("--chip-t", st.dot === st.c ? st.t : "#fff");
@@ -3210,52 +3194,21 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     if (!$("fp").hidden) renderFP();
   }
 
-  /* ---------- the wordmark tunes in ----------
-     When a new station comes on air, "Sintonìa" turns into big pixels for a moment and comes
-     back into focus in that station's colour. It stays still when the app opens. */
-  var logoOn = true; // renderPlayer may run before this point
-  const logoSpan = document.querySelector("h1.logo span");
-  const pxF = $("px-f"), pxC = $("px-c"), pxM = $("px-m");
-  const calm = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let logoRun = 0, logoFor = null;
-  function pxSize(p) { // one block every p pixels
-    pxF.setAttribute("x", String(Math.floor(p / 2) - 1)); pxF.setAttribute("y", String(Math.floor(p / 2) - 1));
-    pxC.setAttribute("width", String(p)); pxC.setAttribute("height", String(p));
-    pxM.setAttribute("radius", String(p / 2));
+  /* ---------- the turning "a" ----------
+     Once when the app opens, and each time a different station comes on. */
+  var spinOn = true; // renderPlayer may run before this point
+  const lgA = document.querySelector("h1.logo .lg-a");
+  let spunFor = current;
+  function spinA(id) {
+    if (!lgA) return;
+    if (id !== undefined) { // a station: only when it is a new one going on air
+      if (id === spunFor || (state !== "live" && state !== "loading")) return;
+      spunFor = id;
+    }
+    lgA.classList.remove("spin"); void lgA.offsetWidth; lgA.classList.add("spin");
   }
-  function logoPixels(ms, from, to, palette) {
-    if (calm() || !logoSpan) return;
-    const run = ++logoRun, t0 = performance.now(), STEP = 70;
-    const finalC = () => getComputedStyle(document.documentElement).getPropertyValue(state === "live" || state === "loading" ? "--logo-c" : "--ink").trim() || "currentColor";
-    logoSpan.classList.add("px");
-    let last = -1;
-    const frame = (now) => {
-      if (run !== logoRun) return;
-      const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 2.2);
-      const tick = Math.floor((now - t0) / STEP);
-      if (tick !== last || k >= 1) { // a new pixel size every step, so it clicks into focus
-        last = tick;
-        const p = Math.max(2, Math.round(from + (to - from) * e)); // 1 would draw nothing in some browsers: the last step is the plain text
-        pxSize(p);
-        const mix = Math.max(0, (k - .35) / .65), fc = finalC(); // the colours settle on the final one
-        logoSpan.style.backgroundImage = "linear-gradient(100deg, " + palette.map((c) => `color-mix(in srgb, ${c} ${Math.round((1 - mix) * 100)}%, ${fc})`).join(", ") + ")";
-      }
-      if (k < 1) requestAnimationFrame(frame);
-      else { // back to plain text, without fading in again
-        logoSpan.style.transition = "none"; logoSpan.classList.remove("px"); logoSpan.style.backgroundImage = "";
-        void logoSpan.offsetWidth; logoSpan.style.transition = "";
-      }
-    };
-    requestAnimationFrame(frame);
-  }
-  function logoRetune(id) { // a different station on air: re-tune into its colour
-    if (!logoOn || id === logoFor) return;
-    const first = logoFor === null; logoFor = id;
-    if (first || (state !== "live" && state !== "loading")) return;
-    const st = byId[id];
-    logoPixels(620, 9, 1, [st.dot, st.c, st.dot, st.c]);
-  }
-  logoFor = current;
+  lgA && lgA.addEventListener("animationend", () => lgA.classList.remove("spin"));
+  if (!document.hidden) setTimeout(() => spinA(), 350); // at launch
 
   /* ---------- boot ---------- */
   try {
