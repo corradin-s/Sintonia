@@ -152,7 +152,11 @@ h1, .title {
 :root { --logo-c: var(--st-dot, var(--ink)); }
 :root[data-theme="light"] { --logo-c: color-mix(in srgb, var(--st-c, var(--ink)) 66%, #000); }
 h1.logo span { display: inline-block; transition: color .5s; }
-body[data-state="live"] h1.logo span, body[data-state="loading"] h1.logo span { color: var(--logo-c); }
+body[data-state="live"] h1.logo span, body[data-state="loading"] h1.logo span {
+  color: var(--logo-c); /* full colour, fading a little towards the background at the end of the word */
+  background-image: linear-gradient(100deg, var(--logo-c) 30%, color-mix(in srgb, var(--logo-c) 55%, var(--bg)));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
 /* while it tunes in: drawn in big pixels by the #logo-px filter, filled with the stations' colours */
 h1.logo span.px { filter: url(#logo-px); -webkit-background-clip: text; background-clip: text; color: transparent !important; -webkit-text-fill-color: transparent; transition: none; }
 .testtag { flex: none; font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; background: #FFD84D; color: #1A1400; margin-left: auto; margin-right: 8px; }
@@ -783,16 +787,12 @@ body[data-state="error"] .np-status .dot { background: var(--live); }
   display: grid; place-items: center;
 }
 .pp:disabled { background: var(--bg-2); color: var(--muted); cursor: default; }
-/* while listening, the bar is a strip of the station's colour */
-.player { transition: background-color .45s, color .45s; }
-body[data-state="live"] .player, body[data-state="loading"] .player { background: var(--bar-c); color: var(--bar-t); }
-body[data-state="live"] .np-status, body[data-state="loading"] .np-status,
-body[data-state="live"] .np-show, body[data-state="loading"] .np-show { color: var(--bar-t); opacity: .82; }
-body[data-state="live"] .np-status .dot, body[data-state="loading"] .np-status .dot { background: var(--bar-t); box-shadow: 0 0 0 3px color-mix(in srgb, var(--bar-t) 25%, transparent); }
-body[data-state="live"] .pp, body[data-state="loading"] .pp { background: var(--bar-t); color: var(--bar-c); }
-body[data-state="live"] .pp:focus-visible, body[data-state="loading"] .pp:focus-visible { outline-color: var(--bar-t); }
-body[data-state="live"] .swatch:not(.has-art), body[data-state="loading"] .swatch:not(.has-art) { background: color-mix(in srgb, var(--bar-t) 16%, var(--bar-c)); color: var(--bar-t); }
-body[data-state="live"] .progress i, body[data-state="loading"] .progress i { background: var(--bar-t); box-shadow: none; opacity: .55; }
+/* while listening, the bar is a wash of the station's colour, fading into the dock */
+.player { transition: background .45s; }
+body[data-state="live"] .player, body[data-state="loading"] .player {
+  background: linear-gradient(100deg, color-mix(in srgb, var(--bar-c) 62%, var(--dock)) 0%, color-mix(in srgb, var(--bar-c) 34%, var(--dock)) 55%, color-mix(in srgb, var(--bar-c) 14%, var(--dock)) 100%);
+}
+body[data-state="live"] .pp, body[data-state="loading"] .pp { background: var(--bar-c); color: var(--bar-t); box-shadow: 0 6px 20px -8px var(--bar-c); }
 .pp:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 .pp svg { width: 16px; height: 16px; fill: currentColor; }
 .pp .i-play { margin-left: 3px; }
@@ -3211,8 +3211,8 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   }
 
   /* ---------- the wordmark tunes in ----------
-     At launch "Sintonìa" starts as big pixels in the stations' colours and comes into focus;
-     when a new station comes on air it does it again, briefly, into that station's colour. */
+     When a new station comes on air, "Sintonìa" turns into big pixels for a moment and comes
+     back into focus in that station's colour. It stays still when the app opens. */
   var logoOn = true; // renderPlayer may run before this point
   const logoSpan = document.querySelector("h1.logo span");
   const pxF = $("px-f"), pxC = $("px-c"), pxM = $("px-m");
@@ -3256,10 +3256,6 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
     logoPixels(620, 9, 1, [st.dot, st.c, st.dot, st.c]);
   }
   logoFor = current;
-  if (!document.hidden) { // at launch
-    const pal = ["nts1", "nts2", "rinse", "wwfm", "kiosk", "refuge", "alhara", "batuta", "bcr", "setagaya"].map((id) => byId[id] && byId[id].dot).filter(Boolean);
-    logoPixels(1150, 16, 1, pal);
-  }
 
   /* ---------- boot ---------- */
   try {
