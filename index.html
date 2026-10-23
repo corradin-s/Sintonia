@@ -713,6 +713,22 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
   -webkit-transform: translateZ(0); transform: translateZ(0);
 }
 /* a strip under the status bar and the Dynamic Island, so the page doesn't scroll beneath them (0 tall where there is none) */
+/* scrolled down the stations, the wordmark stays at the top, small, with ON AIR */
+.minibar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 24; appearance: none; -webkit-appearance: none; border: 0; margin: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--ink); text-align: left;
+  padding: calc(env(safe-area-inset-top, 0px) + 9px) max(16px, env(safe-area-inset-right, 0px)) 9px max(16px, env(safe-area-inset-left, 0px));
+  background: var(--dock); -webkit-backdrop-filter: blur(20px) saturate(150%); backdrop-filter: blur(20px) saturate(150%);
+  border-bottom: 1px solid var(--line);
+  opacity: 0; transform: translateY(-100%); pointer-events: none; transition: opacity .22s, transform .28s cubic-bezier(.2, .8, .2, 1);
+}
+.minibar.show { opacity: 1; transform: none; pointer-events: auto; }
+.mini-logo {
+  font-family: var(--f-display); font-weight: 900; font-stretch: 125%; font-size: 24px; line-height: 1; letter-spacing: -.04em; white-space: nowrap;
+}
+.mini-logo .lg-a { display: inline-block; transform-origin: 54% 56%; }
+.mini-logo .lg-a.spin { animation: a-spin 1.1s cubic-bezier(.35, .05, .2, 1); }
+@media (prefers-reduced-motion: reduce) { .mini-logo .lg-a.spin { animation: none; } .minibar { transition: opacity .2s; transform: none; } }
 .topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 25; height: env(safe-area-inset-top, 0px); pointer-events: none;
   background: var(--dock); -webkit-backdrop-filter: blur(20px) saturate(150%); backdrop-filter: blur(20px) saturate(150%);
@@ -820,6 +836,10 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
 </head>
 <body data-state="idle">
 <div class="topbar" aria-hidden="true"></div>
+<button class="minibar" id="minibar" type="button" aria-label="Back to the top" tabindex="-1">
+  <span class="mini-logo" aria-hidden="true">Sintonì<span class="lg-a">a</span></span>
+  <span class="onair" aria-hidden="true"><i></i>ON AIR</span>
+</button>
 
 <div class="wrap">
   <div class="topline">
@@ -3196,15 +3216,28 @@ body[data-state="live"] .pp .i-stop, body[data-state="loading"] .pp .i-stop { di
   var spinOn = true; // renderPlayer may run before this point
   const lgA = document.querySelector("h1.logo .lg-a");
   let spunFor = current;
+  const allA = Array.from(document.querySelectorAll(".lg-a")); // the big wordmark and the small one at the top
   function spinA(id) {
     if (!lgA) return;
     if (id !== undefined) { // a station: only when it is a new one going on air
       if (id === spunFor || (state !== "live" && state !== "loading")) return;
       spunFor = id;
     }
-    lgA.classList.remove("spin"); void lgA.offsetWidth; lgA.classList.add("spin");
+    allA.forEach((a) => { a.classList.remove("spin"); void a.offsetWidth; a.classList.add("spin"); });
   }
-  lgA && lgA.addEventListener("animationend", () => lgA.classList.remove("spin"));
+  allA.forEach((a) => a.addEventListener("animationend", () => a.classList.remove("spin")));
+
+  // the small wordmark shows once the big one has gone up under the top of the screen, on the stations only
+  const minibar = $("minibar"), bigLogo = document.querySelector("h1.logo");
+  function minibarCheck() {
+    const show = view === "stations" && bigLogo.getBoundingClientRect().bottom < minibar.offsetHeight - 6;
+    minibar.classList.toggle("show", show);
+  }
+  window.addEventListener("scroll", minibarCheck, { passive: true });
+  window.addEventListener("resize", minibarCheck);
+  window.addEventListener("hashchange", () => setTimeout(minibarCheck, 0));
+  minibar.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  minibarCheck();
   // at launch, once the wordmark is drawn in its own font (on a phone the fonts arrive a moment after the page)
   const fontsIn = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
   fontsIn.then(() => setTimeout(() => { if (!document.hidden) spinA(); }, 500));
