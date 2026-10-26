@@ -2701,16 +2701,23 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
   /* ---------- the full-screen player: tap the bar to open it, swipe down to close ---------- */
   const fp = $("fp"), fpIn = $("fp-in");
-  let fpOpen = false, sleepAt = 0, sleepTimer = 0, airplayAvail = false;
+  let fpOpen = false, sleepAt = 0, sleepTimer = 0, airplayAvail = false, routeTimer = 0, routeStopAt = 0;
   const airplayOk = typeof audio.webkitShowPlaybackTargetPicker === "function";
   if (window.WebKitPlaybackTargetAvailabilityEvent) {
     audio.addEventListener("webkitplaybacktargetavailabilitychanged", (e) => {
       const was = airplayAvail;
       airplayAvail = e.availability === "available";
-      // the headphones went away (no other place to send the sound): the iPhone would carry on through its speaker,
-      // so stop, as music apps do
+      // the headphones or the car went away (no other place to send the sound): the iPhone would carry on through
+      // its speaker, so stop, as music apps do. A car or Bluetooth link often drops for a moment while it switches
+      // over, so wait 2.5 seconds first; and if it comes back within 30 seconds, carry on with the same station.
+      clearTimeout(routeTimer);
       if (was && !airplayAvail && state === "live" && audio.getAttribute("src") && Date.now() - startedAt > 3000) {
-        stop();
+        routeTimer = setTimeout(() => {
+          if (!airplayAvail && state === "live" && audio.getAttribute("src")) { stop(); routeStopAt = Date.now(); }
+        }, 2500);
+      }
+      if (!was && airplayAvail && routeStopAt && Date.now() - routeStopAt < 30000 && current && state === "paused") {
+        routeStopAt = 0; start(current);
       }
       if (fpOpen) renderFP();
     });
@@ -3189,7 +3196,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
     let text = "Tap a station to listen";
     if (st) {
-      if (state === "loading") text = "Tuning in…";
+      if (state === "loading") text = retrying ? "Reconnecting…" : "Tuning in…";
       else if (state === "live") text = "Live from " + st.city;
       else if (state === "error") text = "Can’t reach this station. Try again";
       else text = "Paused · " + st.city;
@@ -3244,10 +3251,40 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   const appleHls = /Apple/.test(navigator.vendor || "") && !!audio.canPlayType("application/vnd.apple.mpegurl");
   const canMse = () => !!(window.MediaSource || window.ManagedMediaSource);
   let hls = null, hlsLib = null, triedHls = false;
+  /* Staying connected. In a car or on a train the connection drops and comes back: while you want the radio on,
+     a stream that ends, fails or stops moving is opened again by itself, at once, then after 2, 4 and 8 seconds,
+     then every 15 seconds, for up to 10 minutes. A station that never started gets two tries, then says so. */
+  var wanted = false, retrying = false, hadPlayed = false, retryPending = false, retryN = 0, retryTimer = 0, giveUpAt = 0, lastT = -1, lastMove = 0;
+  function scheduleRetry() {
+    if (!wanted || !current || retryPending) return; // the error event and the failed play() report the same failure once
+    if (!hadPlayed && retryN >= 2) { wanted = false; retrying = false; stopStream(); setState("error"); return; }
+    if (!giveUpAt) giveUpAt = Date.now() + 10 * 60000;
+    if (Date.now() > giveUpAt) { wanted = false; retrying = false; stopStream(); setState("error"); return; }
+    const delay = [0, 2000, 4000, 8000][retryN];
+    retryN++;
+    retrying = hadPlayed;
+    if (state !== "loading") setState("loading"); else renderPlayer();
+    retryPending = true;
+    retryTimer = setTimeout(reconnect, delay === undefined ? 15000 : delay);
+  }
+  function reconnect() {
+    retryPending = false;
+    if (!wanted || !current) return;
+    const st = byId[current];
+    lastMove = Date.now(); lastT = -1;
+    dropHls();
+    if (isHls(st.src) && (triedHls || !appleHls) && canMse()) { playWithHlsJs(current); return; }
+    audio.src = st.src;
+    const p = audio.play();
+    if (p && typeof p.catch === "function") p.catch((err) => playFailed(current, err));
+  }
+  function stopStream() { dropHls(); audio.pause(); audio.removeAttribute("src"); audio.load(); }
   function dropHls() { if (hls) { try { hls.destroy(); } catch (e) {} hls = null; } }
   function playFailed(id, err) {
     if (current !== id || (err && err.name === "AbortError")) return;
-    setState(err && err.name === "NotAllowedError" ? "paused" : "error");
+    if (err && err.name === "NotAllowedError") { wanted = false; retrying = false; setState("paused"); return; }
+    if (wanted) { scheduleRetry(); return; }
+    setState("error");
   }
   function playWithHlsJs(id) {
     triedHls = true;
@@ -3258,7 +3295,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       dropHls();
       audio.disableRemotePlayback = true; // Safari only streams this way without AirPlay
       hls = new Hls({ liveSyncDurationCount: 2 });
-      hls.on(Hls.Events.ERROR, (ev, d) => { if (d && d.fatal && current === id) { dropHls(); setState("error"); } });
+      hls.on(Hls.Events.ERROR, (ev, d) => { if (d && d.fatal && current === id) { dropHls(); if (wanted) scheduleRetry(); else setState("error"); } });
       hls.loadSource(byId[id].src);
       hls.attachMedia(audio);
       return audio.play();
@@ -3271,6 +3308,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     current = id;
     startedAt = Date.now();
     try { localStorage.setItem(KEY, id); } catch (e) {}
+    clearTimeout(retryTimer); retryPending = false;
+    wanted = true; retrying = false; hadPlayed = false; retryN = 0; giveUpAt = 0; lastT = -1; lastMove = Date.now();
     dropHls();
     triedHls = false;
     audio.disableRemotePlayback = false;
@@ -3287,6 +3326,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
   function stop() {
     // a live stream is unloaded on stop, so pressing play again returns to the live edge
+    wanted = false; retrying = false; clearTimeout(retryTimer); retryPending = false;
     dropHls();
     audio.pause();
     audio.removeAttribute("src");
@@ -3317,18 +3357,34 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     else start(current);
   });
 
-  audio.addEventListener("playing", () => setState("live"));
+  audio.addEventListener("playing", () => { hadPlayed = true; retrying = false; retryN = 0; giveUpAt = 0; lastMove = Date.now(); setState("live"); });
   audio.addEventListener("waiting", () => { if (state === "live") setState("loading"); });
   audio.addEventListener("pause", () => {
-    // the system paused us (a call, another app): reflect it in the bar
-    if (state === "live" && audio.getAttribute("src")) setState("paused");
+    // the system paused us (a call, another app): reflect it in the bar, and don't fight it.
+    // (A live stream that "ends" also fires pause first: that's a lost connection, handled by "ended" below.)
+    if (audio.ended) return;
+    if (state === "live" && audio.getAttribute("src")) { wanted = false; retrying = false; clearTimeout(retryTimer); retryPending = false; setState("paused"); }
   });
+  // a live stream that ends has lost its connection: open it again
+  audio.addEventListener("ended", () => { if (wanted) scheduleRetry(); });
+  // a stream that stops moving for 12 seconds is stuck: open it again (the clock is checked every 3 seconds)
+  setInterval(() => {
+    if (!wanted || retryPending) return;
+    if (!audio.getAttribute("src") && !hls) return;
+    const t = audio.currentTime;
+    if (t !== lastT && !audio.paused) { lastT = t; lastMove = Date.now(); return; }
+    if (Date.now() - lastMove > 12000) { lastMove = Date.now(); scheduleRetry(); }
+  }, 3000);
+  // the network is back, or the app is back in front: try at once instead of waiting
+  window.addEventListener("online", () => { if (wanted && state !== "live") { clearTimeout(retryTimer); retryPending = false; reconnect(); } });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && wanted && state !== "live") { clearTimeout(retryTimer); retryPending = false; reconnect(); } });
   audio.addEventListener("error", () => {
     if (!audio.getAttribute("src")) return;
     const st = current && byId[current];
     // the browser's own HLS player gave up: try once more with hls.js
     if (st && isHls(st.src) && !hls && !triedHls && canMse()) { playWithHlsJs(current); return; }
-    if (!hls) setState("error");
+    if (hls) return;
+    if (wanted) scheduleRetry(); else setState("error");
   });
 
   // On a computer the browser carries on through the speakers when headphones are unplugged or switched off.
