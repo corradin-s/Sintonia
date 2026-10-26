@@ -381,6 +381,27 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 html { background: var(--bg); }
 body { background: transparent; }
 .wrap { position: relative; z-index: 1; }
+/* the home's background: three soft clouds in the colours of the station you're on, drifting slowly;
+   brighter while it plays, dimmer when it's paused, and they fade into the next station's colours */
+@property --au1 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --au2 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --au3 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+.aura { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; opacity: 0; --auk: 46%;
+  transition: opacity .9s ease, --au1 1.6s ease, --au2 1.6s ease, --au3 1.6s ease; }
+:root[data-theme="light"] .aura { --auk: 30%; }
+html[data-view="stations"] .aura { opacity: .55; }
+html[data-view="stations"][data-state="live"] .aura, html[data-view="stations"][data-state="loading"] .aura { opacity: 1; }
+html[data-view="stations"] .wrap::before { opacity: 0; }
+.aura i { position: absolute; width: 95vmax; height: 95vmax; border-radius: 50%; }
+.aura i:nth-child(1) { left: -42vmax; top: -38vmax; background: radial-gradient(closest-side, color-mix(in srgb, var(--au1) var(--auk), transparent), transparent); }
+.aura i:nth-child(2) { right: -48vmax; top: 18vh; background: radial-gradient(closest-side, color-mix(in srgb, var(--au2) var(--auk), transparent), transparent); }
+.aura i:nth-child(3) { left: -30vmax; bottom: -55vmax; background: radial-gradient(closest-side, color-mix(in srgb, var(--au3) var(--auk), transparent), transparent); }
+@media (prefers-reduced-motion: no-preference) {
+  .aura i { animation: aura-drift 40s ease-in-out infinite alternate; }
+  .aura i:nth-child(2) { animation-duration: 48s; animation-delay: -14s; animation-direction: alternate-reverse; }
+  .aura i:nth-child(3) { animation-duration: 56s; animation-delay: -27s; }
+  @keyframes aura-drift { to { transform: translate(9vmax, 7vmax) scale(1.14); } }
+}
 .wrap::before {
   content: ""; position: absolute; z-index: -1; pointer-events: none;
   left: -40%; right: -40%; top: calc(-260px - env(safe-area-inset-top, 0px)); height: 760px;
@@ -840,6 +861,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 </style>
 </head>
 <body data-state="idle">
+<div class="aura" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="topbar" aria-hidden="true"></div>
 <button class="minibar" id="minibar" type="button" aria-label="Back to the top" tabindex="-1">
   <span class="mini-logo" aria-hidden="true">Sintonì<span class="lg-a">a</span></span>
@@ -1816,6 +1838,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       if (t.dataset.view === v) t.setAttribute("aria-current", "page"); else t.removeAttribute("aria-current");
     });
     view = v;
+    document.documentElement.dataset.view = v; // the home's coloured background shows only on Stations
     window.scrollTo(0, scrollMem[v] || 0);
     if (v === "map") { renderLocate(); renderMap(); refreshMyPosition(); }
     else if (v === "settings") renderSettings();
@@ -3148,6 +3171,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     if (st) {
       root.setProperty("--glow", st.dot);
       root.setProperty("--bar-c", st.c); root.setProperty("--bar-t", st.t);
+      root.setProperty("--au1", st.dot); root.setProperty("--au2", st.c); root.setProperty("--au3", st.dot);
       if (typeof spinA === "function" && spinOn) spinA(st.id);
       root.setProperty("--dock-glow", "color-mix(in srgb, " + st.dot + " 20%, var(--dock))");
       root.setProperty("--chip", st.dot);
@@ -3158,7 +3182,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       npName.textContent = st.name;
       pp.disabled = false;
     } else {
-      ["--glow", "--dock-glow", "--chip", "--chip-t"].forEach((k) => root.removeProperty(k));
+      ["--glow", "--dock-glow", "--chip", "--chip-t", "--au1", "--au2", "--au3"].forEach((k) => root.removeProperty(k));
       npName.textContent = "Sintonia";
       pp.disabled = true;
     }
