@@ -1,0 +1,9 @@
+{
+ "week": "2026-10-26",
+ "note": "Three shows picked by hand each week. Times in UTC; the app shows them in the listener's own time.",
+ "picks": [
+  {"id": "nts1", "title": "SNO – Mahotella Queens special", "start": "2026-10-27T17:00:00Z", "end": "2026-10-27T18:00:00Z", "why": "An hour on the Mahotella Queens, the voices of South African mbaqanga."},
+  {"id": "nts1", "title": "Bradley Zero presents: Rhythm Section", "start": "2026-10-28T14:00:00Z", "end": "2026-10-28T15:00:00Z", "why": "An hour with the founder of Peckham’s Rhythm Section International label."},
+  {"id": "nts2", "title": "Jim O’Rourke", "start": "2026-10-29T11:00:00Z", "end": "2026-10-29T12:00:00Z", "why": "An hour chosen by the composer and producer, once a member of Sonic Youth."}
+ ]
+}

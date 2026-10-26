@@ -263,6 +263,22 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 /* in New in, and on the big tiles of stations that just arrived */
 .newtag { display: inline-block; font-family: var(--f-mono); font-size: 8.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; padding: 2px 5px; border-radius: 4px; background: var(--t); color: var(--c); }
 .mini .newtag { margin-bottom: 1px; justify-self: start; }
+.newtag.livetag { background: var(--live); color: #fff; display: inline-flex; align-items: center; gap: 4px; }
+.newtag.livetag::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: live-blink 1.6s ease-in-out infinite; }
+@keyframes live-blink { 50% { opacity: .25; } }
+/* This week: three picks, each a wide card in the station's colour */
+.picks { display: grid; gap: 10px; }
+.pick { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 13px 14px; border-radius: 16px;
+  background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--dot, var(--c)) 30%, transparent), transparent 70%), color-mix(in srgb, var(--dot, var(--c)) 12%, var(--bg-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dot, var(--c)) 40%, transparent); color: var(--ink); }
+.pick .when { display: grid; justify-items: center; min-width: 58px; padding: 7px 6px; border-radius: 11px; background: var(--c); color: var(--t); text-align: center; }
+.pick .when b { font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: 22px; line-height: .95; }
+.pick .when span { font-family: var(--f-mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+.pick .pt { display: grid; gap: 3px; min-width: 0; }
+.pick .pk { font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.pick .pn { font-weight: 600; font-size: 15px; line-height: 1.25; }
+.pick .pw { font-size: 13px; line-height: 1.4; color: var(--muted); }
+.pick button { appearance: none; -webkit-appearance: none; position: absolute; inset: 0; border: 0; background: none; border-radius: 16px; cursor: pointer; }
 .tile .meta .newtag { margin-right: 2px; }
 .tile .meta { padding-right: 28px; }
 .pin:focus-visible { outline: 2px solid var(--t); outline-offset: -2px; }
@@ -892,6 +908,16 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </form>
 
   </header>
+
+  <section class="sec" id="sec-live" aria-labelledby="live-h" hidden>
+    <h2 class="sec-h"><span id="live-h">Live now</span><small>someone on air, right now</small></h2>
+    <div class="favs" id="livenow"></div>
+  </section>
+
+  <section class="sec" id="sec-picks" aria-labelledby="picks-h" hidden>
+    <h2 class="sec-h"><span id="picks-h">This week</span><small>three shows not to miss, in your time</small></h2>
+    <div class="picks" id="picks"></div>
+  </section>
 
   <section class="sec" id="sec-new" aria-labelledby="new-h" hidden>
     <h2 class="sec-h"><span id="new-h">New in</span><small>added in the last two weeks</small></h2>
@@ -1919,11 +1945,12 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     const raw = clean(d.name || now.broadcast_title);
     if (!raw) return null;
     const rerun = RERUN.test(now.broadcast_title || "") || RERUN.test(raw);
+    const onAir = !rerun && !/archiv|rotation|replay|re-?run/i.test(raw); // NTS: a new show, not the archive
     const genres = (d.genres || []).map((g) => g && g.value).filter(Boolean).slice(0, 2).join(" · ");
     return {
       title: raw.replace(RERUN, ""),
       sub: genres,
-      start: Date.parse(now.start_timestamp), end: Date.parse(now.end_timestamp), rerun
+      start: Date.parse(now.start_timestamp), end: Date.parse(now.end_timestamp), rerun, onAir
     };
   }
 
@@ -1934,10 +1961,11 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     if (!raw) return null;
     const rerun = /\((r|repeat)\)/i.test(raw);
     const t = raw.replace(/\s*\((r|repeat)\)/ig, "");
+    const onAir = !rerun && !!(j.source && j.source.type === "live"); // radio.co: a live source is connected
     if (mode === "pipe") { // "Song | Artist"
       const i = t.indexOf(" | ");
       const song = i > 0 ? { title: t.slice(0, i), artist: t.slice(i + 3) } : null;
-      return { title: song ? song.title : t, sub: song ? song.artist : "", song, start: Date.parse(tr.start_time), end: NaN, rerun };
+      return { title: song ? song.title : t, sub: song ? song.artist : "", song, start: Date.parse(tr.start_time), end: NaN, rerun, onAir };
     }
     const cut = mode === "track" ? -1 : t.indexOf(" - ");
     const d = t.indexOf(" - ");
@@ -1945,7 +1973,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       title: cut > 0 ? t.slice(0, cut) : t.replace(" - ", " – "),
       sub: cut > 0 ? t.slice(cut + 3) : "",
       song: mode === "track" && d > 0 ? { artist: t.slice(0, d), title: t.slice(d + 3) } : null,
-      start: Date.parse(tr.start_time), end: NaN, rerun
+      start: Date.parse(tr.start_time), end: NaN, rerun, onAir
     };
   }
 
@@ -1958,7 +1986,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       title: title || artist, sub: title && artist ? artist : "",
       start: tr && tr.start ? Date.parse(String(tr.start).replace(" ", "T")) : NaN, end: NaN,
       song: title ? { title, artist } : null,
-      rerun: !dj, tag: dj ? "" : "Playlist" // no DJ on air: the station's own playlist
+      rerun: !dj, onAir: dj, tag: dj ? "" : "Playlist" // no DJ on air: the station's own playlist
     };
   }
 
@@ -1971,7 +1999,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       title: clean(c.title), sub: "",
       start: Date.parse(c.startDateUtc || c.start), end: Date.parse(c.endDateUtc || c.end),
       song: artist && title ? { title, artist } : null,
-      rerun: pre, tag: pre ? "Playlist" : ""
+      rerun: pre, onAir: !!(c.media && c.media.type === "live"), tag: pre ? "Playlist" : ""
     };
   }
   function fromAzura(j) { // AzuraCast: a live DJ by name, or the recorded set now playing ("lithium radio-2026 06 27 1700-name")
@@ -1979,7 +2007,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     // someone is broadcasting live from the café: the "now playing" line then still shows the last recording, so ignore it
     if (j && j.live && j.live.is_live) {
       const dj = j.live.streamer_name && !/^lithium$/i.test(j.live.streamer_name) ? clean(j.live.streamer_name) : "";
-      return { title: dj || "Live from the café", sub: "", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false, tag: "" };
+      return { title: dj || "Live from the café", sub: "", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false, onAir: true, tag: "" };
     }
     const raw = clean(song && (song.title || song.text));
     if (!raw) return null;
@@ -1995,7 +2023,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
   function fromAzuraTracks(j, own) { // AzuraCast that sends artist and title; a live DJ by name
     const np = j && j.now_playing, song = np && np.song;
-    if (j && j.live && j.live.is_live && j.live.streamer_name) return { title: clean(j.live.streamer_name), sub: "Live", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false };
+    if (j && j.live && j.live.is_live && j.live.streamer_name) return { title: clean(j.live.streamer_name), sub: "Live", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false, onAir: true };
     const artist = clean(song && song.artist), title = clean(song && song.title);
     if (!title || title.toLowerCase() === own) return null;
     return { title, sub: artist, song: artist ? { artist, title } : null, start: np.played_at * 1000, end: NaN, rerun: false };
@@ -2027,7 +2055,9 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       title: generic && track ? track : (showClean || track),
       sub: generic && track ? showClean : (track && track !== showClean ? track : ""),
       song: md.artist_name && md.track_title && track ? { title: clean(md.track_title), artist: clean(md.artist_name) } : null,
-      start: toMs(show && show.starts), end: toMs(show && show.ends), rerun
+      start: toMs(show && show.starts), end: toMs(show && show.ends), rerun,
+      // Airtime: a DJ is connected live (not the scheduled files)
+      onAir: !rerun && ((j.station && j.station.source_enabled === "Live DJ") || (tr && tr.type === "livestream"))
     };
   }
 
@@ -2075,7 +2105,20 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     )).then(() => { refreshing = false; renderLive(); });
   }
 
+  // Live now: stations where a person is on air right now, as each station's own system reports it
+  let liveSig = "";
+  function renderLiveNow() {
+    const on = stations.filter((st) => live[st.id] && live[st.id].onAir);
+    $("sec-live").hidden = !on.length;
+    const sig = on.map((st) => st.id + ":" + live[st.id].title).join("|");
+    if (sig === liveSig) return;
+    liveSig = sig;
+    fillMinis($("livenow"), on.map((st) => st.id), "Live", (st) => live[st.id].title);
+    renderPlayer();
+  }
+
   function renderLive() {
+    renderLiveNow();
     stations.forEach((st) => {
       const info = live[st.id];
       const box = st.el.querySelector(".now");
@@ -2141,7 +2184,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     $("sec-fav").hidden = !favs.length;
     fillMinis($("favs"), favs, false);
   }
-  function fillMinis(box, ids, tagged) {
+  function fillMinis(box, ids, tagged, line) {
     box.textContent = "";
     if (!ids.length) return;
     const now = Date.now();
@@ -2157,8 +2200,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       nm.textContent = st.name;
       const mm = document.createElement("span"); mm.className = "mm";
       const ck = document.createElement("span"); ck.className = "clock"; ck.textContent = hhmm(now, st.tz);
-      mm.append(st.city + " · ", ck);
-      if (tagged) { const tg = document.createElement("span"); tg.className = "newtag"; tg.textContent = "New"; t.append(tg); }
+      mm.append((line ? line(st) : st.city) + " · ", ck);
+      if (tagged) { const tg = document.createElement("span"); tg.className = "newtag" + (tagged === "Live" ? " livetag" : ""); tg.textContent = tagged === "Live" ? "Live" : "New"; t.append(tg); }
       t.append(nm, mm);
       b.append(st.el.querySelector(".knob").cloneNode(true), t);
       const pin = pinButton(st);
@@ -2203,6 +2246,33 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   renderFavs();
   renderNew();
   arrange();
+
+  /* ---------- This week: three shows picked by hand, in picks.json, shown in your own time zone ---------- */
+  let picks = [];
+  function renderPicks() {
+    const now = Date.now();
+    const list = picks.filter((p) => byId[p.id] && Date.parse(p.end) > now).slice(0, 3);
+    $("sec-picks").hidden = !list.length;
+    const box = $("picks");
+    box.textContent = "";
+    list.forEach((p) => {
+      const st = byId[p.id], start = new Date(p.start), end = new Date(p.end);
+      const on = start <= now && now < end;
+      const day = on ? "Now" : start.toLocaleDateString("en-GB", { weekday: "short" });
+      const time = start.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+      const card = document.createElement("div");
+      card.className = "pick"; card.dataset.id = p.id;
+      card.innerHTML = `<div class="when"><span>${esc(day)}</span><b>${esc(on ? "ON" : time)}</b></div>` +
+        `<div class="pt"><span class="pk">${esc(st.name)} · ${esc(on ? "on air until " + end.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : start.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + ", your time")}</span>` +
+        `<span class="pn">${esc(p.title)}</span>${p.why ? `<span class="pw">${esc(p.why)}</span>` : ""}</div>` +
+        `<button type="button" aria-label="${esc(on ? "Listen to " + st.name : "About " + st.name)}"></button>`;
+      card.querySelector("button").addEventListener("click", () => { if (on) start_(p.id); else openSheet("info", p.id); });
+      box.appendChild(card);
+    });
+  }
+  const start_ = (id) => start(id);
+  fetch("picks.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : null).then((j) => { picks = (j && j.picks) || []; renderPicks(); }).catch(() => {});
+  setInterval(renderPicks, 60000);
 
   /* ---------- station info for the Info sheet (draft texts, to be checked) ---------- */
   const INFO = {
@@ -3485,7 +3555,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function tickClocks() {
     const now = Date.now();
     stations.forEach((st) => { st.el.querySelector(".clock").textContent = hhmm(now, st.tz); });
-    document.querySelectorAll("#favs .mini, #newin .mini").forEach((m) => { m.querySelector(".clock").textContent = hhmm(now, byId[m.dataset.id].tz); });
+    document.querySelectorAll("#favs .mini, #newin .mini, #livenow .mini").forEach((m) => { m.querySelector(".clock").textContent = hhmm(now, byId[m.dataset.id].tz); });
     if (band !== "all") arrange();
     updateProgress();
     renderGreeting();
