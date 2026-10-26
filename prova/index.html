@@ -473,9 +473,7 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .areas::-webkit-scrollbar { display: none; }
 .area { appearance: none; -webkit-appearance: none; flex: none; cursor: pointer; border: 1px solid var(--line); background: var(--bg-2); color: var(--ink);
   border-radius: 999px; padding: 7px 12px; font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
-.area small { font-size: inherit; color: var(--muted); margin-left: 5px; letter-spacing: 0; }
 .area[aria-checked="true"] { background: var(--chip, var(--ink)); color: var(--chip-t, var(--bg)); border-color: transparent; }
-.area[aria-checked="true"] small { color: inherit; opacity: .7; }
 .area:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
 .mood-where { margin: 0; font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .mood-where b { color: var(--ink); font-weight: 500; }
@@ -2308,7 +2306,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   const hourAt = (tz) => { try { return +new Date().toLocaleString("en-GB", { timeZone: tz, hour: "2-digit", hour12: false }) % 24; } catch (e) { return 12; } };
   const bandOf = (st) => { const h = hourAt(st.tz); return h >= 6 && h < 12 ? "morning" : h >= 12 && h < 18 ? "afternoon" : h >= 18 ? "evening" : "night"; };
   const inBand = (st) => band === "all" || bandOf(st) === band;
-  // and where in the world: one pill per area that has stations, with how many
+  // and where in the world: one pill per area that has stations
   let area = "all";
   const AREAS = [["all", "All areas"], ["Europe", "Europe"], ["Africa", "Africa"], ["Mid East", "Middle East"], ["Americas", "Americas"], ["Asia–Pac", "Asia & Pacific"]];
   const inArea = (st) => area === "all" || st.region === area;
@@ -2321,7 +2319,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       b.type = "button"; b.className = "area"; b.setAttribute("role", "radio"); b.dataset.area = k;
       b.setAttribute("aria-checked", String(k === area));
       b.textContent = label;
-      if (k !== "all") { const c = document.createElement("small"); c.textContent = n; b.appendChild(c); }
       box.appendChild(b);
     });
     box.addEventListener("click", (ev) => {
