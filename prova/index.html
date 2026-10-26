@@ -388,6 +388,12 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="hanoi"]    { --c:#A6E3C8; --t:#0B2219; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:90%;  --oy:80%;  --gap:12px; }
 [data-id="lithium"]  { --c:#16120F; --t:#FF4A2E; --ring:rgba(255,74,46,.16);   --pill:rgba(255,74,46,.18);   --ox:85%;  --oy:-15%; --gap:12px; --dot:#FF5A3C; }
 [data-id="satellite"]{ --c:#0E4A5A; --t:#F7D774; --ring:rgba(247,215,116,.14); --pill:rgba(247,215,116,.2);  --ox:92%;  --oy:88%;  --gap:14px; --dot:#F7D774; }
+[data-id="pass"]     { --c:#B8862B; --t:#1E1404; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:85%;  --oy:-10%; --gap:12px; }
+[data-id="sonic"]    { --c:#19A06C; --t:#03170F; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:10%;  --oy:110%; --gap:10px; }
+[data-id="lake"]     { --c:#5E8FA8; --t:#F2F8FB; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:50%;  --oy:-20%; --gap:14px; --dot:#8FC0D8; }
+[data-id="ida"]      { --c:#F4D35E; --t:#1C1702; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:-10%; --oy:40%;  --gap:11px; }
+[data-id="retreat"]  { --c:#2E4057; --t:#F2E8CF; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:100%; --oy:60%;  --gap:13px; --dot:#7E9CC4; }
+[data-id="rotation"] { --c:#4CC9F0; --t:#04202B; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:20%;  --oy:90%;  --gap:9px; }
 [data-id="nopal"]    { --c:#A51D5C; --t:#E3F4CC; --ring:rgba(227,244,204,.14); --pill:rgba(227,244,204,.2);  --ox:18%;  --oy:-18%; --gap:12px; --dot:#8CCB5E; }
 [data-id="bcr"]      { --c:#3F4697; --t:#F4EBE0; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:10%;  --oy:115%; --gap:13px; --dot:#7C84E0; }
 [data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
@@ -1117,6 +1123,54 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Nopal</span><span class="meta"><span>P21 · Mexico City</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://www.radionopal.com/">Info</button>
+    </li>
+
+    <li class="tile" data-id="pass" data-added="2026-10-26" data-country="South Africa" data-code="CPT" data-lat="-33.925" data-lon="18.424" data-region="Africa" data-city="Cape Town" data-tz="Africa/Johannesburg" data-src="https://pass.out.airtime.pro/pass_a">
+      <button class="tune" type="button" aria-label="Listen to Pan African Space Station">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Pan African Space Station</span><span class="meta"><span>P22 · Cape Town</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://panafricanspacestation.org.za/">Info</button>
+    </li>
+
+    <li class="tile" data-id="sonic" data-added="2026-10-26" data-country="Nigeria" data-code="LOS" data-lat="6.455" data-lon="3.384" data-region="Africa" data-city="Lagos" data-tz="Africa/Lagos" data-src="https://sonicradio.radiocult.fm/stream">
+      <button class="tune" type="button" aria-label="Listen to Sonic Radio">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Sonic Radio</span><span class="meta"><span>P23 · Lagos</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://sonicradio.live/">Info</button>
+    </li>
+
+    <li class="tile" data-id="lake" data-added="2026-10-26" data-country="Denmark" data-code="CPH" data-lat="55.676" data-lon="12.568" data-region="Europe" data-city="Copenhagen" data-tz="Europe/Copenhagen" data-src="https://thelakeradio.radioca.st/stream">
+      <button class="tune" type="button" aria-label="Listen to The Lake Radio">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">The Lake Radio</span><span class="meta"><span>P24 · Copenhagen</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://thelakeradio.com/">Info</button>
+    </li>
+
+    <li class="tile" data-id="ida" data-added="2026-10-26" data-country="Estonia" data-code="TLL" data-lat="59.437" data-lon="24.754" data-region="Europe" data-city="Tallinn" data-tz="Europe/Tallinn" data-src="https://broadcast.idaidaida.net:8000/stream">
+      <button class="tune" type="button" aria-label="Listen to IDA Radio">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">IDA Radio</span><span class="meta"><span>P25 · Tallinn</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://idaidaida.net/">Info</button>
+    </li>
+
+    <li class="tile" data-id="retreat" data-added="2026-10-26" data-country="Sweden" data-code="MMX" data-lat="55.605" data-lon="13.004" data-region="Europe" data-city="Malmö" data-tz="Europe/Stockholm" data-src="https://retreatradio.out.airtime.pro/retreatradio_b">
+      <button class="tune" type="button" aria-label="Listen to Retreat Radio">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Retreat Radio</span><span class="meta"><span>P26 · Malmö</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://www.retreatradio.net/">Info</button>
+    </li>
+
+    <li class="tile" data-id="rotation" data-added="2026-10-26" data-country="Sweden" data-code="STO" data-lat="59.329" data-lon="18.069" data-region="Europe" data-city="Stockholm" data-tz="Europe/Stockholm" data-src="https://rotation-radio-befbc736.radiocult.fm/stream">
+      <button class="tune" type="button" aria-label="Listen to Rotation Radio">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Rotation Radio</span><span class="meta"><span>P27 · Stockholm</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://rotationradio.fm/">Info</button>
     </li>
 
   </ol>
@@ -2029,6 +2083,14 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     return { title, sub: artist, song: artist ? { artist, title } : null, start: np.played_at * 1000, end: NaN, rerun: false };
   }
 
+  function fromShoutcast(j) { // a SHOUTcast server's own "Artist - Title"
+    const raw = clean(j && j.songtitle);
+    if (!raw) return null;
+    const d = raw.indexOf(" - ");
+    const artist = d > 0 ? raw.slice(0, d) : "", title = d > 0 ? raw.slice(d + 3) : raw;
+    return { title, sub: artist, song: artist ? { artist, title } : null, start: NaN, end: NaN, rerun: false, onAir: false };
+  }
+
   function fromAirtime(j) {
     if (!j) return null;
     const sched = j.station && j.station.schedulerTime;
@@ -2086,6 +2148,9 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     } },
     { url: "https://a13.my-control-panel.com/api/nowplaying/lithium_radio", parse: (j) => ({ lithium: fromAzura(j) }) },
     { url: "https://api.radiocult.fm/api/station/bcr/schedule/live", parse: (j) => ({ bcr: fromRadioCult(j) }) },
+    { url: "https://thelakeradio.radioca.st/stats?json=1", parse: (j) => ({ lake: fromShoutcast(j) }) },
+    { url: "https://api.radiocult.fm/api/station/rotation-radio-befbc736/schedule/live", parse: (j) => ({ rotation: fromRadioCult(j) }) },
+    { url: "https://api.radiocult.fm/api/station/sonicradio/schedule/live", parse: (j) => ({ sonic: fromRadioCult(j) }) },
     { url: "https://a9.asurahosting.com/api/nowplaying/satellite_radio", parse: (j) => ({ satellite: fromAzuraTracks(j, "satellite radio") }) }
   ];
 
@@ -2297,6 +2362,12 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     newtown: { desc: "Independent internet radio from Bushwick, Brooklyn: mostly live two-hour shows by local DJs, musicians and artists.", since: "2009", plays: "Open format: indie, rap, electronic, live sessions", lang: "English", by: "Newtown Radio, Brooklyn" },
     hanoi: { desc: "Community radio from Hanoi, giving space to the city’s DJs, musicians and creative scene.", plays: "Electronic, experimental, Vietnamese sounds", lang: "Vietnamese, English", by: "Hà Nội Community Radio" },
     lithium: { desc: "A café and radio in Paris’s 20th arrondissement, broadcasting DJ sets and shows from its own room.", plays: "Electronic, club, bass and more", lang: "French, English", by: "Lithium, Paris" },
+    pass: { desc: "The radio of Chimurenga, the pan-African magazine from Cape Town: live every night from 9 to midnight Cape Town time, with musicians, DJs, poets and artists in residence, and the Chimurenga archive the rest of the day.", plays: "Music from across Africa and its diaspora, live performances, readings, sound art and interviews", lang: "English and more", by: "Chimurenga, curated by Ntone Edjabe and Neo Muyanga" },
+    sonic: { desc: "Online radio from Lagos for emerging voices: electronic, alternative and African-influenced music, and talent often overlooked by mainstream radio. It broadcasts at set hours.", plays: "Electronic, alternative and African-influenced music", lang: "English", by: "Sonic Radio, Lagos" },
+    lake: { desc: "Listener-supported radio from Copenhagen, on air around the clock with experimental music and sound art.", plays: "Experimental music, ambient and sound art", lang: "English, Danish", by: "The Lake Radio, Copenhagen" },
+    ida: { desc: "Community radio from Tallinn since 2018, with a second studio in Helsinki: more than 200 shows from jazz to experimental electronica, and talks on art, literature and rights. Estonia\u2019s Radio of the Year 2025.", plays: "Jazz, rock, country, classical and experimental electronica; talks", lang: "Estonian, English, Finnish", by: "IDA community, Tallinn and Helsinki" },
+    retreat: { desc: "Independent community radio and cultural platform from Malmö since 2018: experimental music, sound art and DJ culture from the Öresund region, with events, residencies and workshops.", plays: "Experimental music, sound art, club and DJ culture", lang: "English, Swedish", by: "Retreat Radio, Malmö" },
+    rotation: { desc: "Community-driven, non-profit online radio from Stockholm, made for human curation in an algorithm-driven world: emerging and established DJs and artists, and the archive when no one is live.", plays: "DJ sets and shows across genres", lang: "English, Swedish", by: "Rotation Radio, Stockholm" },
     nopal: { desc: "Collective, self-managed internet radio from the San Rafael neighbourhood of Mexico City, with an arts space, residencies and workshops. It broadcasts with mensajito, a free, low-cost transmitter made by its co-founder Diego Aguirre Fernández.", plays: "Music from Mexico and Latin America, often from forgotten records, with art and culture programmes", lang: "Spanish", by: "Radio Nopal collective, Mexico City", support: "https://www.radionopal.com/#/info/apoyanos" },
     satellite: { desc: "Independent radio from Lisbon, live around the clock: rhythms from across continents and sounds still to be discovered, with live sets and talks with artists.", plays: "World, jazz, dub, Afrobeat, electronica and experimental", lang: "English, Portuguese", by: "Satellite Radio, Lisbon" },
     bcr: { desc: "Community-led, independent radio from Bangkok, launched by a collective to connect the city’s cultural communities.", since: "2021", plays: "Ambient, techno, molam, Balearic, disco, funk and soul", lang: "Thai, English", by: "Bangkok Community Radio collective", shop: "https://store.bangkokcommunityradio.com/" },
