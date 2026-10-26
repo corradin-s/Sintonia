@@ -7,6 +7,10 @@ permissions:
   contents: write
   issues: write
   pages: write
+# two replies in a row are handled one after the other
+concurrency:
+  group: this-week-picks
+  cancel-in-progress: false
 jobs:
   picks:
     if: startsWith(github.event.issue.title, 'Palinsesti ') && github.event.comment.user.login == github.repository_owner
@@ -23,12 +27,17 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body }}
       - name: Save the picks and publish
         run: |
-          if git diff --quiet -- picks.json prova/picks.json 2>/dev/null && [ -z "$(git status --porcelain -- picks.json prova/picks.json)" ]; then echo "nothing to save"; exit 0; fi
+          [ -f picks.json ] || { echo "no picks in this reply"; exit 0; }
+          # start from the latest main, so only picks.json changes even if main moved in the meantime
+          git fetch -q origin main
+          git reset -q origin/main
+          git add picks.json
+          [ -f prova/picks.json ] && git add prova/picks.json
+          if git diff --cached --quiet; then echo "nothing to save"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add picks.json prova/picks.json 2>/dev/null || git add picks.json
           git commit -m "This week: picks from the schedule issue #${{ github.event.issue.number }}"
-          git push
+          git push origin HEAD:main
           # a push made with this token doesn't start the Pages build by itself
           curl -s -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/pages/builds" > /dev/null || true
         env:

@@ -4,12 +4,13 @@ on:
   schedule:
     - cron: "17 7 * * 0"   # Sundays at 07:17 UTC
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths: [".github/workflows/weekly-schedule.yml", "tools/weekly-schedule.mjs"]
 permissions:
   contents: read
   issues: write
+# one list at a time, so two runs never open two issues
+concurrency:
+  group: weekly-schedule
+  cancel-in-progress: false
 jobs:
   schedule:
     runs-on: ubuntu-latest
