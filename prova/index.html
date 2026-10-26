@@ -372,6 +372,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="hanoi"]    { --c:#A6E3C8; --t:#0B2219; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:90%;  --oy:80%;  --gap:12px; }
 [data-id="lithium"]  { --c:#16120F; --t:#FF4A2E; --ring:rgba(255,74,46,.16);   --pill:rgba(255,74,46,.18);   --ox:85%;  --oy:-15%; --gap:12px; --dot:#FF5A3C; }
 [data-id="satellite"]{ --c:#0E4A5A; --t:#F7D774; --ring:rgba(247,215,116,.14); --pill:rgba(247,215,116,.2);  --ox:92%;  --oy:88%;  --gap:14px; --dot:#F7D774; }
+[data-id="nopal"]    { --c:#A51D5C; --t:#E3F4CC; --ring:rgba(227,244,204,.14); --pill:rgba(227,244,204,.2);  --ox:18%;  --oy:-18%; --gap:12px; --dot:#8CCB5E; }
 [data-id="bcr"]      { --c:#3F4697; --t:#F4EBE0; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:10%;  --oy:115%; --gap:13px; --dot:#7C84E0; }
 [data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
 .name.keepcase { text-transform: none; }
@@ -1060,6 +1061,14 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Satellite Radio</span><span class="meta"><span>P20 · Lisbon</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://www.satelliteradio.online/">Info</button>
+    </li>
+
+    <li class="tile" data-id="nopal" data-added="2026-10-26" data-country="Mexico" data-code="MEX" data-lat="19.439" data-lon="-99.163" data-region="Americas" data-city="Mexico City" data-tz="America/Mexico_City" data-src="https://radio.mensajito.mx/nopalradio">
+      <button class="tune" type="button" aria-label="Listen to Radio Nopal">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Nopal</span><span class="meta"><span>P21 · Mexico City</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://www.radionopal.com/">Info</button>
     </li>
 
   </ol>
@@ -2191,6 +2200,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     newtown: { desc: "Independent internet radio from Bushwick, Brooklyn: mostly live two-hour shows by local DJs, musicians and artists.", since: "2009", plays: "Open format: indie, rap, electronic, live sessions", lang: "English", by: "Newtown Radio, Brooklyn" },
     hanoi: { desc: "Community radio from Hanoi, giving space to the city’s DJs, musicians and creative scene.", plays: "Electronic, experimental, Vietnamese sounds", lang: "Vietnamese, English", by: "Hà Nội Community Radio" },
     lithium: { desc: "A café and radio in Paris’s 20th arrondissement, broadcasting DJ sets and shows from its own room.", plays: "Electronic, club, bass and more", lang: "French, English", by: "Lithium, Paris" },
+    nopal: { desc: "Collective, self-managed internet radio from the San Rafael neighbourhood of Mexico City, with an arts space, residencies and workshops. It broadcasts with mensajito, a free, low-cost transmitter made by its co-founder Diego Aguirre Fernández.", plays: "Music from Mexico and Latin America, often from forgotten records, with art and culture programmes", lang: "Spanish", by: "Radio Nopal collective, Mexico City" },
     satellite: { desc: "Independent radio from Lisbon, live around the clock: rhythms from across continents and sounds still to be discovered, with live sets and talks with artists.", plays: "World, jazz, dub, Afrobeat, electronica and experimental", lang: "English, Portuguese", by: "Satellite Radio, Lisbon" },
     bcr: { desc: "Community-led, independent radio from Bangkok, launched by a collective to connect the city’s cultural communities.", since: "2021", plays: "Ambient, techno, molam, Balearic, disco, funk and soul", lang: "Thai, English", by: "Bangkok Community Radio collective" },
     setagaya: { desc: "Community FM for Tokyo’s Setagaya ward, on air at 83.4 FM.", plays: "Local programmes, music and community news", lang: "Japanese", by: "FM Setagaya, Tokyo" },
@@ -2837,7 +2847,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   /* ---------- "The sound of…": the music, people and geography of each station's city ---------- */
   const cp = $("cp"), cpIn = $("cp-in");
   let cityData = null, geo = null, cityAsked = null, cpId = "";
-  const GEO_ORDER = ["GB", "DE", "BE", "IT", "GR", "PS", "BR", "CL", "US", "VN", "JP", "FR", "TH", "AU", "PT"];
+  const GEO_ORDER = ["GB", "DE", "BE", "IT", "GR", "PS", "BR", "CL", "US", "VN", "JP", "FR", "TH", "AU", "PT", "MX"];
   function decodeGeo(buf) { // Natural Earth lakes, land borders and the stations' countries, packed like land.bin
     const b = new Uint8Array(buf);
     let i = 0, x = 0, y = 0;
@@ -2862,8 +2872,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function loadCity() {
     if (!cityAsked) {
       cityAsked = Promise.all([
-        fetch("cities.json?v=3").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
-        fetch("geo.bin?v=3").then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(decodeGeo),
+        fetch("cities.json?v=4").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+        fetch("geo.bin?v=4").then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(decodeGeo),
         landReady(),
       ]).then(([c, g]) => { cityData = c; geo = g; }).catch((e) => { cityAsked = null; throw e; });
     }
@@ -2933,6 +2943,12 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       g.fillStyle = "#FFE000"; g.beginPath(); g.arc(w * 0.4, h / 2, r, 0, TAU); g.fill();
       g.fillStyle = "#FF0000"; g.fillRect(w * 0.4 - r * 0.45, h / 2 - r * 0.55, r * 0.9, r * 1.05);
       g.fillStyle = "#FFFFFF"; g.fillRect(w * 0.4 - r * 0.28, h / 2 - r * 0.38, r * 0.56, r * 0.7);
+    } },
+    MX: { a: ["#006847", "#CE1126"], draw: (g, w, h) => { // green, white and red, the emblem in the middle
+      bands(g, w, h, ["#006847", "#FFFFFF", "#CE1126"], true);
+      const r = Math.min(w, h) * 0.14;
+      g.fillStyle = "#8A5A2B"; g.beginPath(); g.arc(w / 2, h / 2, r, 0, TAU); g.fill();
+      g.strokeStyle = "#006847"; g.lineWidth = Math.max(1, r * 0.3); g.beginPath(); g.arc(w / 2, h / 2, r * 1.35, Math.PI * 0.15, Math.PI * 0.85); g.stroke();
     } },
     FR: { a: ["#0055A4", "#EF4135"], draw: (g, w, h) => bands(g, w, h, ["#0055A4", "#FFFFFF", "#EF4135"], true) },
     TH: { a: ["#A51931", "#2D2A4A"], draw: (g, w, h) => bands(g, w, h, ["#A51931", "#F4F5F8", "#2D2A4A", "#2D2A4A", "#F4F5F8", "#A51931"]) },
