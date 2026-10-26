@@ -2079,7 +2079,11 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     { url: "https://public.radio.co/stations/s421105570/status", parse: (j) => ({ super45: fromRadioCo(j, "track") }) },
     { url: "https://public.radio.co/stations/s0d090ee43/status", parse: (j) => ({ newtown: fromRadioCo(j, "pipe") }) },
     { url: "https://api.live365.com/station/a71161", parse: (j) => ({ deepspace: fromLive365(j) }) },
-    { url: "https://fmsetagaya834.airtime.pro/api/live-info-v2", parse: (j) => ({ setagaya: fromAirtime(j) }) },
+    { url: "https://fmsetagaya834.airtime.pro/api/live-info-v2", parse: (j) => { // its FM signal is always "live": the night-time music block isn't a show
+      const r = fromAirtime(j);
+      if (r && /^834\s*music$/i.test(r.title)) r.onAir = false;
+      return { setagaya: r };
+    } },
     { url: "https://a13.my-control-panel.com/api/nowplaying/lithium_radio", parse: (j) => ({ lithium: fromAzura(j) }) },
     { url: "https://api.radiocult.fm/api/station/bcr/schedule/live", parse: (j) => ({ bcr: fromRadioCult(j) }) },
     { url: "https://a9.asurahosting.com/api/nowplaying/satellite_radio", parse: (j) => ({ satellite: fromAzuraTracks(j, "satellite radio") }) }
