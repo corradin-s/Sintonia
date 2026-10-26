@@ -1668,5 +1668,114 @@
     "lon": -10.3
    }
   ]
+ },
+ "MEX": {
+  "flag": "MX",
+  "view": {
+   "lat": [
+    16.5,
+    22.1
+   ],
+   "lon": [
+    -102.0,
+    -96.2
+   ]
+  },
+  "intro": "Mexico City is where mariachi came to town from Jalisco, where Pérez Prado sent the mambo round the world and where danzón still fills the dance halls. Its sonideros play cumbia at street parties all over the city, and from the 1980s its bands shaped rock en español.",
+  "born": [
+   "Cumbia sonidera",
+   "Rock rupestre"
+  ],
+  "names": [
+   [
+    "Agustín Lara",
+    "bolero, “Solamente una vez” (1941)"
+   ],
+   [
+    "Pérez Prado",
+    "the King of Mambo, “Mambo No. 5” (1949)"
+   ],
+   [
+    "José Alfredo Jiménez",
+    "ranchera, “El Rey” (1971)"
+   ],
+   [
+    "Chavela Vargas",
+    "ranchera, “La Llorona”"
+   ],
+   [
+    "Rockdrigo González",
+    "rock rupestre, “el profeta del nopal”"
+   ],
+   [
+    "Los Ángeles Azules",
+    "cumbia from Iztapalapa, “Cómo te voy a olvidar” (1997)"
+   ],
+   [
+    "Caifanes",
+    "“La negra Tomasa” (1988)"
+   ],
+   [
+    "Maldita Vecindad",
+    "“El Circo” (1991)"
+   ],
+   [
+    "Café Tacvba",
+    "“Re” (1994)"
+   ],
+   [
+    "Natalia Lafourcade",
+    "“Hasta la raíz” (2015)"
+   ]
+  ],
+  "pins": [
+   {
+    "lat": 19.441,
+    "lon": -99.139,
+    "place": "Plaza Garibaldi",
+    "year": "1920s",
+    "text": "Mariachis from Jalisco start playing at the Tenampa cantina on Plaza Garibaldi. The square becomes the home of mariachi in the city."
+   },
+   {
+    "lat": 19.451,
+    "lon": -99.143,
+    "place": "Colonia Guerrero",
+    "year": "1937",
+    "text": "Salón Los Ángeles opens. Danzón, mambo and salsa bands still play live there: “Quien no conoce Los Ángeles, no conoce México”."
+   },
+   {
+    "lat": 19.433,
+    "lon": -99.137,
+    "place": "Mexico City",
+    "year": "1949",
+    "text": "Pérez Prado moves here from Cuba and signs with RCA Victor. From Mexico City his mambos, like “Mambo No. 5”, go round the world."
+   },
+   {
+    "lat": 19.446,
+    "lon": -99.152,
+    "place": "Museo del Chopo",
+    "year": "1980",
+    "text": "The Museo del Chopo starts a Saturday swap market. Since 1987 it has stood on calle Aldama: the Tianguis del Chopo, meeting place of the city’s rock, punk and metal fans."
+   },
+   {
+    "lat": 19.51,
+    "lon": -99.235,
+    "place": "Ciudad Satélite",
+    "year": "1989",
+    "text": "Four friends start Café Tacvba in a garage in Satélite. Their album “Re” (1994) mixes rock and punk with norteño, banda, huapango and bolero."
+   }
+  ],
+  "sea": [
+   {
+    "label": "Gulf of Mexico",
+    "lat": 21.6,
+    "lon": -96.7
+   },
+   {
+    "label": "Pacific Ocean",
+    "lat": 16.9,
+    "lon": -101.3
+   }
+  ]
  }
 }
