@@ -263,6 +263,12 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 /* in New in, and on the big tiles of stations that just arrived */
 .newtag { display: inline-block; font-family: var(--f-mono); font-size: 8.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; padding: 2px 5px; border-radius: 4px; background: var(--t); color: var(--c); }
 .mini .newtag { margin-bottom: 1px; justify-self: start; }
+.favs.stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; overflow: visible; scroll-snap-type: none; margin: 0; padding: 0; }
+.favs.stack .mini { width: auto; height: auto; border-radius: 14px; }
+.favs.stack .mini .tune { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; padding: 10px 52px 10px 11px; border-radius: 14px; }
+.favs.stack .mini .mt { gap: 4px; }
+.favs.stack .mini .nm { display: block; font-size: 21px; line-height: .95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.favs.stack .mini .pin { top: 50%; bottom: auto; right: 6px; transform: translateY(-50%); }
 @keyframes live-blink { 50% { opacity: .25; } }
 /* This week: three picks, each a wide card in the station's colour */
 .picks { display: grid; gap: 10px; }
@@ -468,9 +474,8 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .mood[aria-checked="true"] { background: var(--chip, var(--ink)); color: var(--chip-t, var(--bg)); }
 .mood[aria-checked="true"] span { color: inherit; }
 .mood:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
-/* the area, crossed with the time of day: a row of pills that scrolls sideways if it must */
-.areas { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -2px; padding: 0 2px; }
-.areas::-webkit-scrollbar { display: none; }
+/* the area, crossed with the time of day: a row of pills that wraps onto a second line if it must */
+.areas { display: flex; flex-wrap: wrap; gap: 6px; }
 .area { appearance: none; -webkit-appearance: none; flex: none; cursor: pointer; border: 1px solid var(--line); background: var(--bg-2); color: var(--ink);
   border-radius: 999px; padding: 7px 12px; font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
 .area[aria-checked="true"] { background: var(--chip, var(--ink)); color: var(--chip-t, var(--bg)); border-color: transparent; }
@@ -1218,14 +1223,14 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     <header class="hero">
       <h2 class="title">This week</h2>
     </header>
+    <section class="sec" id="sec-new" aria-labelledby="new-h" hidden>
+      <h2 class="sec-h"><span id="new-h">Recently added</span><small>new stations, last seven days</small></h2>
+      <div class="favs stack" id="newin"></div>
+    </section>
     <section class="sec" id="sec-picks" aria-labelledby="picks-h">
       <h2 class="sec-h"><span id="picks-h">Not to miss</span><small>three shows, in your time</small></h2>
       <div class="picks" id="picks"></div>
       <p class="mood-empty" id="picks-empty" hidden>New picks arrive every week.</p>
-    </section>
-    <section class="sec" id="sec-new" aria-labelledby="new-h" hidden>
-      <h2 class="sec-h"><span id="new-h">Recently added</span><small>new stations, last seven days</small></h2>
-      <div class="favs" id="newin"></div>
     </section>
   </section>
 
@@ -2244,7 +2249,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function renderNew() {
     const fresh = stations.filter(isNew).sort((a, b) => Date.parse(b.el.dataset.added) - Date.parse(a.el.dataset.added));
     $("sec-new").hidden = !fresh.length;
-    fillMinis($("newin"), fresh.map((st) => st.id), true);
+    fillMinis($("newin"), fresh.map((st) => st.id), false); // all of them are new: no tag needed
     stations.forEach((st) => {
       const meta = st.el.querySelector(".meta"), tag = meta.querySelector(".newtag");
       if (isNew(st) && !tag) { const t = document.createElement("span"); t.className = "newtag"; t.textContent = "New"; meta.prepend(t); }
