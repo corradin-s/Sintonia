@@ -2,8 +2,23 @@
  "week": "2026-10-26",
  "note": "Three shows picked by hand each week. Times in UTC; the app shows them in the listener's own time.",
  "picks": [
-  {"id": "nts1", "title": "SNO – Mahotella Queens special", "start": "2026-10-27T17:00:00Z", "end": "2026-10-27T18:00:00Z", "why": "An hour on the Mahotella Queens, the voices of South African mbaqanga."},
-  {"id": "nts1", "title": "Bradley Zero presents: Rhythm Section", "start": "2026-10-28T14:00:00Z", "end": "2026-10-28T15:00:00Z", "why": "An hour with the founder of Peckham’s Rhythm Section International label."},
-  {"id": "nts2", "title": "Jim O’Rourke", "start": "2026-10-29T11:00:00Z", "end": "2026-10-29T12:00:00Z", "why": "An hour chosen by the composer and producer, once a member of Sonic Youth."}
+  {
+   "id": "nts1",
+   "title": "CLUB COCO w/ COCO MARIA: Musica de Brasil para el mundo",
+   "start": "2026-10-26T18:00:00.000Z",
+   "end": "2026-10-26T20:00:00.000Z"
+  },
+  {
+   "id": "stegi",
+   "title": "Muddy Bless w/ Viki Steiri & Dario Papavassiliou",
+   "start": "2026-10-27T20:00:00.000Z",
+   "end": "2026-10-27T21:00:00.000Z"
+  },
+  {
+   "id": "stegi",
+   "title": "Dark Is Beautiful w/ Laurent Carleris",
+   "start": "2026-10-28T18:00:00.000Z",
+   "end": "2026-10-28T19:00:00.000Z"
+  }
  ]
 }
