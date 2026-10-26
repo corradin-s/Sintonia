@@ -1,0 +1,25 @@
+# Every Sunday morning: next week's shows, numbered, as an issue (GitHub emails it). Reply with three numbers to fill This week.
+name: Weekly schedule
+on:
+  schedule:
+    - cron: "17 7 * * 0"   # Sundays at 07:17 UTC
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/weekly-schedule.yml", "tools/weekly-schedule.mjs"]
+permissions:
+  contents: read
+  issues: write
+jobs:
+  schedule:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tools/weekly-schedule.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}

@@ -1,0 +1,39 @@
+# A reply from the owner with three numbers on the weekly schedule issue fills This week (picks.json).
+name: This week picks
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: write
+  issues: write
+  pages: write
+jobs:
+  picks:
+    if: startsWith(github.event.issue.title, 'Palinsesti ') && github.event.comment.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tools/picks-from-comment.mjs
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+      - name: Save the picks and publish
+        run: |
+          if git diff --quiet -- picks.json prova/picks.json 2>/dev/null && [ -z "$(git status --porcelain -- picks.json prova/picks.json)" ]; then echo "nothing to save"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add picks.json prova/picks.json 2>/dev/null || git add picks.json
+          git commit -m "This week: picks from the schedule issue #${{ github.event.issue.number }}"
+          git push
+          # a push made with this token doesn't start the Pages build by itself
+          curl -s -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/pages/builds" > /dev/null || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Reply
+        run: gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body-file picks-reply.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
