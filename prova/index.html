@@ -267,8 +267,11 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .favs.stack .mini { width: auto; height: auto; border-radius: 14px; }
 .favs.stack .mini .tune { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; padding: 10px 52px 10px 11px; border-radius: 14px; }
 .favs.stack .mini .mt { gap: 4px; }
-.favs.stack .mini .nm { display: block; font-size: 21px; line-height: .95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.favs.stack .mini .nm { font-size: 21px; line-height: .95; }
 .favs.stack .mini .pin { top: 50%; bottom: auto; right: 6px; transform: translateY(-50%); }
+/* on a wider screen the list takes two or three columns, so the rows don't stretch across the whole page */
+@media (min-width: 700px) { .favs.stack { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1000px) { .favs.stack { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @keyframes live-blink { 50% { opacity: .25; } }
 /* This week: three picks, each a wide card in the station's colour */
 .picks { display: grid; gap: 10px; }
