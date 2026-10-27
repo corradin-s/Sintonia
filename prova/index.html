@@ -1544,7 +1544,9 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function drawMap() {
     if ($("view-map").hidden || !measure()) return;
     setRot();
+    setSun();
     drawLand();
+    drawNight();
     drawOver();
   }
 
@@ -1554,6 +1556,21 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function project(lat, lon) { // -> [x, y, z] on screen; z <= 0 is the far side
     const f = lat * RAD, l = (lon - cam.lon) * RAD, cf = Math.cos(f), sf = Math.sin(f), cl = Math.cos(l);
     return [W / 2 + cf * Math.sin(l) * cam.R, H / 2 - (c0 * sf - s0 * cf * cl) * cam.R, s0 * sf + c0 * cf * cl];
+  }
+  // the sun: the point on Earth where it is overhead right now (the usual approximation, within a fraction of a degree)
+  function sunAt(t) {
+    const d = t / 864e5 - 10957.5; // days since 1 January 2000, 12:00 UTC
+    const g = (357.529 + 0.98560028 * d) * RAD;
+    const L = (280.459 + 0.98564736 * d + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * RAD; // where the sun is along its yearly path
+    const e = (23.439 - 0.00000036 * d) * RAD; // the tilt of the Earth
+    const ra = Math.atan2(Math.cos(e) * Math.sin(L), Math.cos(L));
+    const turn = ((18.697374558 + 24.06570982441908 * d) % 24) * 15 * RAD; // how far the Earth has turned
+    return { lat: Math.asin(Math.sin(e) * Math.sin(L)) / RAD, lon: wrapLon((ra - turn) / RAD) };
+  }
+  let sun = [0, 0, 1]; // which way the sun is, seen from where we look at the globe: right, up, towards us
+  function setSun() {
+    const p = sunAt(Date.now()), f = p.lat * RAD, l = (p.lon - cam.lon) * RAD, cf = Math.cos(f), sf = Math.sin(f), cl = Math.cos(l);
+    sun = [cf * Math.sin(l), c0 * sf - s0 * cf * cl, s0 * sf + c0 * cf * cl];
   }
   function unproject(px, py) { // a point on screen -> [lat, lon], or null off the globe
     const x = (px - W / 2) / cam.R, y = (H / 2 - py) / cam.R, r = Math.hypot(x, y);
@@ -1571,7 +1588,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     const css = getComputedStyle(document.documentElement), light = document.documentElement.getAttribute("data-theme") === "light";
     const R = cam.R, cx = W / 2, cy = H / 2;
-    // the sea: a sphere lit from the top left, with a faint halo in the colour of the station on air
+    // the sea: a sphere lit from the side of the sun, with a faint halo in the colour of the station on air
     const glow = css.getPropertyValue("--glow").trim();
     if (glow && R < Math.hypot(W, H)) {
       const halo = ctx.createRadialGradient(cx, cy, R * 0.96, cx, cy, R * 1.12);
@@ -1580,7 +1597,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     }
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU);
     ctx.fillStyle = css.getPropertyValue("--bg").trim() || "#0C0D11"; ctx.fill();
-    const lit = ctx.createRadialGradient(cx - R * 0.38, cy - R * 0.42, R * 0.05, cx, cy, R);
+    const sxy = Math.hypot(sun[0], sun[1]) || 1, far = sun[2] < 0 ? 0.85 / sxy : 0.5; // sun behind the globe: the light is at its edge
+    const lit = ctx.createRadialGradient(cx + sun[0] * far * R, cy - sun[1] * far * R, R * 0.05, cx, cy, R);
     lit.addColorStop(0, light ? "rgba(255,255,255,.75)" : "rgba(255,255,255,.07)");
     lit.addColorStop(0.7, "rgba(255,255,255,0)");
     lit.addColorStop(1, light ? "rgba(0,0,0,.07)" : "rgba(0,0,0,.35)");
@@ -1656,6 +1674,49 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       }
     });
     ctx.fill();
+  }
+
+  // day and night: the side of the Earth away from the sun in shade, the twilight in between (the sun up to 18° below
+  // the horizon, where the sky is not yet fully dark), warm where the sun has just set or is about to rise.
+  // Worked out on a small grid, a few thousand points, and stretched over the globe: the shade is soft anyway.
+  const shadeCv = document.createElement("canvas"), shadeCtx = shadeCv.getContext("2d");
+  let shadeImg = null;
+  function drawNight() {
+    const R = cam.R, light = document.documentElement.getAttribute("data-theme") === "light";
+    const k = Math.max(3, Math.ceil(Math.max(W, H) / 160)), w = Math.ceil(W / k) + 1, h = Math.ceil(H / k) + 1;
+    if (shadeCv.width !== w || shadeCv.height !== h) { shadeCv.width = w; shadeCv.height = h; shadeImg = null; }
+    if (!shadeImg) shadeImg = shadeCtx.createImageData(w, h);
+    const px = shadeImg.data, [sx, sy, sz] = sun;
+    // three layers, one over the other: a little light on the day side, the night, the warm of dusk and dawn
+    const DAY = light ? [255, 255, 255, 0.10] : [255, 246, 228, 0.07];
+    const NIGHT = light ? [28, 32, 64, 0.36] : [3, 4, 14, 0.66];
+    const DUSK = [255, 128, 58, light ? 0.16 : 0.2];
+    const step = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    for (let j = 0; j < h; j++) {
+      const v0 = (H / 2 - (j + 0.5) * k) / R;
+      for (let i = 0; i < w; i++) {
+        let u = ((i + 0.5) * k - W / 2) / R, v = v0, r2 = u * u + v * v;
+        if (r2 > 1) { const r = Math.sqrt(r2); u /= r; v /= r; r2 = 1; } // past the edge: as at the edge, so the shade doesn't fade there
+        const e = u * sx + v * sy + Math.sqrt(1 - r2) * sz; // the sine of the sun's height above the horizon at that point
+        const x = 0.02 - e, dusk = x > 0 ? (x / 0.06) * Math.exp(1 - x / 0.06) : 0;
+        let r = DAY[0], g = DAY[1], b = DAY[2], a = DAY[3] * step(-0.02, 0.2, e), la, na;
+        la = NIGHT[3] * step(0.02, -0.31, e); na = la + a * (1 - la); // the night over the day...
+        if (na > 0) { r = (NIGHT[0] * la + r * a * (1 - la)) / na; g = (NIGHT[1] * la + g * a * (1 - la)) / na; b = (NIGHT[2] * la + b * a * (1 - la)) / na; }
+        a = na;
+        la = DUSK[3] * dusk; na = la + a * (1 - la); // ...and the warm of dusk over both
+        if (na > 0) { r = (DUSK[0] * la + r * a * (1 - la)) / na; g = (DUSK[1] * la + g * a * (1 - la)) / na; b = (DUSK[2] * la + b * a * (1 - la)) / na; }
+        a = na;
+        const o = (j * w + i) * 4;
+        px[o] = r; px[o + 1] = g; px[o + 2] = b; px[o + 3] = a * 255;
+      }
+    }
+    shadeCtx.putImageData(shadeImg, 0, 0);
+    const ctx = landCv.getContext("2d");
+    ctx.save();
+    ctx.beginPath(); ctx.arc(W / 2, H / 2, R, 0, TAU); ctx.clip();
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(shadeCv, 0, 0, w * k, h * k);
+    ctx.restore();
   }
 
   const arcs = new Map();
