@@ -194,6 +194,31 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 }
 .m-code.on, .m-n { fill: var(--ink); }
 
+/* reactions: four symbols to send while a station plays; they cross the map for whoever has Sintonia open */
+.react { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.react-k { min-width: 0; font-family: var(--f-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.react-k b { color: var(--ink); font-weight: 600; }
+.react-b { display: flex; gap: 8px; flex: none; }
+.react-b button { appearance: none; -webkit-appearance: none; cursor: pointer; padding: 0; width: 42px; height: 42px; border-radius: 50%;
+  border: 1.5px solid currentColor; background: none; color: var(--ink); display: grid; place-items: center; transition: transform .15s, background-color .15s, color .15s; }
+.react-b button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.react-b button:disabled { opacity: .32; cursor: default; }
+.react-b button.sent { background: var(--ink); color: var(--bg); transform: scale(.92); }
+.react-b button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.lg-react { flex: none; width: 13px; height: 13px; margin: 0 -2px; fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#m-react .rx-in { transform-box: fill-box; transform-origin: center; animation: rx-rise 2.6s ease-out both; }
+#m-react .rx-in path { fill: none; stroke: var(--bg); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+#m-react .rx-spark { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: .06 1.2; stroke-dashoffset: .06; animation: rx-spark 1s ease-in both; }
+@keyframes rx-rise { 0% { transform: translateY(0) scale(.3); opacity: 0; } 12% { transform: translateY(-4px) scale(1.12); opacity: 1; }
+  24% { transform: translateY(-6px) scale(1); } 70% { opacity: 1; } 100% { transform: translateY(-30px) scale(1); opacity: 0; } }
+@keyframes rx-spark { to { stroke-dashoffset: -1; } }
+@media (prefers-reduced-motion: reduce) {
+  #m-react .rx-in { animation-name: rx-fade; }
+  #m-react .rx-spark { display: none; }
+}
+@keyframes rx-fade { 0%, 100% { opacity: 0; } 10%, 75% { opacity: 1; } }
+
 .me { display: none; }
 .me.on { display: inline; }
 .me .core { fill: var(--live); }
@@ -1194,6 +1219,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
           <g id="m-stations"></g>
           <g class="m-others" id="m-others"></g>
           <g class="me" id="me"><circle class="ping" r="4"/><circle class="core" r="4"/></g>
+          <g id="m-react"></g>
         </svg>
         <div class="map-ctl">
           <button type="button" id="z-in" aria-label="Zoom in"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg></button>
@@ -1204,10 +1230,15 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
           </button>
         </div>
       </div>
+      <div class="react" id="react" hidden>
+        <span class="react-k" id="react-k">Play a station to react</span>
+        <div class="react-b" id="react-b" role="group" aria-label="Reactions"></div>
+      </div>
       <div class="legend" aria-live="polite">
         <div class="lg-row"><i class="lg-you"></i><span id="lg-you">You · location off</span></div>
         <div class="lg-row" id="lg-others-row" hidden><i class="lg-others"></i><span id="lg-others"></span></div>
         <div class="lg-row"><i class="lg-st"></i><span>Stations. A line links each listener to what they’re playing.</span></div>
+        <div class="lg-row lg-react-row" id="lg-react-row" hidden><svg class="lg-react" id="lg-react-i" viewBox="0 0 24 24" aria-hidden="true"><path/></svg><span id="lg-react"></span></div>
       </div>
     </div>
 
@@ -1451,7 +1482,12 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
           if (p && isFinite(p.lat) && isFinite(p.lon)) others.push({ lat: +p.lat, lon: +p.lon, st: p.st && byId[p.st] ? p.st : "" });
         });
         renderOthers();
-      }).subscribe((status) => { if (status === "SUBSCRIBED") { sentSig = ""; trackMe(); } });
+      }).on("broadcast", { event: "react" }, (m) => showReaction(m && m.payload, false))
+        .subscribe((status) => {
+          reactReady = status === "SUBSCRIBED";
+          if (reactReady) { sentSig = ""; trackMe(); }
+          renderReactBar();
+        });
     }).catch(() => {});
   }
   let sentSig = "", trackTimer = 0;
@@ -1477,6 +1513,107 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     $("lg-others").textContent = others.length === 0 ? "No one else is tuned in right now"
       : others.length === 1 ? "1 other listener right now" : others.length + " other listeners right now";
     queueDraw();
+  }
+
+  /* ---------- reactions: Love, Fire, Groove or Vibe for the station you're playing ----------
+     Sent through the same live channel as the dots, seen on the map by whoever has Sintonia open at that moment, saved nowhere.
+     No text: only these four, so there is nothing to moderate. */
+  var REACT = {
+    love: { name: "Love", d: "M12 19.5s-7-4.3-7-9.6A3.9 3.9 0 0 1 12 7.6a3.9 3.9 0 0 1 7 2.3c0 5.3-7 9.6-7 9.6z" },
+    fire: { name: "Fire", d: "M12 20c-3.5 0-6.2-2.5-6.2-6 0-3.4 2.6-5.2 3.7-8.4 1.8 1.3 2.7 3.1 2.8 5.1 1-.7 1.7-1.8 1.9-3.1 2 1.8 4 4 4 6.5 0 3.3-2.7 5.9-6.2 5.9z" },
+    groove: { name: "Groove", d: "M9 17.5V6.6l9-2.1v11M5 17.5a2 2 0 1 0 4 0a2 2 0 1 0-4 0M14 15.5a2 2 0 1 0 4 0a2 2 0 1 0-4 0" },
+    vibe: { name: "Vibe", d: "M3.5 13.5c1.5 0 1.5-3 3-3s1.5 6 3 6 1.5-9 3-9 1.5 9 3 9 1.5-3 3-3 1.5 0 1.5 0" },
+  };
+  const SVGNS = "http://www.w3.org/2000/svg";
+  (function buildReact() {
+    const box = $("react-b");
+    Object.keys(REACT).forEach((k) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.dataset.react = k; b.disabled = true; b.setAttribute("aria-label", REACT[k].name);
+      b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + REACT[k].d + '"/></svg>';
+      box.appendChild(b);
+    });
+    box.addEventListener("click", (ev) => { const b = ev.target.closest("button"); if (b && !b.disabled) sendReaction(b.dataset.react, b); });
+  })();
+  let reactReady = false, reactAt = 0;
+  function renderReactBar() {
+    const bar = $("react");
+    if (!bar) return;
+    bar.hidden = !SHARING;
+    const st = current && state === "live" ? byId[current] : null, can = !!st && reactReady;
+    const k = $("react-k");
+    if (can) { k.textContent = "React to "; const b = document.createElement("b"); b.textContent = st.name; k.appendChild(b); }
+    else k.textContent = st ? "Connecting…" : "Play a station to react";
+    bar.querySelectorAll("button").forEach((b) => { b.disabled = !can; });
+  }
+  function sendReaction(k, btn) {
+    if (!REACT[k] || !channel || !reactReady || !current || state !== "live") return;
+    const now = Date.now();
+    if (now - reactAt < 1500) return; // one at a time
+    reactAt = now;
+    const p = { k, st: current };
+    if (me) { p.lat = coarse(me.lat); p.lon = coarse(me.lon); } // the same rounded place as your dot, and only if you share it
+    channel.send({ type: "broadcast", event: "react", payload: p }).catch(() => {});
+    showReaction(p, true);
+    if (btn) { btn.classList.add("sent"); setTimeout(() => btn.classList.remove("sent"), 450); }
+  }
+  // what arrives is checked: one of the four, a station in the app, a place on Earth rounded like the dots; a flood is let pass
+  const reacts = [];
+  let reactLog = [], reactLineT = 0;
+  function showReaction(p, mine) {
+    if (!p || !REACT.hasOwnProperty(p.k) || !byId.hasOwnProperty(p.st)) return;
+    const now = performance.now();
+    reactLog = reactLog.filter((t) => now - t < 10000);
+    if (!mine && reactLog.length >= 24) return;
+    reactLog.push(now);
+    const lat = +p.lat, lon = +p.lon;
+    const from = isFinite(lat) && isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat: coarse(lat), lon: coarse(lon) } : null;
+    const st = byId[p.st], c = cityByCode[st.code], R_ = REACT[p.k];
+    // the line under the map: the latest reaction, for a little while
+    $("lg-react-i").firstChild.setAttribute("d", R_.d);
+    $("lg-react").textContent = (mine ? "You sent " : "Someone sent ") + R_.name + " to " + st.name;
+    $("lg-react-row").hidden = false;
+    clearTimeout(reactLineT);
+    reactLineT = setTimeout(() => { $("lg-react-row").hidden = true; }, 15000);
+    if ($("view-map").hidden || !c) return;
+    // on the map: the symbol rises from the listener's dot, a spark runs along the line, and the symbol rises again from the station's city
+    if (reacts.length >= 12) { const old = reacts.shift(); old.el.remove(); }
+    const g = document.createElementNS(SVGNS, "g");
+    let spark = null;
+    if (from) {
+      spark = document.createElementNS(SVGNS, "path");
+      spark.setAttribute("class", "rx-spark"); spark.setAttribute("pathLength", "1"); spark.style.stroke = st.dot;
+      g.appendChild(spark);
+    }
+    const symbol = (at, delay) => {
+      const icon = document.createElementNS(SVGNS, "g"), inner = document.createElementNS(SVGNS, "g");
+      inner.setAttribute("class", "rx-in");
+      if (delay) inner.style.animationDelay = delay;
+      inner.innerHTML = '<circle r="12" style="fill:' + st.dot + '"/><path transform="translate(-9 -9) scale(.75)" d="' + R_.d + '"/>';
+      icon.appendChild(inner); g.appendChild(icon);
+      return { icon, lat: at.lat, lon: at.lon };
+    };
+    const icons = from ? [symbol(from, ""), symbol(c, ".85s")] : [symbol(c, "")];
+    $("m-react").appendChild(g);
+    const r = { el: g, c, from, spark, icons };
+    reacts.push(r);
+    placeReaction(r);
+    setTimeout(() => { const i = reacts.indexOf(r); if (i >= 0) reacts.splice(i, 1); g.remove(); }, from ? 3600 : 2800);
+  }
+  function placeReaction(r) { // follows the globe while it turns
+    r.icons.forEach((s) => {
+      const [x, y, z] = project(s.lat, s.lon);
+      s.icon.setAttribute("transform", "translate(" + f1(x) + " " + f1(y) + ")");
+      s.icon.style.visibility = z > 0.05 ? "" : "hidden";
+    });
+    if (r.spark) {
+      let d = "", on = false;
+      arcPts(r.from, r.c).forEach(([la, lo]) => {
+        const [px, py, pz] = project(la, lo);
+        if (pz > 0.02) { d += (on ? "L" : "M") + f1(px) + " " + f1(py); on = true; } else on = false;
+      });
+      r.spark.setAttribute("d", d || "M0 0");
+    }
   }
 
   /* ---------- the map: a dot-matrix globe; drag to turn it, pinch or tap twice to zoom; left alone it turns by itself ---------- */
@@ -1815,6 +1952,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     });
     setG("others", dots);
 
+    reacts.forEach(placeReaction);
+
     // me
     const meEl = $("me");
     if (me) {
@@ -1975,6 +2114,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       $("lg-you").textContent = "You · location off";
     }
     trackMe();
+    renderReactBar();
     if (!$("view-map").hidden) { loadLand(); queueDraw(); startGlobeSpin(); }
   }
 

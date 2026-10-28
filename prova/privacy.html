@@ -73,7 +73,7 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
 
   <section>
     <h2>The map and other listeners</h2>
-    <p>When Sintonia opens, it connects to Supabase, the service that shows on the map how many other people are listening and roughly where. Supabase receives your IP address. Supabase keeps a technical log of each connection, including your IP address, for one day. Sintonia’s Supabase project is hosted in the EU (Ireland).</p>
+    <p>When Sintonia opens, it connects to Supabase, the service that shows on the map how many other people are listening and roughly where, and passes on reactions. Supabase receives your IP address. Supabase keeps a technical log of each connection, including your IP address, for one day. Sintonia’s Supabase project is hosted in the EU (Ireland).</p>
     <p>Your own dot is shared only after you tap “Use my location” on the map and allow it. From then on, whenever Sintonia is open, it sends:</p>
     <ul>
       <li>your position, rounded to half a degree (about 50 km);</li>
@@ -81,6 +81,7 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
       <li>a random code, so that reopening the app doesn’t count you twice.</li>
     </ul>
     <p>Other people with Sintonia open see this as an anonymous dot. It isn’t written to any database: it exists only in Supabase’s live channel and disappears when you close the app.</p>
+    <p>While a station is playing, you can send a reaction: Love, Fire, Groove or Vibe. It goes through the same live channel with the station you’re playing and, only if you share your dot, the same rounded position. People with Sintonia open at that moment see it cross the map, without knowing who sent it. Reactions aren’t written to any database: they disappear after a few seconds.</p>
     <p>On your phone, Sintonia keeps your position rounded to about 10 km, so that the map can show where you are. While location access is allowed, it refreshes this position when you open the app.</p>
     <p>To stop, tap “Stop sharing my location” on the map: your dot disappears for everyone and the saved position is deleted from this phone. You can share it again whenever you like.</p>
   </section>
@@ -110,7 +111,7 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
   <section>
     <h2>Legal bases</h2>
     <p>Sharing your dot on the map is based on your consent (Article 6(1)(a) GDPR), which you give by tapping “Use my location” and allowing it. You can withdraw it at any time with “Stop sharing my location” on the map. Withdrawing doesn’t affect what was shared before.</p>
-    <p>Everything else (delivering the app, showing what’s on air, playing stations and showing how many people are listening) is based on the legitimate interest in running a working radio app (Article 6(1)(f) GDPR).</p>
+    <p>Everything else (delivering the app, showing what’s on air, playing stations and showing how many people are listening, passing on the reactions you send) is based on the legitimate interest in running a working radio app (Article 6(1)(f) GDPR).</p>
   </section>
 
   <section>
