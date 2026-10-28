@@ -1555,20 +1555,21 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     const p = { k, st: current };
     if (me) { p.lat = coarse(me.lat); p.lon = coarse(me.lon); } // the same rounded place as your dot, and only if you share it
     channel.send({ type: "broadcast", event: "react", payload: p }).catch(() => {});
-    showReaction(p, true);
+    showReaction(p, true, me); // on your own screen it starts from your red dot, not from the rounded point the others see
     if (btn) { btn.classList.add("sent"); setTimeout(() => btn.classList.remove("sent"), 450); }
   }
   // what arrives is checked: one of the four, a station in the app, a place on Earth rounded like the dots; a flood is let pass
   const reacts = [];
   let reactLog = [], reactLineT = 0;
-  function showReaction(p, mine) {
+  function showReaction(p, mine, origin) {
     if (!p || !REACT.hasOwnProperty(p.k) || !byId.hasOwnProperty(p.st)) return;
     const now = performance.now();
     reactLog = reactLog.filter((t) => now - t < 10000);
     if (!mine && reactLog.length >= 24) return;
     reactLog.push(now);
     const lat = +p.lat, lon = +p.lon;
-    const from = isFinite(lat) && isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat: coarse(lat), lon: coarse(lon) } : null;
+    const from = mine && origin ? { lat: origin.lat, lon: origin.lon }
+      : isFinite(lat) && isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat: coarse(lat), lon: coarse(lon) } : null;
     const st = byId[p.st], c = cityByCode[st.code], R_ = REACT[p.k];
     // the line under the map: the latest reaction, for a little while
     $("lg-react-i").firstChild.setAttribute("d", R_.d);
