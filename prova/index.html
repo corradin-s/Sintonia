@@ -196,11 +196,10 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 
 /* reactions: four symbols to send while a station plays; they cross the map for whoever has Sintonia open */
 .react { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
-.react-k { min-width: 0; font-family: var(--f-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.react-k b { color: var(--ink); font-weight: 600; }
-.react-b { display: flex; gap: 8px; flex: none; }
-.react-b button { appearance: none; -webkit-appearance: none; cursor: pointer; padding: 0; width: 42px; height: 42px; border-radius: 50%;
+.react-k { min-width: 0; display: grid; gap: 3px; font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.react-k b { color: var(--ink); font-weight: 600; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.react-b { display: flex; gap: 6px; flex: none; }
+.react-b button { appearance: none; -webkit-appearance: none; cursor: pointer; padding: 0; width: 40px; height: 40px; border-radius: 50%;
   border: 1.5px solid currentColor; background: none; color: var(--ink); display: grid; place-items: center; transition: transform .15s, background-color .15s, color .15s; }
 .react-b button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .react-b button:disabled { opacity: .32; cursor: default; }
@@ -1542,7 +1541,12 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     bar.hidden = !SHARING;
     const st = current && state === "live" ? byId[current] : null, can = !!st && reactReady;
     const k = $("react-k");
-    if (can) { k.textContent = "React to "; const b = document.createElement("b"); b.textContent = st.name; k.appendChild(b); }
+    if (can) { // only the people with Sintonia open see it: the station gets nothing
+      k.textContent = "";
+      const l = document.createElement("span"); l.textContent = "Tell other listeners";
+      const b = document.createElement("b"); b.textContent = st.name;
+      k.append(l, b);
+    }
     else k.textContent = st ? "Connecting…" : "Play a station to react";
     bar.querySelectorAll("button").forEach((b) => { b.disabled = !can; });
   }
@@ -1571,7 +1575,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     const st = byId[p.st], c = cityByCode[st.code], R_ = REACT[p.k];
     // the line under the map: the latest reaction, for a little while
     $("lg-react-i").firstChild.setAttribute("d", R_.d);
-    $("lg-react").textContent = (mine ? "You sent " : "Someone sent ") + R_.name + " to " + st.name;
+    $("lg-react").textContent = (mine ? "You sent " : "Someone sent ") + R_.name + " while listening to " + st.name;
     $("lg-react-row").hidden = false;
     clearTimeout(reactLineT);
     reactLineT = setTimeout(() => { $("lg-react-row").hidden = true; }, 15000);
