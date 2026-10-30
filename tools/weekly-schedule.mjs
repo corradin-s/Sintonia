@@ -13,7 +13,7 @@ for (const m of html.matchAll(/<li class="tile" data-id="([^"]+)"[^>]*data-tz="(
 const NTS = { nts1: 1, nts2: 2 };
 const AIRTIME = { kiosk: "kioskradiobxl", raheem: "radioraheem", cashmere: "cashmereradio", batuta: "radioims", stegi: "movementathens", setagaya: "fmsetagaya834", pass: "pass", retreat: "retreatradio" };
 const RADIOCO = { refuge: "s3699c5e49", super45: "s421105570", newtown: "s0d090ee43" };
-const RADIOCULT = { wwfm: "worldwide-fm", noods: "noods-radio", bcr: "bcr", hanoi: "ha-noi-community-radio", rotation: "rotation-radio-befbc736", sonic: "sonicradio" };
+const RADIOCULT = { wwfm: "worldwide-fm", noods: "noods-radio", bcr: "bcr", hanoi: "ha-noi-community-radio", rotation: "rotation-radio-befbc736", sonic: "sonicradio", rbl: "rblmedia-a4a44e62" };
 
 // the week, Monday to Sunday in Italian time: on Sunday it's the coming week, on other days what is left of this one
 const DOW = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };

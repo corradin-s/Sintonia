@@ -1,0 +1,16 @@
+{
+ "note": "Events shown in This week while they last. Times in UTC; the app shows them in the listener's own time.",
+ "events": [
+  {
+   "title": "C2C Festival, Turin",
+   "dates": "29 Oct – 1 Nov",
+   "until": "2026-11-05T22:00:00Z",
+   "note": "C2C, Turin’s festival of avant-pop and electronic music, is on for its 25th edition. Here are the city’s community radio and the artists from the lineup you can hear on Sintonia.",
+   "stations": ["rbl"],
+   "shows": [
+    { "id": "stegi", "title": "Palettes w/ KMRU", "start": "2026-11-05T21:00:00Z", "end": "2026-11-05T22:00:00Z", "why": "KMRU, on the C2C lineup, presents his monthly show of ambient and experimental sounds." }
+   ],
+   "also": "Smerz, Crystallmess, The Avalanches, Theo Parrish, Gyrofield and Chuquimamani-Condori, all on the lineup, also host their own shows on NTS."
+  }
+ ]
+}
