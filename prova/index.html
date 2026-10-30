@@ -299,6 +299,10 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 @keyframes live-blink { 50% { opacity: .25; } }
 /* This week: three picks, each a wide card in the station's colour */
 .picks { display: grid; gap: 10px; }
+/* an event in This week (a festival, say): what's on Sintonia around it, while it lasts */
+.event-note { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink); }
+.event-k { margin: 6px 0 0; font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.event-also { margin: 2px 0 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
 .pick { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 13px 14px; border-radius: 16px;
   background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--dot, var(--c)) 30%, transparent), transparent 70%), color-mix(in srgb, var(--dot, var(--c)) 12%, var(--bg-2));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dot, var(--c)) 40%, transparent); color: var(--ink); }
@@ -429,6 +433,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 [data-id="rotation"] { --c:#4CC9F0; --t:#04202B; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:20%;  --oy:90%;  --gap:9px; }
 [data-id="nopal"]    { --c:#A51D5C; --t:#E3F4CC; --ring:rgba(227,244,204,.14); --pill:rgba(227,244,204,.2);  --ox:18%;  --oy:-18%; --gap:12px; --dot:#8CCB5E; }
 [data-id="bcr"]      { --c:#3F4697; --t:#F4EBE0; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:10%;  --oy:115%; --gap:13px; --dot:#7C84E0; }
+[data-id="rbl"]      { --c:#FF8B6B; --t:#2A0D06; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.14);       --ox:90%;  --oy:105%; --gap:11px; --dot:#FF8B6B; }
 [data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
 .name.keepcase { text-transform: none; }
 
@@ -1199,6 +1204,13 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       </button>
       <button class="sched" type="button" data-site="https://rotationradio.fm/">Info</button>
     </li>
+    <li class="tile" data-id="rbl" data-added="2026-10-30" data-country="Italy" data-code="TRN" data-lat="45.07" data-lon="7.686" data-region="Europe" data-city="Turin" data-tz="Europe/Rome" data-src="https://rblmedia-a4a44e62.radiocult.fm/stream">
+      <button class="tune" type="button" aria-label="Listen to Radio Banda Larga">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Banda Larga</span><span class="meta"><span>P28 · Turin</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://rbl.media/">Info</button>
+    </li>
 
   </ol>
   </section>
@@ -1256,6 +1268,15 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     <header class="hero">
       <h2 class="title">This week</h2>
     </header>
+    <section class="sec event" id="sec-event" aria-labelledby="event-h" hidden>
+      <h2 class="sec-h"><span id="event-h"></span><small id="event-when"></small></h2>
+      <p class="event-note" id="event-note"></p>
+      <p class="event-k" id="event-st-k" hidden>From the city</p>
+      <div class="favs stack" id="event-st"></div>
+      <p class="event-k" id="event-shows-k" hidden>From the lineup, on Sintonia</p>
+      <div class="picks" id="event-shows"></div>
+      <p class="event-also" id="event-also" hidden></p>
+    </section>
     <section class="sec" id="sec-new" aria-labelledby="new-h" hidden>
       <h2 class="sec-h"><span id="new-h">Recently added</span><small>new stations, last seven days</small></h2>
       <div class="favs stack" id="newin"></div>
@@ -2379,6 +2400,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     { url: "https://thelakeradio.radioca.st/stats?json=1", parse: (j) => ({ lake: fromShoutcast(j) }) },
     { url: "https://api.radiocult.fm/api/station/rotation-radio-befbc736/schedule/live", parse: (j) => ({ rotation: fromRadioCult(j) }) },
     { url: "https://api.radiocult.fm/api/station/sonicradio/schedule/live", parse: (j) => ({ sonic: fromRadioCult(j) }) },
+    { url: "https://api.radiocult.fm/api/station/rblmedia-a4a44e62/schedule/live", parse: (j) => ({ rbl: fromRadioCult(j) }) },
     { url: "https://a9.asurahosting.com/api/nowplaying/satellite_radio", parse: (j) => ({ satellite: fromAzuraTracks(j, "satellite radio") }) }
   ];
 
@@ -2448,6 +2470,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     writeKey(FAV_KEY, JSON.stringify(favs));
     renderFavs();
     renderNew();
+    renderEvents();
     arrange();
     renderPlayer();
   }
@@ -2565,23 +2588,48 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     $("picks-empty").hidden = list.length > 0;
     const box = $("picks");
     box.textContent = "";
-    list.forEach((p) => {
-      const st = byId[p.id], start = new Date(p.start), end = new Date(p.end);
-      const on = start <= now && now < end;
-      const day = on ? "Now" : start.toLocaleDateString("en-GB", { weekday: "short" });
-      const time = start.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-      const card = document.createElement("div");
-      card.className = "pick"; card.dataset.id = p.id;
-      card.innerHTML = `<div class="when"><span>${esc(day)}</span><b>${esc(on ? "ON" : time)}</b></div>` +
-        `<div class="pt"><span class="pk">${esc(st.name)} · ${esc(on ? "on air until " + end.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : start.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + ", your time")}</span>` +
-        `<span class="pn">${esc(p.title)}</span>${p.why ? `<span class="pw">${esc(p.why)}</span>` : ""}</div>` +
-        `<button type="button" aria-label="${esc(on ? "Listen to " + st.name : "About " + st.name)}"></button>`;
-      card.querySelector("button").addEventListener("click", () => { if (on) start_(p.id); else openSheet("info", p.id); });
-      box.appendChild(card);
-    });
+    list.forEach((p) => box.appendChild(pickCard(p, now)));
+    renderEvents();
+  }
+  function pickCard(p, now) { // a show: when, in your time; tap it while it's on to listen, before then for the station's Info
+    const st = byId[p.id], start = new Date(p.start), end = new Date(p.end);
+    const on = start <= now && now < end;
+    const day = on ? "Now" : start.toLocaleDateString("en-GB", { weekday: "short" });
+    const time = start.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const card = document.createElement("div");
+    card.className = "pick"; card.dataset.id = p.id;
+    card.innerHTML = `<div class="when"><span>${esc(day)}</span><b>${esc(on ? "ON" : time)}</b></div>` +
+      `<div class="pt"><span class="pk">${esc(st.name)} · ${esc(on ? "on air until " + end.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : start.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + ", your time")}</span>` +
+      `<span class="pn">${esc(p.title)}</span>${p.why ? `<span class="pw">${esc(p.why)}</span>` : ""}</div>` +
+      `<button type="button" aria-label="${esc(on ? "Listen to " + st.name : "About " + st.name)}"></button>`;
+    card.querySelector("button").addEventListener("click", () => { if (on) start_(p.id); else openSheet("info", p.id); });
+    return card;
+  }
+  // an event (from events.json, while it lasts): a few lines, the city's stations, the shows from its lineup on Sintonia
+  let events = [], eventSig = "";
+  function renderEvents() {
+    const now = Date.now();
+    const ev = events.find((e) => e && e.title && Date.parse(e.until) > now);
+    $("sec-event").hidden = !ev;
+    if (!ev) { eventSig = ""; return; }
+    $("event-h").textContent = ev.title;
+    $("event-when").textContent = ev.dates || "";
+    $("event-note").textContent = ev.note || "";
+    const ids = (ev.stations || []).filter((id) => byId[id]);
+    $("event-st-k").hidden = !ids.length;
+    const sig = ev.title + ids.join() + favs.join();
+    if (sig !== eventSig) { eventSig = sig; fillMinis($("event-st"), ids, false); }
+    const shows = (ev.shows || []).filter((p) => byId[p.id] && Date.parse(p.end) > now);
+    $("event-shows-k").hidden = !shows.length;
+    const box = $("event-shows");
+    box.textContent = "";
+    shows.forEach((p) => box.appendChild(pickCard(p, now)));
+    $("event-also").textContent = ev.also || "";
+    $("event-also").hidden = !ev.also;
   }
   const start_ = (id) => start(id);
   fetch("picks.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : null).then((j) => { picks = (j && j.picks) || []; renderPicks(); }).catch(() => {});
+  fetch("events.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : null).then((j) => { events = (j && j.events) || []; renderEvents(); }).catch(() => {});
   setInterval(renderPicks, 60000);
 
   /* ---------- station info for the Info sheet (draft texts, to be checked) ---------- */
@@ -2612,6 +2660,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     nopal: { desc: "Collective, self-managed internet radio from the San Rafael neighbourhood of Mexico City, with an arts space, residencies and workshops. It broadcasts with mensajito, a free, low-cost transmitter made by its co-founder Diego Aguirre Fernández.", plays: "Music from Mexico and Latin America, often from forgotten records, with art and culture programmes", lang: "Spanish", by: "Radio Nopal collective, Mexico City", support: "https://www.radionopal.com/#/info/apoyanos" },
     satellite: { desc: "Independent radio from Lisbon, live around the clock: rhythms from across continents and sounds still to be discovered, with live sets and talks with artists.", plays: "World, jazz, dub, Afrobeat, electronica and experimental", lang: "English, Portuguese", by: "Satellite Radio, Lisbon" },
     bcr: { desc: "Community-led, independent radio from Bangkok, launched by a collective to connect the city’s cultural communities.", since: "2021", plays: "Ambient, techno, molam, Balearic, disco, funk and soul", lang: "Thai, English", by: "Bangkok Community Radio collective", shop: "https://store.bangkokcommunityradio.com/" },
+    rbl: { desc: "Ad-free community radio born in Turin in 2011: its first broadcast, in 2012, came live from the terrace of Imbarchino in Parco del Valentino. Run by volunteers, it now broadcasts from Turin, Berlin and Barcelona.", since: "2011", plays: "Electronic, bass, jazz, funk, afrobeat, rock and experimental, with guest mixes", lang: "Italian, English", by: "Radio Banda Larga community, Turin", support: "https://www.paypal.me/rblmedia" },
     setagaya: { desc: "Community FM for Tokyo’s Setagaya ward, on air at 83.4 FM.", plays: "Local programmes, music and community news", lang: "Japanese", by: "FM Setagaya, Tokyo" },
   };
 
@@ -3873,7 +3922,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function tickClocks() {
     const now = Date.now();
     stations.forEach((st) => { st.el.querySelector(".clock").textContent = hhmm(now, st.tz); });
-    document.querySelectorAll("#favs .mini, #newin .mini").forEach((m) => { m.querySelector(".clock").textContent = hhmm(now, byId[m.dataset.id].tz); });
+    document.querySelectorAll("#favs .mini, #newin .mini, #event-st .mini").forEach((m) => { m.querySelector(".clock").textContent = hhmm(now, byId[m.dataset.id].tz); });
     if (band !== "all") arrange();
     updateProgress();
     renderGreeting();
