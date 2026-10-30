@@ -512,6 +512,25 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .tile:not(.on) .sched { color: var(--ink); }
 .tile:not(.on)::after { opacity: .1; }
 .tile.out { display: none !important; }
+/* the alternative Home (?home=list): the stations as rows, like the ones in Recently added */
+.home-list .crate { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+@media (min-width: 900px) { .home-list .crate { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .home-list .crate .tile, .home-list .crate .tile:nth-child(-n+2) { grid-column: auto; min-height: 0; } }
+.home-list .crate .tile { min-height: 0; border-radius: 14px; }
+.home-list .crate .tile::before { display: none; }
+.home-list .crate .tune { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; padding: 10px 100px 10px 11px; border-radius: 14px; }
+.home-list .crate .label { flex: 1; justify-items: start; text-align: left; }
+.home-list .crate .meta { justify-content: flex-start; }
+.home-list .crate .knob { width: 38px; height: 38px; }
+.home-list .crate .label { gap: 4px; }
+.home-list .crate .name { order: -1; font-size: 23px; line-height: .95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-wrap: nowrap; }
+.home-list .crate .now { order: 1; display: flex; align-items: baseline; gap: 6px; min-width: 0; padding-top: 0; border-top: 0; }
+.home-list .crate .now[hidden] { display: none; }
+.home-list .crate .now-k { flex: none; }
+.home-list .crate .now-t { font-size: 12px; font-weight: 600; -webkit-line-clamp: 1; line-clamp: 1; }
+.home-list .crate .now-s { display: none; }
+.home-list .crate .meta { order: 2; }
+.home-list .crate .sched { top: 50%; right: 48px; transform: translateY(-50%); }
+.home-list .crate .tile .pin { top: 50%; bottom: auto; right: 6px; transform: translateY(-50%); }
 
 /* ---------- Where it's… (local time of day at each station) ---------- */
 .moods { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
@@ -525,12 +544,17 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .mood[aria-checked="true"] { background: var(--chip, var(--ink)); color: var(--chip-t, var(--bg)); }
 .mood[aria-checked="true"] span { color: inherit; }
 .mood:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
-/* the area, crossed with the time of day: a row of pills that wraps onto a second line if it must */
-.areas { display: flex; flex-wrap: wrap; gap: 6px; }
-.area { appearance: none; -webkit-appearance: none; flex: none; cursor: pointer; border: 1px solid var(--line); background: var(--bg-2); color: var(--ink);
-  border-radius: 999px; padding: 7px 12px; font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
-.area[aria-checked="true"] { background: var(--chip, var(--ink)); color: var(--chip-t, var(--bg)); border-color: transparent; }
-.area:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+/* search: a station by name, city or country */
+.search { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 5px 0 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); color: var(--muted); cursor: text; }
+.search:focus-within { border-color: color-mix(in srgb, var(--ink) 55%, transparent); color: var(--ink); }
+.search svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+.search input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: none; color: var(--ink);
+  font: 500 16px/1.2 var(--f-body); -webkit-appearance: none; appearance: none; } /* 16px: an iPhone doesn't zoom in on it */
+.search input::placeholder { color: var(--muted); opacity: 1; }
+.search input::-webkit-search-cancel-button, .search input::-webkit-search-decoration { -webkit-appearance: none; display: none; }
+.search button { appearance: none; -webkit-appearance: none; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+.search button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.moods.off { opacity: .38; } /* while you search, the time of day steps aside */
 .mood-where { margin: 0; font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .mood-where b { color: var(--ink); font-weight: 500; }
 .mood-empty { margin: 0; color: var(--muted); font-size: 13px; }
@@ -986,6 +1010,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   </section>
 
   <section class="sec" id="sec-when" aria-labelledby="when-h">
+    <label class="search" for="q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search a station, city or country" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search stations"><button type="button" id="q-x" aria-label="Clear the search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></label>
     <h2 class="sec-h"><span id="when-h">Where it’s…</span><small>local time at each station</small></h2>
     <div class="moods" id="moods" role="radiogroup" aria-labelledby="when-h">
       <button type="button" class="mood" role="radio" data-band="all" aria-checked="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c-2.6 3-2.6 13 0 16M12 4c2.6 3 2.6 13 0 16"/></svg><span>All</span></button>
@@ -994,7 +1019,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       <button type="button" class="mood" role="radio" data-band="evening" aria-checked="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17h18M7 17a5 5 0 0 1 10 0"/><path class="f" d="M12 12a5 5 0 0 1 5 5H7a5 5 0 0 1 5-5z" opacity=".35"/><path d="M9 21h6"/></svg><span>Evening</span></button>
       <button type="button" class="mood" role="radio" data-band="night" aria-checked="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z"/></svg><span>Night</span></button>
     </div>
-    <div class="areas" id="areas" role="radiogroup" aria-label="Area"></div>
     <p class="mood-where" id="when-where" hidden></p>
     <p class="mood-empty" id="when-empty" hidden>No stations here at this hour. Try another time of day.</p>
   </section>
@@ -1411,6 +1435,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     };
   });
   const byId = Object.fromEntries(stations.map((s) => [s.id, s]));
+  if (/[?&]home=list(&|$)/.test(location.search)) document.documentElement.classList.add("home-list"); // to compare an alternative Home
 
   /* ---------- receiver: tuning strip of cities, west to east ---------- */
   // one column per city, ordered by longitude
@@ -2536,28 +2561,22 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   const hourAt = (tz) => { try { return +new Date().toLocaleString("en-GB", { timeZone: tz, hour: "2-digit", hour12: false }) % 24; } catch (e) { return 12; } };
   const bandOf = (st) => { const h = hourAt(st.tz); return h >= 6 && h < 12 ? "morning" : h >= 12 && h < 18 ? "afternoon" : h >= 18 ? "evening" : "night"; };
   const inBand = (st) => band === "all" || bandOf(st) === band;
-  // and where in the world: one pill per area that has stations
-  let area = "all";
-  const AREAS = [["all", "All areas"], ["Europe", "Europe"], ["Africa", "Africa"], ["Mid East", "Middle East"], ["Americas", "Americas"], ["Asia–Pac", "Asia & Pacific"]];
-  const inArea = (st) => area === "all" || st.region === area;
-  (function buildAreas() {
-    const box = $("areas");
-    AREAS.forEach(([k, label]) => {
-      const n = k === "all" ? stations.length : stations.filter((st) => st.region === k).length;
-      if (!n) return;
-      const b = document.createElement("button");
-      b.type = "button"; b.className = "area"; b.setAttribute("role", "radio"); b.dataset.area = k;
-      b.setAttribute("aria-checked", String(k === area));
-      b.textContent = label;
-      box.appendChild(b);
-    });
-    box.addEventListener("click", (ev) => {
-      const b = ev.target.closest(".area");
-      if (!b || b.dataset.area === area) return;
-      area = b.dataset.area;
-      arrange();
-    });
-  })();
+  // search: by name, city, country or city code; case and accents don't matter.
+  // While there's text, the search goes through all the stations and the time of day steps aside; clear it and it's back.
+  let query = "";
+  const fold = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  stations.forEach((st) => { st.hay = fold([st.name, st.city, st.country, st.code].join(" ")); });
+  const inQuery = (st) => query.split(/\s+/).every((w) => st.hay.includes(w));
+  function setQuery(v) {
+    const q = $("q");
+    if (v !== undefined) q.value = v;
+    query = fold(q.value).trim();
+    $("q-x").hidden = !q.value;
+    arrange();
+  }
+  $("q").addEventListener("input", () => setQuery());
+  $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") e.target.blur(); else if (e.key === "Escape") setQuery(""); });
+  $("q-x").addEventListener("click", () => { setQuery(""); $("q").focus(); });
   $("moods").addEventListener("click", (ev) => {
     const b = ev.target.closest(".mood");
     if (!b || b.dataset.band === band) return;
@@ -2565,26 +2584,28 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     arrange();
   });
   function arrange() {
+    const searching = !!query;
     stations.forEach((st) => {
       pinState(st.el.querySelector(".pin"), st.id);
-      st.el.hidden = favs.includes(st.id); // pinned ones sit in "Your stations"
-      st.el.classList.toggle("out", !(inBand(st) && inArea(st)));
+      st.el.hidden = !searching && favs.includes(st.id); // pinned ones sit in "Your stations", but a search finds them too
+      st.el.classList.toggle("out", searching ? !inQuery(st) : !inBand(st));
     });
-    const shown = stations.filter((st) => !favs.includes(st.id) && inBand(st) && inArea(st));
+    const shown = stations.filter((st) => searching ? inQuery(st) : !favs.includes(st.id) && inBand(st));
     $("sec-more").hidden = !shown.length;
+    $("more-h").textContent = searching ? "Found" : "All stations";
     $("more-n").textContent = shown.length === 1 ? "1 station" : shown.length + " stations";
+    $("moods").classList.toggle("off", searching);
     document.querySelectorAll(".mood").forEach((b) => b.setAttribute("aria-checked", b.dataset.band === band ? "true" : "false"));
-    document.querySelectorAll(".area").forEach((b) => b.setAttribute("aria-checked", b.dataset.area === area ? "true" : "false"));
     const where = $("when-where");
     const cities = [...new Set(shown.map((st) => st.city))];
-    where.hidden = band === "all" || !cities.length;
+    where.hidden = searching || band === "all" || !cities.length;
     if (!where.hidden) {
       where.textContent = "It’s " + band + " in ";
       const b = document.createElement("b"); b.textContent = cities.join(" · "); where.appendChild(b);
     }
     const empty = $("when-empty");
-    empty.hidden = (band === "all" && area === "all") || cities.length > 0;
-    empty.textContent = band === "all" ? "No stations in this area yet." : area === "all" ? "No stations here at this hour. Try another time of day." : "No stations in this area at this hour. Try another time of day or area.";
+    empty.hidden = shown.length > 0 || (!searching && band === "all");
+    empty.textContent = searching ? "No station, city or country matches “" + $("q").value.trim() + "”." : "No stations here at this hour. Try another time of day.";
     fitNames();
   }
   renderFavs();
