@@ -300,11 +300,39 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 /* This week: three picks, each a wide card in the station's colour */
 .picks { display: grid; gap: 10px; }
 /* an event in This week (a festival, say): what's on Sintonia around it, while it lasts */
-.events { display: grid; gap: 22px; }
+.events { display: grid; gap: 18px; }
 .events:empty { display: none; }
-.event-note { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink); }
-.event-k { margin: 6px 0 0; font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.event-also { margin: 2px 0 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
+/* the event: a card like a festival poster, only colours (the event's own, or these), with a scatter of confetti */
+.event { --ev1: #FF4F8B; --ev2: #FF9F1C; --ev3: #FFE66D; --ev4: #2EC4B6; --ev-ink: #1A0710;
+  gap: 0; border-radius: 22px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--ev1) 45%, transparent);
+  background: color-mix(in srgb, var(--ev1) 7%, var(--bg-2)); }
+.ev-hero { position: relative; isolation: isolate; overflow: hidden; display: grid; gap: 10px; padding: 16px 18px 20px; color: var(--ev-ink);
+  background: radial-gradient(90% 120% at 105% -10%, var(--ev3) 0%, transparent 55%), radial-gradient(80% 110% at -10% 115%, var(--ev4) 0%, transparent 60%),
+    linear-gradient(135deg, var(--ev1) 10%, var(--ev2) 90%); }
+.ev-hero::before { /* confetti */
+  content: ""; position: absolute; inset: -20% 0 0; z-index: -1; pointer-events: none; opacity: .55;
+  background:
+    radial-gradient(circle at 12% 22%, #fff 0 2.5px, transparent 3.5px), radial-gradient(circle at 78% 64%, #fff 0 2px, transparent 3px),
+    radial-gradient(circle at 52% 14%, var(--ev-ink) 0 2px, transparent 3px), radial-gradient(circle at 88% 30%, var(--ev4) 0 3px, transparent 4px),
+    radial-gradient(circle at 30% 80%, var(--ev3) 0 3px, transparent 4px), radial-gradient(circle at 64% 42%, #fff 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 6% 62%, var(--ev-ink) 0 1.5px, transparent 2.5px), radial-gradient(circle at 42% 52%, var(--ev3) 0 2px, transparent 3px),
+    radial-gradient(circle at 94% 86%, var(--ev-ink) 0 2px, transparent 3px), radial-gradient(circle at 22% 44%, var(--ev4) 0 2px, transparent 3px);
+  background-size: 100% 60%; background-repeat: repeat-y; }
+@media (prefers-reduced-motion: no-preference) {
+  .ev-hero::before { animation: ev-fall 14s linear infinite; }
+  @keyframes ev-fall { to { transform: translateY(20%); } }
+}
+.ev-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.ev-kick { font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.ev-dates { flex: none; font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  padding: 5px 9px; border-radius: 999px; background: var(--ev-ink); color: var(--ev3); }
+.ev-title { margin: 2px 0 0; font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: 52px; line-height: .84; letter-spacing: -.01em;
+  text-transform: uppercase; overflow-wrap: anywhere; }
+.event-note { margin: 0; font-size: 14px; line-height: 1.45; font-weight: 500; }
+.ev-body { display: grid; gap: 10px; padding: 14px 14px 16px; }
+.ev-body:not(:has(> :not([hidden]))) { display: none; }
+.event-k { margin: 2px 0 0; font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.event-also { margin: 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
 .pick { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 13px 14px; border-radius: 16px;
   background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--dot, var(--c)) 30%, transparent), transparent 70%), color-mix(in srgb, var(--dot, var(--c)) 12%, var(--bg-2));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dot, var(--c)) 40%, transparent); color: var(--ink); }
@@ -2611,12 +2639,19 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       list.forEach((ev, i) => {
         const sec = document.createElement("section");
         sec.className = "sec event"; sec.setAttribute("aria-labelledby", "event-h" + i);
-        sec.innerHTML = '<h2 class="sec-h"><span id="event-h' + i + '"></span><small></small></h2><p class="event-note"></p>' +
-          '<p class="event-k" data-k="st">From the city</p><div class="favs stack"></div>' +
-          '<p class="event-k" data-k="shows">From the lineup, on Sintonia</p><div class="picks"></div><p class="event-also"></p>';
-        sec.querySelector(".sec-h span").textContent = ev.title;
-        sec.querySelector(".sec-h small").textContent = ev.dates || "";
+        sec.innerHTML = '<div class="ev-hero"><div class="ev-top"><span class="ev-kick"></span><span class="ev-dates"></span></div>' +
+          '<h2 class="ev-title" id="event-h' + i + '"></h2><p class="event-note"></p></div>' +
+          '<div class="ev-body"><p class="event-k" data-k="st">From the city</p><div class="favs stack"></div>' +
+          '<p class="event-k" data-k="shows">From the lineup, on Sintonia</p><div class="picks"></div><p class="event-also"></p></div>';
+        // "C2C Festival, Turin": the name big, the city above it
+        const cut = ev.title.lastIndexOf(", ");
+        sec.querySelector(".ev-title").textContent = cut > 0 ? ev.title.slice(0, cut) : ev.title;
+        sec.querySelector(".ev-kick").textContent = cut > 0 ? ev.title.slice(cut + 2) : "This week";
+        const dates = sec.querySelector(".ev-dates");
+        dates.textContent = ev.dates || ""; dates.hidden = !ev.dates;
         sec.querySelector(".event-note").textContent = ev.note || "";
+        // the event's own colours, if it has them: four hex values
+        (Array.isArray(ev.colors) ? ev.colors : []).slice(0, 4).forEach((c, k) => { if (/^#[0-9a-f]{6}$/i.test(c)) sec.style.setProperty("--ev" + (k + 1), c); });
         const ids = (ev.stations || []).filter((id) => byId[id]);
         sec.querySelector('[data-k="st"]').hidden = !ids.length;
         fillMinis(sec.querySelector(".favs"), ids, false);
