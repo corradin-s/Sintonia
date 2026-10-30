@@ -512,25 +512,6 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .tile:not(.on) .sched { color: var(--ink); }
 .tile:not(.on)::after { opacity: .1; }
 .tile.out { display: none !important; }
-/* the alternative Home (?home=list): the stations as rows, like the ones in Recently added */
-.home-list .crate { grid-template-columns: minmax(0, 1fr); gap: 6px; }
-@media (min-width: 900px) { .home-list .crate { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .home-list .crate .tile, .home-list .crate .tile:nth-child(-n+2) { grid-column: auto; min-height: 0; } }
-.home-list .crate .tile { min-height: 0; border-radius: 14px; }
-.home-list .crate .tile::before { display: none; }
-.home-list .crate .tune { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; padding: 10px 100px 10px 11px; border-radius: 14px; }
-.home-list .crate .label { flex: 1; justify-items: start; text-align: left; }
-.home-list .crate .meta { justify-content: flex-start; }
-.home-list .crate .knob { width: 38px; height: 38px; }
-.home-list .crate .label { gap: 4px; }
-.home-list .crate .name { order: -1; font-size: 23px; line-height: .95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-wrap: nowrap; }
-.home-list .crate .now { order: 1; display: flex; align-items: baseline; gap: 6px; min-width: 0; padding-top: 0; border-top: 0; }
-.home-list .crate .now[hidden] { display: none; }
-.home-list .crate .now-k { flex: none; }
-.home-list .crate .now-t { font-size: 12px; font-weight: 600; -webkit-line-clamp: 1; line-clamp: 1; }
-.home-list .crate .now-s { display: none; }
-.home-list .crate .meta { order: 2; }
-.home-list .crate .sched { top: 50%; right: 48px; transform: translateY(-50%); }
-.home-list .crate .tile .pin { top: 50%; bottom: auto; right: 6px; transform: translateY(-50%); }
 
 /* ---------- Where it's… (local time of day at each station) ---------- */
 .moods { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
@@ -544,6 +525,39 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .mood[aria-checked="true"] { background: var(--chip, var(--ink)); color: var(--chip-t, var(--bg)); }
 .mood[aria-checked="true"] span { color: inherit; }
 .mood:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+/* the Home helps you choose: Right now, your stations, the time of day with a few stations, all of them a tap away (#all) */
+html[data-home="search"] #sec-now, html[data-home="search"] #sec-fav, html[data-home="all"] #sec-now, html[data-home="all"] #sec-fav { display: none !important; }
+html:not([data-home="all"]) .all-top { display: none; }
+html[data-home="home"] #sec-more > .sec-h { display: none; }
+html:not([data-home="home"]) .all-btn { display: none; }
+.all-top { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.all-top button { appearance: none; -webkit-appearance: none; display: inline-flex; align-items: center; gap: 2px; padding: 7px 12px 7px 6px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--bg-2); color: var(--ink); font: 600 13px/1 var(--f-body); cursor: pointer; }
+.all-top svg, .all-btn svg, .rn-next svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.all-title { margin: 0; font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: 28px; line-height: 1; text-transform: uppercase; }
+.all-btn { appearance: none; -webkit-appearance: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin-top: 2px;
+  padding: 14px 14px 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-2); color: var(--ink); cursor: pointer;
+  font-family: var(--f-mono); font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.all-btn:focus-visible, .all-top button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* Right now: one station to play at once, in its colours, with its rings */
+.rn { position: relative; isolation: isolate; overflow: hidden; border-radius: 22px; background: var(--c); color: var(--t); min-height: 220px; display: flex; }
+.rn::before { content: ""; position: absolute; inset: 0; z-index: -1;
+  background: repeating-radial-gradient(circle at var(--ox) var(--oy), transparent 0, transparent var(--ph, 0px), var(--ring) var(--ph, 0px), var(--ring) calc(var(--ph, 0px) + 1.5px), transparent calc(var(--ph, 0px) + 1.5px), transparent calc(var(--gap) + 1.5px)); }
+.rn-play { appearance: none; -webkit-appearance: none; flex: 1; min-width: 0; display: grid; align-content: end; gap: 8px; padding: 16px 16px 16px; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; border-radius: 22px; }
+.rn-play:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.rn-k { font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 7px; }
+.rn-k.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: live-blink 1.6s ease-in-out infinite; }
+.rn-name { font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: 52px; line-height: .84; letter-spacing: -.01em; text-transform: uppercase; overflow-wrap: anywhere; }
+.rn-show { font-size: 16px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rn-show small { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 500; opacity: .78; }
+.rn-foot { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.rn-foot .knob { width: 44px; height: 44px; }
+.rn-act { font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.rn.on .knob { background: var(--t); color: var(--c); border-color: var(--t); }
+.rn-next { appearance: none; -webkit-appearance: none; position: absolute; right: 12px; bottom: 16px; display: inline-flex; align-items: center; gap: 2px;
+  padding: 9px 8px 9px 14px; border: 0; border-radius: 999px; background: var(--pill); color: var(--t); cursor: pointer;
+  font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.rn-next:focus-visible { outline: 2px solid var(--t); outline-offset: 2px; }
 /* search: a station by name, city or country */
 .search { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 5px 0 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); color: var(--muted); cursor: text; }
 .search:focus-within { border-color: color-mix(in srgb, var(--ink) 55%, transparent); color: var(--ink); }
@@ -1004,13 +1018,28 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   </header>
 
 
+  <label class="search" for="q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search a station, city or country" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search stations"><button type="button" id="q-x" aria-label="Clear the search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></label>
+
+  <section class="sec" id="sec-now" aria-labelledby="rn-h" hidden>
+    <h2 class="sec-h"><span id="rn-h">Right now</span><small id="rn-why"></small></h2>
+    <div class="rn" id="rn">
+      <button class="rn-play" type="button" id="rn-play">
+        <span class="rn-k" id="rn-k"></span>
+        <span class="rn-name" id="rn-name"></span>
+        <span class="rn-show" id="rn-show"></span>
+        <span class="rn-foot"><span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span><span class="rn-act" id="rn-act">Listen</span></span>
+      </button>
+      <button class="rn-next" type="button" id="rn-next">Another<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button>
+    </div>
+  </section>
+
   <section class="sec" id="sec-fav" aria-labelledby="fav-h" hidden>
     <h2 class="sec-h" id="fav-h"><span>Your stations</span></h2>
     <div class="favs" id="favs"></div>
   </section>
 
   <section class="sec" id="sec-when" aria-labelledby="when-h">
-    <label class="search" for="q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search a station, city or country" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search stations"><button type="button" id="q-x" aria-label="Clear the search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></label>
+    <div class="all-top" id="all-top"><button type="button" id="all-back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg>Home</button><h2 class="all-title">All stations</h2></div>
     <h2 class="sec-h"><span id="when-h">Where it’s…</span><small>local time at each station</small></h2>
     <div class="moods" id="moods" role="radiogroup" aria-labelledby="when-h">
       <button type="button" class="mood" role="radio" data-band="all" aria-checked="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c-2.6 3-2.6 13 0 16M12 4c2.6 3 2.6 13 0 16"/></svg><span>All</span></button>
@@ -1256,6 +1285,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     </li>
 
   </ol>
+    <button class="all-btn" id="all-btn" type="button"><span id="all-btn-t">All stations</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button>
   </section>
   </main>
 
@@ -1435,7 +1465,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     };
   });
   const byId = Object.fromEntries(stations.map((s) => [s.id, s]));
-  if (/[?&]home=list(&|$)/.test(location.search)) document.documentElement.classList.add("home-list"); // to compare an alternative Home
 
   /* ---------- receiver: tuning strip of cities, west to east ---------- */
   // one column per city, ordered by longitude
@@ -2211,7 +2240,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   }
   const go = (v) => { const h = "#" + v; if (location.hash !== h) location.hash = h; else showView(v); };
   document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
-    if (t.dataset.view === view) window.scrollTo({ top: 0, behavior: "smooth" }); else go(t.dataset.view);
+    if (t.dataset.view === view) { if (view === "stations" && location.hash === "#all") location.hash = "#stations"; else window.scrollTo({ top: 0, behavior: "smooth" }); }
+    else go(t.dataset.view);
   }));
   $("loc-btn").addEventListener("click", () => locate(false));
   $("loc-stop").addEventListener("click", stopSharing);
@@ -2461,6 +2491,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   }
 
   function renderLive() {
+    if (typeof renderNow === "function") renderNow();
     stations.forEach((st) => {
       const info = live[st.id];
       const box = st.el.querySelector(".now");
@@ -2583,17 +2614,29 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     band = b.dataset.band;
     arrange();
   });
+  // the Home shows a few stations, the ones with someone on air first; All stations (#all) shows every one
+  const HOME_MAX = 6;
+  var allMode = location.hash === "#all";
+  const isOnAir = (st) => !!(live[st.id] && live[st.id].onAir);
   function arrange() {
     const searching = !!query;
+    const mode = searching ? "search" : allMode ? "all" : "home";
+    document.documentElement.dataset.home = mode;
+    let shown = stations.filter((st) => searching ? inQuery(st) : (mode === "all" || (!favs.includes(st.id) && st.id !== rnPick)) && inBand(st)); // on the Home, not the one in Right now
+    if (mode === "home") shown = shown.slice().sort((a, b) => isOnAir(b) - isOnAir(a) || a.index - b.index);
+    const total = shown.length;
+    if (mode === "home") shown = shown.slice(0, HOME_MAX);
+    const on = new Set(shown);
     stations.forEach((st) => {
       pinState(st.el.querySelector(".pin"), st.id);
-      st.el.hidden = !searching && favs.includes(st.id); // pinned ones sit in "Your stations", but a search finds them too
-      st.el.classList.toggle("out", searching ? !inQuery(st) : !inBand(st));
+      st.el.hidden = mode === "home" && favs.includes(st.id); // on the Home, pinned ones sit in "Your stations"
+      st.el.classList.toggle("out", !on.has(st));
+      st.el.style.order = mode === "home" ? String(shown.indexOf(st)) : "";
     });
-    const shown = stations.filter((st) => searching ? inQuery(st) : !favs.includes(st.id) && inBand(st));
-    $("sec-more").hidden = !shown.length;
+    $("sec-more").hidden = !shown.length && mode !== "home";
+    $("all-btn-t").textContent = "All " + stations.length + " stations";
     $("more-h").textContent = searching ? "Found" : "All stations";
-    $("more-n").textContent = shown.length === 1 ? "1 station" : shown.length + " stations";
+    $("more-n").textContent = total === 1 ? "1 station" : total + " stations";
     $("moods").classList.toggle("off", searching);
     document.querySelectorAll(".mood").forEach((b) => b.setAttribute("aria-checked", b.dataset.band === band ? "true" : "false"));
     const where = $("when-where");
@@ -2608,6 +2651,66 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     empty.textContent = searching ? "No station, city or country matches “" + $("q").value.trim() + "”." : "No stations here at this hour. Try another time of day.";
     fitNames();
   }
+  // All stations: a page of its own, with the back button of the phone or the Home button
+  function setAll(on) {
+    if (on === allMode) return;
+    allMode = on;
+    arrange(); fitNames();
+    window.scrollTo(0, 0);
+  }
+  $("all-btn").addEventListener("click", () => { location.hash = "#all"; });
+  $("all-back").addEventListener("click", () => { if (history.length > 1 && allMode) history.back(); else location.hash = "#stations"; });
+  window.addEventListener("hashchange", () => setAll(location.hash === "#all"));
+
+  /* ---------- Right now: one station to play at once ----------
+     Among those where someone is on air (as each station's own system says), the ones where it's evening or night first;
+     "Another" moves to the next one, like turning the dial. With no one live, a show that isn't a rerun. */
+  var rnReady = false, rnPick = "";
+  function rnCandidates() {
+    const late = (st) => { const h = hourAt(st.tz); return h >= 18 || h < 3 ? 1 : 0; };
+    let pool = stations.filter(isOnAir);
+    if (!pool.length) pool = stations.filter((st) => live[st.id] && live[st.id].title && !live[st.id].rerun);
+    return pool.sort((a, b) => late(b) - late(a) || a.index - b.index);
+  }
+  function renderNow(step) {
+    if (!rnReady) return;
+    const list = rnCandidates();
+    $("sec-now").hidden = !list.length;
+    if (!list.length) return;
+    let i = list.findIndex((st) => st.id === rnPick);
+    if (step) i = (i + 1) % list.length; else if (i < 0) i = 0;
+    const st = list[i], info = live[st.id] || {};
+    const changed = rnPick !== st.id;
+    rnPick = st.id;
+    if (changed && step) arrange(); // the one shown in Right now leaves the stations below
+    const card = $("rn");
+    card.dataset.id = st.id;
+    const playing = current === st.id && (state === "live" || state === "loading");
+    card.classList.toggle("on", current === st.id);
+    card.classList.toggle("live", current === st.id && state === "live");
+    card.classList.toggle("loading", current === st.id && state === "loading");
+    const k = $("rn-k");
+    k.textContent = (info.onAir ? "Live from " : "On now in ") + st.city + " · " + hhmm(Date.now(), st.tz);
+    k.classList.toggle("live", !!info.onAir);
+    $("rn-name").textContent = st.name;
+    const show = $("rn-show");
+    show.textContent = info.title || "";
+    const parts = [];
+    if (info.sub) parts.push(info.sub);
+    if (isFinite(info.end)) parts.push("until " + hhmm(info.end, st.tz) + " there");
+    if (parts.length) { const sm = document.createElement("small"); sm.textContent = parts.join(" · "); show.appendChild(sm); }
+    $("rn-act").textContent = playing ? "Playing" : "Listen";
+    $("rn-play").setAttribute("aria-label", (playing ? "Stop " : "Listen to ") + st.name);
+    $("rn-next").hidden = list.length < 2;
+    $("rn-why").textContent = list.length > 1 ? (i + 1) + " of " + list.length + (info.onAir ? " live" : "") : "";
+  }
+  $("rn-play").addEventListener("click", () => {
+    if (!rnPick) return;
+    if (rnPick === current && (state === "live" || state === "loading")) stop(); else start(rnPick);
+  });
+  $("rn-next").addEventListener("click", () => renderNow(true));
+  rnReady = true;
+
   renderFavs();
   renderNew();
   arrange();
@@ -3649,6 +3752,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function setState(s) { state = s; document.body.dataset.state = s; document.documentElement.dataset.state = s; renderPlayer(); }
 
   function renderPlayer() {
+    renderNow();
     const st = current ? byId[current] : null;
     const info = st ? live[st.id] : null;
     tiles.forEach((el) => {
