@@ -95,6 +95,7 @@ const specials = list.filter((s) => SPECIAL.test(s.title));
 function compose(shown) {
   let b = `Ecco i programmi della settimana sulle radio di Sintonia, **in ora italiana**.\n\n` +
     `**Per scegliere This week rispondi qui con tre numeri**, per esempio \`12, 57, 140\`: entro qualche minuto li trovi nell'app.\n\n` +
+    `Se in settimana c'è un festival o un evento nelle città delle radio, più tardi arriva qui sotto una proposta per This week: rispondi \`evento ok\` per pubblicarla.\n\n` +
     `Sono esclusi repliche, archivi, playlist automatiche e le trasmissioni fisse di ogni giorno.` +
     (missing.length ? ` Questa volta non è stato possibile leggere: ${[...new Set(missing)].join(", ")}.` : "") +
     ` Non pubblicano un palinsesto leggibile: Rinse FM, Radio alHara, Deep Space Radio, Lithium, Satellite Radio, Radio Nopal, The Lake Radio, IDA Radio.\n`;

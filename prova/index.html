@@ -300,6 +300,8 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 /* This week: three picks, each a wide card in the station's colour */
 .picks { display: grid; gap: 10px; }
 /* an event in This week (a festival, say): what's on Sintonia around it, while it lasts */
+.events { display: grid; gap: 22px; }
+.events:empty { display: none; }
 .event-note { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink); }
 .event-k { margin: 6px 0 0; font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
 .event-also { margin: 2px 0 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
@@ -1268,15 +1270,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     <header class="hero">
       <h2 class="title">This week</h2>
     </header>
-    <section class="sec event" id="sec-event" aria-labelledby="event-h" hidden>
-      <h2 class="sec-h"><span id="event-h"></span><small id="event-when"></small></h2>
-      <p class="event-note" id="event-note"></p>
-      <p class="event-k" id="event-st-k" hidden>From the city</p>
-      <div class="favs stack" id="event-st"></div>
-      <p class="event-k" id="event-shows-k" hidden>From the lineup, on Sintonia</p>
-      <div class="picks" id="event-shows"></div>
-      <p class="event-also" id="event-also" hidden></p>
-    </section>
+    <div class="events" id="events"></div>
     <section class="sec" id="sec-new" aria-labelledby="new-h" hidden>
       <h2 class="sec-h"><span id="new-h">Recently added</span><small>new stations, last seven days</small></h2>
       <div class="favs stack" id="newin"></div>
@@ -2605,27 +2599,40 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     card.querySelector("button").addEventListener("click", () => { if (on) start_(p.id); else openSheet("info", p.id); });
     return card;
   }
-  // an event (from events.json, while it lasts): a few lines, the city's stations, the shows from its lineup on Sintonia
+  // events (from events.json, while they last), at most two: a few lines, the city's stations, the shows from the lineup on Sintonia
   let events = [], eventSig = "";
   function renderEvents() {
-    const now = Date.now();
-    const ev = events.find((e) => e && e.title && Date.parse(e.until) > now);
-    $("sec-event").hidden = !ev;
-    if (!ev) { eventSig = ""; return; }
-    $("event-h").textContent = ev.title;
-    $("event-when").textContent = ev.dates || "";
-    $("event-note").textContent = ev.note || "";
-    const ids = (ev.stations || []).filter((id) => byId[id]);
-    $("event-st-k").hidden = !ids.length;
-    const sig = ev.title + ids.join() + favs.join();
-    if (sig !== eventSig) { eventSig = sig; fillMinis($("event-st"), ids, false); }
-    const shows = (ev.shows || []).filter((p) => byId[p.id] && Date.parse(p.end) > now);
-    $("event-shows-k").hidden = !shows.length;
-    const box = $("event-shows");
-    box.textContent = "";
-    shows.forEach((p) => box.appendChild(pickCard(p, now)));
-    $("event-also").textContent = ev.also || "";
-    $("event-also").hidden = !ev.also;
+    const now = Date.now(), box = $("events");
+    const list = events.filter((e) => e && e.title && Date.parse(e.until) > now).slice(0, 2);
+    const sig = JSON.stringify(list.map((e) => [e.title, e.stations])) + favs.join();
+    if (sig !== eventSig) { // built again only when something changes, so a station playing stays lit
+      eventSig = sig;
+      box.textContent = "";
+      list.forEach((ev, i) => {
+        const sec = document.createElement("section");
+        sec.className = "sec event"; sec.setAttribute("aria-labelledby", "event-h" + i);
+        sec.innerHTML = '<h2 class="sec-h"><span id="event-h' + i + '"></span><small></small></h2><p class="event-note"></p>' +
+          '<p class="event-k" data-k="st">From the city</p><div class="favs stack"></div>' +
+          '<p class="event-k" data-k="shows">From the lineup, on Sintonia</p><div class="picks"></div><p class="event-also"></p>';
+        sec.querySelector(".sec-h span").textContent = ev.title;
+        sec.querySelector(".sec-h small").textContent = ev.dates || "";
+        sec.querySelector(".event-note").textContent = ev.note || "";
+        const ids = (ev.stations || []).filter((id) => byId[id]);
+        sec.querySelector('[data-k="st"]').hidden = !ids.length;
+        fillMinis(sec.querySelector(".favs"), ids, false);
+        const also = sec.querySelector(".event-also");
+        also.textContent = ev.also || ""; also.hidden = !ev.also;
+        box.appendChild(sec);
+      });
+    }
+    // the shows, every time: the ones that are over leave
+    [...box.children].forEach((sec, i) => {
+      const shows = (list[i].shows || []).filter((p) => byId[p.id] && Date.parse(p.end) > now);
+      sec.querySelector('[data-k="shows"]').hidden = !shows.length;
+      const picksBox = sec.querySelector(".picks");
+      picksBox.textContent = "";
+      shows.forEach((p) => picksBox.appendChild(pickCard(p, now)));
+    });
   }
   const start_ = (id) => start(id);
   fetch("picks.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : null).then((j) => { picks = (j && j.picks) || []; renderPicks(); }).catch(() => {});
@@ -3922,7 +3929,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function tickClocks() {
     const now = Date.now();
     stations.forEach((st) => { st.el.querySelector(".clock").textContent = hhmm(now, st.tz); });
-    document.querySelectorAll("#favs .mini, #newin .mini, #event-st .mini").forEach((m) => { m.querySelector(".clock").textContent = hhmm(now, byId[m.dataset.id].tz); });
+    document.querySelectorAll("#favs .mini, #newin .mini, #events .mini").forEach((m) => { m.querySelector(".clock").textContent = hhmm(now, byId[m.dataset.id].tz); });
     if (band !== "all") arrange();
     updateProgress();
     renderGreeting();

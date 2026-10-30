@@ -1,4 +1,5 @@
-# A reply from the owner with three numbers on the weekly schedule issue fills This week (picks.json).
+# A reply from the owner on the weekly schedule issue: three numbers fill This week (picks.json),
+# "evento ok" publishes the event proposed under the issue (events.json, already in the test copy).
 name: This week picks
 on:
   issue_comment:
@@ -25,18 +26,17 @@ jobs:
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
           COMMENT_BODY: ${{ github.event.comment.body }}
-      - name: Save the picks and publish
+      - name: Save and publish
         run: |
-          [ -f picks.json ] || { echo "no picks in this reply"; exit 0; }
-          # start from the latest main, so only picks.json changes even if main moved in the meantime
+          [ -s changed.txt ] || { echo "nothing changed by this reply"; exit 0; }
+          # start from the latest main, so only the files this reply changed are saved, even if main moved in the meantime
           git fetch -q origin main
           git reset -q origin/main
-          git add picks.json
-          [ -f prova/picks.json ] && git add prova/picks.json
+          while read -r f; do [ -n "$f" ] && git add -- "$f"; done < changed.txt
           if git diff --cached --quiet; then echo "nothing to save"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "This week: picks from the schedule issue #${{ github.event.issue.number }}"
+          git commit -m "This week: from the schedule issue #${{ github.event.issue.number }} ($(tr '\n' ' ' < changed.txt))"
           git push origin HEAD:main
           # a push made with this token doesn't start the Pages build by itself
           curl -s -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/pages/builds" > /dev/null || true
