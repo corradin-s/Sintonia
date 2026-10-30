@@ -2599,11 +2599,11 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     card.querySelector("button").addEventListener("click", () => { if (on) start_(p.id); else openSheet("info", p.id); });
     return card;
   }
-  // events (from events.json, while they last), at most two: a few lines, the city's stations, the shows from the lineup on Sintonia
+  // events (from events.json, while they last), up to three: a few lines, the city's stations, the shows from the lineup on Sintonia
   let events = [], eventSig = "";
   function renderEvents() {
     const now = Date.now(), box = $("events");
-    const list = events.filter((e) => e && e.title && Date.parse(e.until) > now).slice(0, 2);
+    const list = events.filter((e) => e && e.title && Date.parse(e.until) > now).slice(0, 3);
     const sig = JSON.stringify(list.map((e) => [e.title, e.stations])) + favs.join();
     if (sig !== eventSig) { // built again only when something changes, so a station playing stays lit
       eventSig = sig;
