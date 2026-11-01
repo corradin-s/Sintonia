@@ -125,8 +125,11 @@ const gh = async (path, opts = {}) => {
   if (!r.ok) throw new Error(path + " " + r.status + " " + (await r.text()).slice(0, 200));
   return r.status === 204 ? null : r.json();
 };
+// once a week: if this week's list is already open (a run started by hand, or a late scheduled one), nothing more
+const open = await gh("/issues?state=open&per_page=100");
+if (open.some((i) => !i.pull_request && i.title === title)) { console.log("already there: " + title); process.exit(0); }
 // last week's list is closed, so the inbox keeps only the current one
-for (const i of await gh("/issues?state=open&per_page=100")) {
+for (const i of open) {
   if (!i.pull_request && /^Palinsesti /.test(i.title)) await gh("/issues/" + i.number, { method: "PATCH", body: JSON.stringify({ state: "closed" }) });
 }
 await gh("/issues", { method: "POST", body: JSON.stringify({ title, body }) });
