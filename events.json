@@ -6,11 +6,36 @@
    "dates": "29 Oct – 1 Nov",
    "until": "2026-11-05T22:00:00Z",
    "note": "C2C, Turin’s festival of avant-pop and electronic music, is on for its 25th edition. Here are the city’s community radio and the artists from the lineup you can hear on Sintonia.",
-   "stations": ["rbl"],
+   "stations": [
+    "rbl"
+   ],
    "shows": [
-    { "id": "stegi", "title": "Palettes w/ KMRU", "start": "2026-11-05T21:00:00Z", "end": "2026-11-05T22:00:00Z", "why": "KMRU, on the C2C lineup, presents his monthly show of ambient and experimental sounds." }
+    {
+     "id": "stegi",
+     "title": "Palettes w/ KMRU",
+     "start": "2026-11-05T21:00:00Z",
+     "end": "2026-11-05T22:00:00Z",
+     "why": "KMRU, on the C2C lineup, presents his monthly show of ambient and experimental sounds."
+    }
    ],
    "also": "Smerz, Crystallmess, The Avalanches, Theo Parrish, Gyrofield and Chuquimamani-Condori, all on the lineup, also host their own shows on NTS."
+  },
+  {
+   "title": "Le Guess Who?, Utrecht",
+   "dates": "5 Nov – 8 Nov",
+   "until": "2026-11-08T23:00:00Z",
+   "note": "Le Guess Who? marks its 20th edition across venues in Utrecht, with programmes curated by KMRU, Los Thuthanaka and aja monet. Cashmere Radio broadcasts live from the festival on the opening night.",
+   "stations": [],
+   "shows": [
+    {
+     "id": "cashmere",
+     "title": "Live from Le Guest Who? Festival",
+     "start": "2026-11-05T23:00:00Z",
+     "end": "2026-11-06T01:00:00Z",
+     "why": "A live broadcast from the festival on its first night."
+    }
+   ],
+   "also": "KMRU, one of this year's guest curators, hosts Palettes on Stegi.Radio on Thursday, and Radio alHara is also on the programme."
   }
  ]
 }
