@@ -2628,8 +2628,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
         sec.className = "sec event"; sec.setAttribute("aria-labelledby", "event-h" + i);
         sec.innerHTML = '<div class="ev-hero"><div class="ev-top"><span class="ev-kick"></span><span class="ev-dates"></span></div>' +
           '<h2 class="ev-title" id="event-h' + i + '"></h2><p class="event-note"></p></div>' +
-          '<div class="ev-body"><p class="event-k" data-k="st">From the city</p><div class="favs stack"></div>' +
-          '<p class="event-k" data-k="shows">From the lineup, on Sintonia</p><div class="picks"></div><p class="event-also"></p></div>';
+          '<div class="ev-body"><p class="event-k" data-k="st">From the city</p><div class="favs stack"></div><div class="picks" data-box="live"></div>' +
+          '<p class="event-k" data-k="shows">From the lineup, on Sintonia</p><div class="picks" data-box="shows"></div><p class="event-also"></p></div>';
         // "C2C Festival, Turin": the name big, the city above it
         const cut = ev.title.lastIndexOf(", ");
         sec.querySelector(".ev-title").textContent = cut > 0 ? ev.title.slice(0, cut) : ev.title;
@@ -2641,20 +2641,25 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
         const accent = (Array.isArray(ev.colors) ? ev.colors : []).find((c) => /^#[0-9a-f]{6}$/i.test(c));
         if (accent) sec.style.setProperty("--ev1", accent);
         const ids = (ev.stations || []).filter((id) => byId[id]);
-        sec.querySelector('[data-k="st"]').hidden = !ids.length;
         fillMinis(sec.querySelector(".favs"), ids, false);
         const also = sec.querySelector(".event-also");
         also.textContent = ev.also || ""; also.hidden = !ev.also;
         box.appendChild(sec);
       });
     }
-    // the shows, every time: the ones that are over leave
+    // the shows, every time: the ones that are over leave. Broadcasts live from the event ("live") go under From the city,
+    // with the city's stations; shows by artists of the lineup ("shows") under From the lineup
+    const upcoming = (l) => (l || []).filter((p) => byId[p.id] && Date.parse(p.end) > now);
     [...box.children].forEach((sec, i) => {
-      const shows = (list[i].shows || []).filter((p) => byId[p.id] && Date.parse(p.end) > now);
+      const ev = list[i], live = upcoming(ev.live), shows = upcoming(ev.shows);
+      const ids = (ev.stations || []).filter((id) => byId[id]);
+      sec.querySelector('[data-k="st"]').hidden = !ids.length && !live.length;
       sec.querySelector('[data-k="shows"]').hidden = !shows.length;
-      const picksBox = sec.querySelector(".picks");
-      picksBox.textContent = "";
-      shows.forEach((p) => picksBox.appendChild(pickCard(p, now)));
+      [["live", live], ["shows", shows]].forEach(([k, l]) => {
+        const b = sec.querySelector('[data-box="' + k + '"]');
+        b.textContent = "";
+        l.forEach((p) => b.appendChild(pickCard(p, now)));
+      });
     });
   }
   const start_ = (id) => start(id);

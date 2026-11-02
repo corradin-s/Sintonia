@@ -33,7 +33,7 @@ jobs:
           # start from the latest main, so only the files this reply changed are saved, even if main moved in the meantime
           git fetch -q origin main
           git reset -q origin/main
-          while read -r f; do [ -n "$f" ] && git add -- "$f"; done < changed.txt
+          while read -r f || [ -n "$f" ]; do [ -n "$f" ] && git add -- "$f"; done < changed.txt  # the last line too, newline or not
           if git diff --cached --quiet; then echo "nothing to save"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

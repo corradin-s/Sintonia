@@ -26,16 +26,17 @@
    "until": "2026-11-08T23:00:00Z",
    "note": "Le Guess Who? marks its 20th edition across venues in Utrecht, with programmes curated by KMRU, Los Thuthanaka and aja monet. Cashmere Radio broadcasts live from the festival on the opening night.",
    "stations": [],
-   "shows": [
+   "also": "KMRU, one of this year's guest curators, hosts Palettes on Stegi.Radio on Thursday, and Radio alHara is also on the programme.",
+   "live": [
     {
      "id": "cashmere",
      "title": "Live from Le Guest Who? Festival",
      "start": "2026-11-05T23:00:00Z",
      "end": "2026-11-06T01:00:00Z",
-     "why": "A live broadcast from the festival on its first night."
+     "why": "Cashmere Radio broadcasts live from the festival on its first night."
     }
    ],
-   "also": "KMRU, one of this year's guest curators, hosts Palettes on Stegi.Radio on Thursday, and Radio alHara is also on the programme."
+   "shows": []
   }
  ]
 }

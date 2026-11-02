@@ -61,6 +61,6 @@ if (!m) {
   }
 }
 
-fs.writeFileSync("changed.txt", changed.join("\n"));
+fs.writeFileSync("changed.txt", changed.map((f) => f + "\n").join("")); // one per line, the last one too
 fs.writeFileSync("picks-reply.md", out.join("\n\n") + (changed.length ? "\n\nL'app si aggiorna da sola nei prossimi minuti." : ""));
 console.log("changed:", changed.join(", ") || "nothing");
