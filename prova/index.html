@@ -320,10 +320,10 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .ev-kick::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--ev1); } /* like a city on the map */
 .ev-dates { flex: none; font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
 .ev-end { flex: none; display: inline-flex; align-items: center; gap: 10px; }
-.ev-info { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 999px; text-decoration: none;
+.ev-info { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; text-decoration: none;
   background: color-mix(in srgb, var(--ev-fg) 14%, transparent); color: var(--ev-fg);
   font-family: var(--f-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-.ev-info span { opacity: .7; }
+.ev-arr { width: 7px; height: 7px; fill: currentColor; } /* the arrow in dots, like the title */
 .ev-info[hidden] { display: none; }
 .ev-info:focus-visible { outline: 2px solid var(--ev-fg); outline-offset: 2px; }
 .ev-title { margin: 4px 0 0; font-family: "Doto", ui-monospace, Menlo, monospace; font-weight: 800; font-variation-settings: "ROND" 100; font-size: 48px; line-height: .9;
@@ -2819,7 +2819,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
         const sec = document.createElement("section");
         sec.className = "sec event"; sec.setAttribute("aria-labelledby", "event-h" + i);
         sec.innerHTML = '<div class="ev-hero"><div class="ev-top"><span class="ev-kick"></span><span class="ev-end"><span class="ev-dates"></span>' +
-          '<a class="ev-info" target="_blank" rel="noopener" hidden>Info <span aria-hidden="true">↗</span></a></span></div>' +
+          '<a class="ev-info" target="_blank" rel="noopener" hidden>Info <svg class="ev-arr" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="1" r=".9"/><circle cx="7" cy="1" r=".9"/><circle cx="9" cy="1" r=".9"/><circle cx="9" cy="3" r=".9"/><circle cx="9" cy="5" r=".9"/><circle cx="7" cy="3" r=".9"/><circle cx="5" cy="5" r=".9"/><circle cx="3" cy="7" r=".9"/><circle cx="1" cy="9" r=".9"/></svg></a></span></div>' +
           '<h2 class="ev-title" id="event-h' + i + '"></h2><p class="event-note"></p></div>' +
           '<div class="ev-body"><p class="event-k" data-k="st">From the city</p><div class="favs stack"></div><div class="picks" data-box="live"></div>' +
           '<p class="event-k" data-k="shows">From the lineup, on Sintonia</p><div class="picks" data-box="shows"></div><p class="event-also"></p></div>';
