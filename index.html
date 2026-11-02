@@ -543,10 +543,10 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
    Nothing chosen: every station. Tap one to narrow the list, tap it again for all of them */
 .chips { display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; scroll-padding: 0 16px; }
 .chips::-webkit-scrollbar { display: none; }
-.chip { appearance: none; -webkit-appearance: none; flex: none; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--ink); cursor: pointer;
+.chips .chip { appearance: none; -webkit-appearance: none; flex: none; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--ink); cursor: pointer;
   font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
-.chip[aria-pressed="true"] { background: var(--chip, var(--ink)); border-color: transparent; color: var(--chip-t, var(--bg)); }
-.chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.chips .chip[aria-pressed="true"] { background: var(--chip, var(--ink)); border-color: transparent; color: var(--chip-t, var(--bg)); }
+.chips .chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
 .chip-sep { flex: none; width: 1px; height: 22px; background: var(--line); }
 .chips.off { opacity: .38; } /* while you search, the filters step aside */
 .mood-where { margin: 0; font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -2699,7 +2699,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     $("more-h").textContent = searching ? "Found" : kind === "live" ? "Live now" : most ? "Most listened" : band !== "all" ? "Where it’s " + band : "All stations";
     $("more-n").textContent = shown.length === 1 ? "1 station" : shown.length + " stations";
     $("chips").classList.toggle("off", searching);
-    document.querySelectorAll(".chip").forEach((b) => b.setAttribute("aria-pressed", b.dataset.f === kind || b.dataset.f === band ? "true" : "false"));
+    document.querySelectorAll("#chips .chip").forEach((b) => b.setAttribute("aria-pressed", b.dataset.f === kind || b.dataset.f === band ? "true" : "false"));
     const where = $("when-where");
     const cities = [...new Set(shown.map((st) => st.city))];
     where.hidden = searching || band === "all" || !cities.length;
