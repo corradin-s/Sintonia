@@ -319,6 +319,13 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .ev-kick { display: inline-flex; align-items: center; gap: 8px; font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
 .ev-kick::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--ev1); } /* like a city on the map */
 .ev-dates { flex: none; font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
+.ev-end { flex: none; display: inline-flex; align-items: center; gap: 10px; }
+.ev-info { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 999px; text-decoration: none;
+  background: color-mix(in srgb, var(--ev-fg) 14%, transparent); color: var(--ev-fg);
+  font-family: var(--f-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.ev-info span { opacity: .7; }
+.ev-info[hidden] { display: none; }
+.ev-info:focus-visible { outline: 2px solid var(--ev-fg); outline-offset: 2px; }
 .ev-title { margin: 4px 0 0; font-family: "Doto", ui-monospace, Menlo, monospace; font-weight: 800; font-variation-settings: "ROND" 100; font-size: 48px; line-height: .9;
   letter-spacing: -.03em; word-spacing: -.3em; text-transform: uppercase; overflow-wrap: anywhere; } /* dot matrix, round dots, like a club's LED sign */
 .ev-title::after { content: "."; color: var(--ev1); } /* the accent, once */
@@ -2804,14 +2811,15 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function renderEvents() {
     const now = Date.now(), box = $("events");
     const list = events.filter((e) => e && e.title && Date.parse(e.until) > now).slice(0, 3);
-    const sig = JSON.stringify(list.map((e) => [e.title, e.stations])) + favs.join();
+    const sig = JSON.stringify(list.map((e) => [e.title, e.stations, e.url])) + favs.join();
     if (sig !== eventSig) { // built again only when something changes, so a station playing stays lit
       eventSig = sig;
       box.textContent = "";
       list.forEach((ev, i) => {
         const sec = document.createElement("section");
         sec.className = "sec event"; sec.setAttribute("aria-labelledby", "event-h" + i);
-        sec.innerHTML = '<div class="ev-hero"><div class="ev-top"><span class="ev-kick"></span><span class="ev-dates"></span></div>' +
+        sec.innerHTML = '<div class="ev-hero"><div class="ev-top"><span class="ev-kick"></span><span class="ev-end"><span class="ev-dates"></span>' +
+          '<a class="ev-info" target="_blank" rel="noopener" hidden>Info <span aria-hidden="true">↗</span></a></span></div>' +
           '<h2 class="ev-title" id="event-h' + i + '"></h2><p class="event-note"></p></div>' +
           '<div class="ev-body"><p class="event-k" data-k="st">From the city</p><div class="favs stack"></div><div class="picks" data-box="live"></div>' +
           '<p class="event-k" data-k="shows">From the lineup, on Sintonia</p><div class="picks" data-box="shows"></div><p class="event-also"></p></div>';
@@ -2822,6 +2830,9 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
         const dates = sec.querySelector(".ev-dates");
         dates.textContent = ev.dates || ""; dates.hidden = !ev.dates;
         sec.querySelector(".event-note").textContent = ev.note || "";
+        // Info: the event's own website
+        const info = sec.querySelector(".ev-info");
+        if (/^https:\/\/[^\s"<>]+$/i.test(ev.url || "")) { info.href = ev.url; info.hidden = false; info.setAttribute("aria-label", (cut > 0 ? ev.title.slice(0, cut) : ev.title) + ": website"); }
         // the event's own colour, if it has one, as the accent
         const accent = (Array.isArray(ev.colors) ? ev.colors : []).find((c) => /^#[0-9a-f]{6}$/i.test(c));
         if (accent) sec.style.setProperty("--ev1", accent);

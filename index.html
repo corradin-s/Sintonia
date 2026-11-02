@@ -317,6 +317,13 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .ev-kick { display: inline-flex; align-items: center; gap: 8px; font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
 .ev-kick::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--ev1); } /* like a city on the map */
 .ev-dates { flex: none; font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
+.ev-end { flex: none; display: inline-flex; align-items: center; gap: 10px; }
+.ev-info { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 999px; text-decoration: none;
+  background: color-mix(in srgb, var(--ev-fg) 14%, transparent); color: var(--ev-fg);
+  font-family: var(--f-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.ev-info span { opacity: .7; }
+.ev-info[hidden] { display: none; }
+.ev-info:focus-visible { outline: 2px solid var(--ev-fg); outline-offset: 2px; }
 .ev-title { margin: 4px 0 0; font-family: "Doto", ui-monospace, Menlo, monospace; font-weight: 800; font-variation-settings: "ROND" 100; font-size: 48px; line-height: .9;
   letter-spacing: -.03em; word-spacing: -.3em; text-transform: uppercase; overflow-wrap: anywhere; } /* dot matrix, round dots, like a club's LED sign */
 .ev-title::after { content: "."; color: var(--ev1); } /* the accent, once */
@@ -540,15 +547,24 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .search button { appearance: none; -webkit-appearance: none; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
 .search button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
 .moods.off { opacity: .38; } /* while you search, the time of day steps aside */
-/* one row of filters: what's live, what you listen to most, where it's morning, afternoon, evening or night.
+/* the filters, in the same column as the search bar and the tiles: what's live, what you listen to most, what's new;
+   then where it's morning, afternoon, evening or night, as one segmented bar in a quieter colour.
    Nothing chosen: every station. Tap one to narrow the list, tap it again for all of them */
-.chips { display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; scroll-padding: 0 16px; }
-.chips::-webkit-scrollbar { display: none; }
-.chips .chip { appearance: none; -webkit-appearance: none; flex: none; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--ink); cursor: pointer;
-  font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+.chips { display: grid; gap: 8px; }
+.chip-kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.chip-times { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 4%, transparent); border: 1px solid var(--line); }
+.chips .chip { appearance: none; -webkit-appearance: none; min-width: 0; padding: 11px 2px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--ink); cursor: pointer;
+  font-family: var(--f-mono); font-size: clamp(9px, 2.6vw, 10.5px); font-weight: 600; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; text-align: center; overflow: hidden; text-overflow: ellipsis; }
+.chip-times .chip { padding: 8px 2px; border-color: transparent; background: none; color: var(--muted); }
 .chips .chip[aria-pressed="true"] { background: var(--chip, var(--ink)); border-color: transparent; color: var(--chip-t, var(--bg)); }
 .chips .chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
-.chip-sep { flex: none; width: 1px; height: 22px; background: var(--line); }
+@media (max-width: 399px) { .chips .chip { letter-spacing: .04em; } } /* small phones: Recently added still fits */
+@media (min-width: 700px) { /* room for both groups on one line */
+  .chips { grid-template-columns: auto auto; justify-content: start; align-items: center; gap: 12px; }
+  .chip-kinds, .chip-times { grid-template-columns: none; grid-auto-flow: column; }
+  .chips .chip { padding-left: 14px; padding-right: 14px; font-size: 10.5px; }
+}
 .chips.off { opacity: .38; } /* while you search, the filters step aside */
 .mood-where { margin: 0; font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .mood-where b { color: var(--ink); font-weight: 500; }
@@ -971,6 +987,26 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 .fp-sub .fp-tag { position: static; display: inline-block; vertical-align: 1px; margin-right: 8px; padding: 3px 7px; border: 0; border-radius: 5px;
   background: var(--t); color: var(--c); font-size: 9.5px; font-weight: 600; }
 .fp-sub .fp-tag::before { content: none; }
+/* on a computer, or any wide landscape window: the poster fills the left, the controls stand in a column on the right */
+@media (min-width: 700px) and (min-aspect-ratio: 5/4) {
+  .fp-in { max-width: 1480px; display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr);
+    grid-template-rows: auto 1fr auto auto auto auto 1fr; column-gap: clamp(40px, 6vw, 110px); row-gap: 24px;
+    padding: 24px clamp(28px, 4vw, 64px) 36px; }
+  .fp-top { grid-column: 1 / -1; grid-row: 1; }
+  .fp-poster { grid-column: 1; grid-row: 2 / 8; align-content: center; gap: 18px; padding: 0; }
+  .fp-bar, .fp-times.one { grid-column: 2; grid-row: 3; }
+  .fp-ctrl { grid-column: 2; grid-row: 4; padding: 10px 0; }
+  .fp-track, .fp-nosong { grid-column: 2; grid-row: 5; }
+  .fp-acts { grid-column: 2; grid-row: 6; margin-top: 0; padding-top: 14px; border-top: 1px solid var(--line); }
+  .fp-pk { font-size: 11.5px; }
+  .fp-sub { font-size: 15px; }
+}
+@media (min-width: 700px) and (min-aspect-ratio: 5/4) and (max-height: 560px) { /* a phone on its side */
+  .fp-in { row-gap: 10px; padding-top: 8px; padding-bottom: 12px; }
+  .fp-poster { gap: 10px; }
+  .fp-ctrl { padding: 0; }
+  .fp-acts { padding-top: 4px; }
+}
 
 /* ---------- live energy: people listening and reactions make a station's colour stronger for a while; no numbers ---------- */
 .tile.hot:not(.on), .mini.hot:not(.on) {
@@ -1055,14 +1091,17 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   <section class="sec" id="sec-when" aria-label="Find a station">
     <label class="search" for="q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search a station, city or country" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search stations"><button type="button" id="q-x" aria-label="Clear the search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></label>
     <div class="chips" id="chips" role="group" aria-label="Show only">
-      <button type="button" class="chip" data-f="live" aria-pressed="false">Live now</button>
-      <button type="button" class="chip" data-f="most" aria-pressed="false">Most listened</button>
-      <button type="button" class="chip" data-f="new" aria-pressed="false">Recently added</button>
-      <span class="chip-sep" aria-hidden="true"></span>
-      <button type="button" class="chip" data-f="morning" aria-pressed="false">Morning</button>
-      <button type="button" class="chip" data-f="afternoon" aria-pressed="false">Afternoon</button>
-      <button type="button" class="chip" data-f="evening" aria-pressed="false">Evening</button>
-      <button type="button" class="chip" data-f="night" aria-pressed="false">Night</button>
+      <div class="chip-kinds">
+        <button type="button" class="chip" data-f="live" aria-pressed="false">Live now</button>
+        <button type="button" class="chip" data-f="most" aria-pressed="false">Most listened</button>
+        <button type="button" class="chip" data-f="new" aria-pressed="false">Recently added</button>
+      </div>
+      <div class="chip-times" role="group" aria-label="Where it’s">
+        <button type="button" class="chip" data-f="morning" aria-pressed="false">Morning</button>
+        <button type="button" class="chip" data-f="afternoon" aria-pressed="false">Afternoon</button>
+        <button type="button" class="chip" data-f="evening" aria-pressed="false">Evening</button>
+        <button type="button" class="chip" data-f="night" aria-pressed="false">Night</button>
+      </div>
     </div>
     <p class="mood-where" id="when-where" hidden></p>
     <p class="mood-empty" id="when-empty" hidden>No stations here at this hour. Try another time of day.</p>
@@ -2769,14 +2808,15 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function renderEvents() {
     const now = Date.now(), box = $("events");
     const list = events.filter((e) => e && e.title && Date.parse(e.until) > now).slice(0, 3);
-    const sig = JSON.stringify(list.map((e) => [e.title, e.stations])) + favs.join();
+    const sig = JSON.stringify(list.map((e) => [e.title, e.stations, e.url])) + favs.join();
     if (sig !== eventSig) { // built again only when something changes, so a station playing stays lit
       eventSig = sig;
       box.textContent = "";
       list.forEach((ev, i) => {
         const sec = document.createElement("section");
         sec.className = "sec event"; sec.setAttribute("aria-labelledby", "event-h" + i);
-        sec.innerHTML = '<div class="ev-hero"><div class="ev-top"><span class="ev-kick"></span><span class="ev-dates"></span></div>' +
+        sec.innerHTML = '<div class="ev-hero"><div class="ev-top"><span class="ev-kick"></span><span class="ev-end"><span class="ev-dates"></span>' +
+          '<a class="ev-info" target="_blank" rel="noopener" hidden>Info <span aria-hidden="true">↗</span></a></span></div>' +
           '<h2 class="ev-title" id="event-h' + i + '"></h2><p class="event-note"></p></div>' +
           '<div class="ev-body"><p class="event-k" data-k="st">From the city</p><div class="favs stack"></div><div class="picks" data-box="live"></div>' +
           '<p class="event-k" data-k="shows">From the lineup, on Sintonia</p><div class="picks" data-box="shows"></div><p class="event-also"></p></div>';
@@ -2787,6 +2827,9 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
         const dates = sec.querySelector(".ev-dates");
         dates.textContent = ev.dates || ""; dates.hidden = !ev.dates;
         sec.querySelector(".event-note").textContent = ev.note || "";
+        // Info: the event's own website
+        const info = sec.querySelector(".ev-info");
+        if (/^https:\/\/[^\s"<>]+$/i.test(ev.url || "")) { info.href = ev.url; info.hidden = false; info.setAttribute("aria-label", (cut > 0 ? ev.title.slice(0, cut) : ev.title) + ": website"); }
         // the event's own colour, if it has one, as the accent
         const accent = (Array.isArray(ev.colors) ? ev.colors : []).find((c) => /^#[0-9a-f]{6}$/i.test(c));
         if (accent) sec.style.setProperty("--ev1", accent);
@@ -3450,12 +3493,15 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     fpIn.innerHTML = h;
     fitCover();
   }
+  const fpWide = window.matchMedia("(min-width: 700px) and (min-aspect-ratio: 5/4)");
   function fitCover() { // the poster's title as big as it goes: no word cut, and no more than about 40% of the screen's height
+    // (on a computer, where the poster has the left of the page to itself, about 60%)
     const el = fpIn.querySelector(".fp-ttl");
     if (!el || !el.clientWidth) return;
-    const room = Math.max(150, Math.min(window.innerHeight * 0.4, 420));
+    const wide = fpWide.matches;
+    const room = wide ? Math.max(160, Math.min(window.innerHeight * (window.innerHeight < 560 ? 0.48 : 0.6), 640)) : Math.max(150, Math.min(window.innerHeight * 0.4, 420));
     const fits = (px) => { el.style.fontSize = px + "px"; return el.scrollWidth <= el.clientWidth + 1 && el.offsetHeight <= room; };
-    let lo = 30, hi = 170;
+    let lo = 30, hi = wide ? 300 : 170;
     while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (fits(mid)) lo = mid; else hi = mid; }
     el.style.fontSize = lo + "px";
   }
