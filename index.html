@@ -48,7 +48,7 @@ window.SintoniaTheme = (function () {
   return { BG: BG, apply: apply };
 })();
 </script>
-<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="fonts.css?v=2">
 <style>
 /* Layout: two views switched by a bottom tab bar, like an iPhone app.
    Stations: on-air header, your pinned stations, then the stations live right now, then the rest.
@@ -312,7 +312,7 @@ body[data-state="live"] .onair i { background: var(--live); box-shadow: 0 0 10px
 .ev-kick { display: inline-flex; align-items: center; gap: 8px; font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
 .ev-kick::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--ev1); } /* like a city on the map */
 .ev-dates { flex: none; font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
-.ev-title { margin: 4px 0 0; font-family: "Doto", var(--f-display); font-weight: 800; font-variation-settings: "ROND" 100; font-size: 48px; line-height: .9;
+.ev-title { margin: 4px 0 0; font-family: "Doto", ui-monospace, Menlo, monospace; font-weight: 800; font-variation-settings: "ROND" 100; font-size: 48px; line-height: .9;
   letter-spacing: -.03em; word-spacing: -.3em; text-transform: uppercase; overflow-wrap: anywhere; } /* dot matrix, round dots, like a club's LED sign */
 .ev-title::after { content: "."; color: var(--ev1); } /* the accent, once */
 .event-note { margin: 0; font-size: 14px; line-height: 1.45; opacity: .82; }
