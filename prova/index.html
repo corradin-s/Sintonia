@@ -966,6 +966,52 @@ body[data-state="live"] .eq i { animation: eq-bounce 1s ease-in-out infinite; }
 body[data-state="live"] .eq i:nth-child(2) { animation-delay: -.35s; }
 body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 @keyframes sig-flow { to { transform: translateX(24px); } } /* one period of the wave */
+/* ---------- 1. each station's own voice: the width and weight of Archivo come from its name (see voices()) ---------- */
+.name, .mini .nm, .rn-name, .fp-ttl { font-stretch: var(--vw, 62%); font-weight: var(--vt, 850); }
+
+/* ---------- 2. the player as a poster: the whole page in the station's colours and rings, the show's title huge in its voice ---------- */
+.fp[data-id] {
+  background: var(--c); color: var(--t);
+  --ink: var(--t); --bg: var(--c); --muted: color-mix(in srgb, var(--t) 68%, transparent); --line: color-mix(in srgb, var(--t) 24%, transparent);
+}
+.fp[data-id]::before { /* the rings of its tile, at the size of a page */
+  position: fixed; inset: 0; height: auto;
+  background: repeating-radial-gradient(circle at var(--ox) var(--oy), transparent 0, transparent calc(var(--gap) * 3 - 1.5px), var(--ring) calc(var(--gap) * 3 - 1.5px), var(--ring) calc(var(--gap) * 3));
+}
+.fp[data-id]::after { /* and its print grain */
+  content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .16;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+.fp[data-id] .fp-in { z-index: 1; }
+.fp-poster { flex: 1 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 14px; padding-top: 6px; }
+.fp-poster > * { min-width: 0; }
+.fp-pk { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 10px; border-bottom: 1.5px solid var(--line);
+  font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.fp-pk span:first-child { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fp-pk span:last-child { flex: none; opacity: .75; }
+.fp-ttl { margin: 4px 0 0; line-height: .86; letter-spacing: -.01em; text-transform: uppercase; overflow-wrap: normal; word-break: keep-all; text-wrap: balance; font-family: var(--f-display); }
+.fp-ttl.keepcase { text-transform: none; }
+.fp-poster .fp-meta { align-items: center; }
+.fp[data-id] .fp-star { color: var(--t); }
+.fp-sub { margin: 0; font-size: 14px; line-height: 1.4; color: var(--muted); }
+.fp-sub .fp-tag { position: static; display: inline-block; vertical-align: 1px; margin-right: 8px; padding: 3px 7px; border: 0; border-radius: 5px;
+  background: var(--t); color: var(--c); font-size: 9.5px; font-weight: 600; }
+.fp-sub .fp-tag::before { content: none; }
+
+/* ---------- 3. live energy: people listening and reactions make a station's colour stronger for a while; no numbers ---------- */
+.tile.hot:not(.on), .mini.hot:not(.on) {
+  background: radial-gradient(130% 95% at var(--ox) var(--oy), color-mix(in srgb, var(--dot) var(--en-g, 34%), transparent), transparent 74%),
+    color-mix(in srgb, var(--dot) var(--en-b, 12%), var(--bg-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dot) 70%, transparent), 0 12px var(--en-r, 0px) -16px var(--dot);
+}
+:root[data-theme="light"] .tile.hot:not(.on), :root[data-theme="light"] .mini.hot:not(.on) {
+  background: radial-gradient(130% 95% at var(--ox) var(--oy), color-mix(in srgb, var(--c) var(--en-g, 42%), transparent), transparent 74%),
+    color-mix(in srgb, var(--c) var(--en-b, 14%), var(--bg-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 80%, transparent), 0 12px var(--en-r, 0px) -16px var(--c);
+}
+@keyframes hot { 50% { filter: saturate(1.3) brightness(1.05); } }
+@keyframes pop { 0% { transform: scale(1); } 30% { transform: scale(1.03); } 100% { transform: scale(1); } }
+
 @keyframes eq-bounce { 0%,100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
 @media (prefers-reduced-motion: no-preference) {
   .tune { transition: transform .15s ease; }
@@ -975,6 +1021,9 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   body[data-state="live"] .tile.on::before { animation: ripple 1.4s linear infinite; }
   body[data-state="loading"] .tile.on .knob, body[data-state="loading"] .swatch { animation: pulse 1.1s ease-in-out infinite; }
   body[data-state="live"] .onair .sig-live { animation: sig-flow var(--sig-dur, 1.6s) linear infinite; }
+  .tile.hot:not(.on), .mini.hot:not(.on) { animation: hot 4s ease-in-out infinite; }
+  .tile.pop, .mini.pop { animation: pop .8s ease-out; }
+  .tile.hot.pop:not(.on), .mini.hot.pop:not(.on) { animation: pop .8s ease-out, hot 4s ease-in-out .8s infinite; }
   body[data-state="loading"] .onair .sig-noise { animation: sig-flow .5s steps(6) infinite; }
   .me .core { animation: blink 1.4s ease-in-out infinite; }
   .me .ping { animation: ping 2.2s ease-out infinite; }
@@ -1473,6 +1522,24 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   });
   const byId = Object.fromEntries(stations.map((s) => [s.id, s]));
 
+  // each station writes its name in its own voice: the width and weight of Archivo come from its name, always the same.
+  // Either narrow (62–76%) or wide (96–110%), so the voices are told apart; the wide ones stay lighter, so none looks like the wordmark.
+  (function voices() {
+    let css = "";
+    stations.forEach((st) => {
+      let h = 2166136261;
+      for (const ch of "voice:" + st.id) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+      const rnd = () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return (h >>> 0) / 4294967296; };
+      rnd();
+      const wide = rnd() < 0.5;
+      st.vw = Math.round(wide ? 96 + rnd() * 14 : 62 + rnd() * 14);
+      st.vt = Math.round((wide ? 560 + rnd() * 200 : 640 + rnd() * 260) / 10) * 10;
+      css += '[data-id="' + st.id + '"]{--vw:' + st.vw + "%;--vt:" + st.vt + "}";
+    });
+    const s = document.createElement("style"); s.id = "voices"; s.textContent = css; document.head.appendChild(s);
+  })();
+
+
   /* ---------- receiver: tuning strip of cities, west to east ---------- */
   // one column per city, ordered by longitude
   const cities = [];
@@ -1604,8 +1671,41 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     $("lg-others-row").hidden = !SHARING;
     $("lg-others").textContent = others.length === 0 ? "No one else is tuned in right now"
       : others.length === 1 ? "1 other listener right now" : others.length + " other listeners right now";
+    renderEnergy();
     queueDraw();
   }
+
+  /* ---------- live energy: the people listening to a station and the reactions it gets make its colour stronger on the Home ----------
+     A reaction counts for a few minutes (it halves every three), a listener for as long as they listen. No numbers anywhere. */
+  var energy = {};
+  function bumpEnergy(id) {
+    const l = (energy[id] = energy[id] || []);
+    l.push(Date.now()); if (l.length > 30) l.shift();
+    renderEnergy(id);
+  }
+  function energyOf(id, now) {
+    let n = 0;
+    others.forEach((o) => { if (o.st === id) n++; });
+    const r = (energy[id] || []).reduce((a, t) => a + Math.pow(0.5, (now - t) / 180000), 0);
+    return 1 - Math.exp(-(n * 0.55 + r * 0.35));
+  }
+  function renderEnergy(popId) {
+    if (!energy) return; // not set up yet
+    const now = Date.now();
+    Object.keys(energy).forEach((id) => { energy[id] = energy[id].filter((t) => now - t < 20 * 60000); });
+    document.querySelectorAll(".tile, .mini").forEach((el) => {
+      const e = energyOf(el.dataset.id, now);
+      if (e < 0.04) { el.classList.remove("hot"); ["--en-g", "--en-b", "--en-r"].forEach((k) => el.style.removeProperty(k)); }
+      else {
+        el.classList.add("hot");
+        el.style.setProperty("--en-g", Math.round(36 + e * 50) + "%");
+        el.style.setProperty("--en-b", Math.round(13 + e * 19) + "%");
+        el.style.setProperty("--en-r", Math.round(14 + e * 46) + "px");
+      }
+      if (popId && el.dataset.id === popId) { el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); setTimeout(() => el.classList.remove("pop"), 900); }
+    });
+  }
+  setInterval(() => renderEnergy(), 15000);
 
   /* ---------- reactions: Love, Fire, Groove or Vibe for the station you're playing ----------
      Sent through the same live channel as the dots, seen on the map by whoever has Sintonia open at that moment, saved nowhere.
@@ -1659,6 +1759,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   let reactLog = [], reactLineT = 0;
   function showReaction(p, mine, origin) {
     if (!p || !REACT.hasOwnProperty(p.k) || !byId.hasOwnProperty(p.st)) return;
+    bumpEnergy(p.st);
     const now = performance.now();
     reactLog = reactLog.filter((t) => now - t < 10000);
     if (!mine && reactLog.length >= 24) return;
@@ -2591,6 +2692,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       m.append(b, pin);
       box.appendChild(m);
     });
+    renderEnergy();
   }
 
 
@@ -3349,9 +3451,18 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     renderFP();
     fp.scrollTop = 0;
   }
+  // while the poster is open, the browser's bar takes the station's colour; back to the page's when it closes
+  let tcWas = "";
+  function themeTo(c) {
+    const tc = document.querySelector('meta[name="theme-color"]');
+    if (!tc) return;
+    if (c) { if (!tcWas) tcWas = tc.getAttribute("content") || ""; tc.setAttribute("content", c); }
+    else if (tcWas) { tc.setAttribute("content", tcWas); tcWas = ""; }
+  }
   function closePlayer() {
     fpOpen = false;
     fp.hidden = true;
+    themeTo("");
     fpIn.style.transform = "";
   }
   const sleepLeft = () => sleepAt ? Math.max(1, Math.ceil((sleepAt - Date.now()) / 60000)) : 0;
@@ -3380,17 +3491,18 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     let h = `<div class="fp-top"><button class="fp-ib" type="button" data-fp="close" aria-label="Close player">${fpIcon("down")}</button>` +
       `<div class="fp-k">${esc(k)}<b>${esc(where)}</b></div>` +
       `<button class="fp-ib" type="button" data-fp="heard" aria-label="Songs you heard">${fpIcon("more")}</button></div>`;
-    h += `<div class="fp-cover" data-id="${st.id}"><span class="fp-ck">${esc(st.code)} · ${hhmm(now, st.tz)}</span>${tag}` +
-      `<span class="fp-nm${keep}" id="fp-title">${esc(st.name)}</span></div>`;
+    // a poster: the station's name and its time above, the show's title as big as the page allows, in the station's own voice
+    const hasShow = !!(info && info.title);
+    h += `<div class="fp-poster"><div class="fp-pk"><span>${esc(st.name)}</span><span>${esc(st.code)} · ${hhmm(now, st.tz)}</span></div>` +
+      `<h2 class="fp-ttl${hasShow ? "" : keep}" id="fp-title">${esc(hasShow ? info.title : st.name)}</h2>`;
     const sub = [];
-    if (info && info.title) sub.push(`<b>${esc(st.name)}</b>`);
     if (info && info.sub && !(info.song && info.song.title && info.sub.toLowerCase().includes(info.song.title.toLowerCase())) &&
       !(info.song && info.sub === info.song.artist)) sub.push(esc(info.sub)); // the song has its own card below
     if (info && isFinite(info.end)) sub.push("until " + hhmm(info.end, st.tz));
     if (!info || !info.title) sub.push(esc(st.city) + ", " + esc(st.country));
     const pinned = favs.includes(st.id);
-    h += `<div class="fp-meta"><div class="fp-mt"><h2>${esc(info && info.title ? info.title : st.name)}</h2><p>${sub.join(" · ")}</p></div>` +
-      `<button class="fp-star${pinned ? " on" : ""}" type="button" data-fp="pin" aria-pressed="${pinned}" aria-label="${pinned ? "Unpin" : "Pin"} ${esc(st.name)}">${pinned ? "★" : "☆"}</button></div>`;
+    h += `<div class="fp-meta"><p class="fp-sub">${tag}${sub.join(" · ")}</p>` +
+      `<button class="fp-star${pinned ? " on" : ""}" type="button" data-fp="pin" aria-pressed="${pinned}" aria-label="${pinned ? "Unpin" : "Pin"} ${esc(st.name)}">${pinned ? "★" : "☆"}</button></div></div>`;
     if (info && isFinite(info.start) && isFinite(info.end) && info.end > info.start) {
       const pct = Math.min(100, Math.max(0, (now - info.start) / (info.end - info.start) * 100));
       h += `<div class="fp-bar"><div class="fp-line"><i style="width:${pct.toFixed(1)}%"></i></div>` +
@@ -3417,15 +3529,19 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       `<button class="fp-act" type="button" data-fp="share">${fpIcon("share")}<span>Share</span></button>` +
       `<button class="fp-act" type="button" data-fp="info">${fpIcon("info")}<span>Info</span></button></div>`;
     fp.style.setProperty("--fc", st.dot);
+    fp.dataset.id = st.id; // its colours, rings and voice
+    themeTo(st.c);
     fpIn.innerHTML = h;
     fitCover();
   }
-  function fitCover() { // the station's name as big as the cover allows
-    const cv = fpIn.querySelector(".fp-cover"), nm = cv && cv.querySelector(".fp-nm");
-    if (!nm || !cv.clientWidth) return;
-    let px = Math.round(cv.clientWidth * 0.3), guard = 0;
-    nm.style.fontSize = px + "px";
-    while ((nm.scrollWidth > nm.clientWidth + 1 || nm.offsetHeight > cv.clientHeight * 0.62) && px > 24 && guard++ < 80) { px -= 3; nm.style.fontSize = px + "px"; }
+  function fitCover() { // the poster's title as big as it goes: no word cut, and no more than about 40% of the screen's height
+    const el = fpIn.querySelector(".fp-ttl");
+    if (!el || !el.clientWidth) return;
+    const room = Math.max(150, Math.min(window.innerHeight * 0.4, 420));
+    const fits = (px) => { el.style.fontSize = px + "px"; return el.scrollWidth <= el.clientWidth + 1 && el.offsetHeight <= room; };
+    let lo = 30, hi = 170;
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (fits(mid)) lo = mid; else hi = mid; }
+    el.style.fontSize = lo + "px";
   }
   function showOnMap(id) {
     const st = byId[id];
@@ -4070,7 +4186,27 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   }
   function fitNames() {
     fitText(document.querySelector("h1"), 28);
-    tiles.forEach((el) => fitText(el.querySelector(".name"), 16));
+    fitVoices(false);
+  }
+  // station names in their own voice can be wider than the old narrow type: each one shrinks just enough to fit its card,
+  // no word cut and no line lost (tiles, the small cards, Right now). Only what changed is measured again.
+  function fitVoice(el) {
+    el.style.fontSize = "";
+    el._vt = el.textContent; el._vw = el.clientWidth;
+    if (!el.clientWidth) return;
+    el.style.overflowWrap = "normal"; el.style.wordBreak = "keep-all";
+    // too wide, or (on the small cards, which keep two lines) a line too many; the tight line height alone doesn't count
+    let px = parseFloat(getComputedStyle(el).fontSize);
+    const over = () => el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + px * 0.4;
+    if (over()) {
+      let hi = px, lo = px * 0.5;
+      while (hi - lo > 0.5) { px = (hi + lo) / 2; el.style.fontSize = px + "px"; if (over()) hi = px; else lo = px; }
+      px = lo; el.style.fontSize = lo + "px";
+    }
+    el.style.overflowWrap = ""; el.style.wordBreak = "";
+  }
+  function fitVoices(all) {
+    document.querySelectorAll(".name, .mini .nm, .rn-name").forEach((el) => { if (all || el._vt !== el.textContent || el._vw !== el.clientWidth) fitVoice(el); });
   }
 
   /* ---------- greeting ---------- */
@@ -4178,6 +4314,13 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(fitNames, 150); });
 
   refreshLive();
+  // names are measured again when cards are added or change, when a page of the Home opens, and once the type has loaded
+  var fitQ = 0;
+  const fitSoon = () => { if (!fitQ) fitQ = requestAnimationFrame(() => { fitQ = 0; fitVoices(false); }); };
+  new MutationObserver(fitSoon).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["hidden", "class"] });
+  new MutationObserver(fitSoon).observe(document.documentElement, { attributes: true, attributeFilter: ["data-home", "data-view"] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitVoices(true));
+
   startPresence();
   renderOthers();
   setInterval(tickClocks, 30000);
