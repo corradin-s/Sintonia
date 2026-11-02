@@ -542,15 +542,24 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .search button { appearance: none; -webkit-appearance: none; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
 .search button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
 .moods.off { opacity: .38; } /* while you search, the time of day steps aside */
-/* one row of filters: what's live, what you listen to most, where it's morning, afternoon, evening or night.
+/* the filters, in the same column as the search bar and the tiles: what's live, what you listen to most, what's new;
+   then where it's morning, afternoon, evening or night, as one segmented bar in a quieter colour.
    Nothing chosen: every station. Tap one to narrow the list, tap it again for all of them */
-.chips { display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; scroll-padding: 0 16px; }
-.chips::-webkit-scrollbar { display: none; }
-.chips .chip { appearance: none; -webkit-appearance: none; flex: none; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--ink); cursor: pointer;
-  font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+.chips { display: grid; gap: 8px; }
+.chip-kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.chip-times { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 4%, transparent); border: 1px solid var(--line); }
+.chips .chip { appearance: none; -webkit-appearance: none; min-width: 0; padding: 11px 2px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--ink); cursor: pointer;
+  font-family: var(--f-mono); font-size: clamp(9px, 2.6vw, 10.5px); font-weight: 600; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; text-align: center; overflow: hidden; text-overflow: ellipsis; }
+.chip-times .chip { padding: 8px 2px; border-color: transparent; background: none; color: var(--muted); }
 .chips .chip[aria-pressed="true"] { background: var(--chip, var(--ink)); border-color: transparent; color: var(--chip-t, var(--bg)); }
 .chips .chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
-.chip-sep { flex: none; width: 1px; height: 22px; background: var(--line); }
+@media (max-width: 399px) { .chips .chip { letter-spacing: .04em; } } /* small phones: Recently added still fits */
+@media (min-width: 700px) { /* room for both groups on one line */
+  .chips { grid-template-columns: auto auto; justify-content: start; align-items: center; gap: 12px; }
+  .chip-kinds, .chip-times { grid-template-columns: none; grid-auto-flow: column; }
+  .chips .chip { padding-left: 14px; padding-right: 14px; font-size: 10.5px; }
+}
 .chips.off { opacity: .38; } /* while you search, the filters step aside */
 .mood-where { margin: 0; font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .mood-where b { color: var(--ink); font-weight: 500; }
@@ -1058,14 +1067,17 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   <section class="sec" id="sec-when" aria-label="Find a station">
     <label class="search" for="q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search a station, city or country" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search stations"><button type="button" id="q-x" aria-label="Clear the search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></label>
     <div class="chips" id="chips" role="group" aria-label="Show only">
-      <button type="button" class="chip" data-f="live" aria-pressed="false">Live now</button>
-      <button type="button" class="chip" data-f="most" aria-pressed="false">Most listened</button>
-      <button type="button" class="chip" data-f="new" aria-pressed="false">Recently added</button>
-      <span class="chip-sep" aria-hidden="true"></span>
-      <button type="button" class="chip" data-f="morning" aria-pressed="false">Morning</button>
-      <button type="button" class="chip" data-f="afternoon" aria-pressed="false">Afternoon</button>
-      <button type="button" class="chip" data-f="evening" aria-pressed="false">Evening</button>
-      <button type="button" class="chip" data-f="night" aria-pressed="false">Night</button>
+      <div class="chip-kinds">
+        <button type="button" class="chip" data-f="live" aria-pressed="false">Live now</button>
+        <button type="button" class="chip" data-f="most" aria-pressed="false">Most listened</button>
+        <button type="button" class="chip" data-f="new" aria-pressed="false">Recently added</button>
+      </div>
+      <div class="chip-times" role="group" aria-label="Where it’s">
+        <button type="button" class="chip" data-f="morning" aria-pressed="false">Morning</button>
+        <button type="button" class="chip" data-f="afternoon" aria-pressed="false">Afternoon</button>
+        <button type="button" class="chip" data-f="evening" aria-pressed="false">Evening</button>
+        <button type="button" class="chip" data-f="night" aria-pressed="false">Night</button>
+      </div>
     </div>
     <p class="mood-where" id="when-where" hidden></p>
     <p class="mood-empty" id="when-empty" hidden>No stations here at this hour. Try another time of day.</p>
