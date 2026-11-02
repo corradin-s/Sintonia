@@ -563,6 +563,22 @@ html:not([data-home="home"]) .all-btn { display: none; }
   padding: 9px 8px 9px 14px; border: 0; border-radius: 999px; background: var(--pill); color: var(--t); cursor: pointer;
   font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
 .rn-next:focus-visible { outline: 2px solid var(--t); outline-offset: 2px; }
+/* Right now: one card per station, side by side. On a phone you swipe between them (a bit of the next one shows);
+   on a computer "Another" moves to the next one */
+.rn-track { display: grid; grid-auto-flow: column; grid-auto-columns: 88%; gap: 10px; overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; scroll-padding: 0 16px; }
+.rn-track::-webkit-scrollbar { display: none; }
+.rn-track > .rn { scroll-snap-align: start; }
+.rn-track:has(> .rn:only-child) { grid-auto-columns: 100%; }
+@media (hover: hover) and (pointer: fine) { .rn-track { grid-auto-columns: 100%; } }
+@media (hover: none), (pointer: coarse) { .rn-next { display: none; } }
+/* which stations: the ones with someone on air now, the ones you listen to most, or all */
+.kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
+.kind { appearance: none; -webkit-appearance: none; border: 0; background: none; cursor: pointer; min-width: 0; padding: 12px 4px; border-radius: 10px; color: var(--ink);
+  font-family: var(--f-mono); font-size: clamp(9px, 2.6vw, 10.5px); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+.kind[aria-checked="true"] { background: var(--chip, var(--ink)); color: var(--chip-t, var(--bg)); }
+.kind:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.kinds.off { opacity: .38; } /* while you search, it steps aside like the time of day */
 /* search: a station by name, city or country */
 .search { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 5px 0 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); color: var(--muted); cursor: text; }
 .search:focus-within { border-color: color-mix(in srgb, var(--ink) 55%, transparent); color: var(--ink); }
@@ -966,10 +982,8 @@ body[data-state="live"] .eq i { animation: eq-bounce 1s ease-in-out infinite; }
 body[data-state="live"] .eq i:nth-child(2) { animation-delay: -.35s; }
 body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 @keyframes sig-flow { to { transform: translateX(24px); } } /* one period of the wave */
-/* ---------- 1. each station's own voice: the width and weight of Archivo come from its name (see voices()) ---------- */
-.name, .mini .nm, .rn-name, .fp-ttl { font-stretch: var(--vw, 62%); font-weight: var(--vt, 850); }
 
-/* ---------- 2. the player as a poster: the whole page in the station's colours and rings, the show's title huge in its voice ---------- */
+/* ---------- the player as a poster: the whole page in the station's colours and rings, the show's title huge ---------- */
 .fp[data-id] {
   background: var(--c); color: var(--t);
   --ink: var(--t); --bg: var(--c); --muted: color-mix(in srgb, var(--t) 68%, transparent); --line: color-mix(in srgb, var(--t) 24%, transparent);
@@ -989,7 +1003,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
 .fp-pk span:first-child { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fp-pk span:last-child { flex: none; opacity: .75; }
-.fp-ttl { margin: 4px 0 0; line-height: .86; letter-spacing: -.01em; text-transform: uppercase; overflow-wrap: normal; word-break: keep-all; text-wrap: balance; font-family: var(--f-display); }
+.fp-ttl { margin: 4px 0 0; font-weight: 850; font-stretch: 62%; line-height: .86; letter-spacing: -.01em; text-transform: uppercase; overflow-wrap: normal; word-break: keep-all; text-wrap: balance; font-family: var(--f-display); }
 .fp-ttl.keepcase { text-transform: none; }
 .fp-poster .fp-meta { align-items: center; }
 .fp[data-id] .fp-star { color: var(--t); }
@@ -998,7 +1012,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   background: var(--t); color: var(--c); font-size: 9.5px; font-weight: 600; }
 .fp-sub .fp-tag::before { content: none; }
 
-/* ---------- 3. live energy: people listening and reactions make a station's colour stronger for a while; no numbers ---------- */
+/* ---------- live energy: people listening and reactions make a station's colour stronger for a while; no numbers ---------- */
 .tile.hot:not(.on), .mini.hot:not(.on) {
   background: radial-gradient(130% 95% at var(--ox) var(--oy), color-mix(in srgb, var(--dot) var(--en-g, 34%), transparent), transparent 74%),
     color-mix(in srgb, var(--dot) var(--en-b, 12%), var(--bg-2));
@@ -1078,15 +1092,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
   <section class="sec" id="sec-now" aria-labelledby="rn-h" hidden>
     <h2 class="sec-h"><span id="rn-h">Right now</span><small id="rn-why"></small></h2>
-    <div class="rn" id="rn">
-      <button class="rn-play" type="button" id="rn-play">
-        <span class="rn-k" id="rn-k"></span>
-        <span class="rn-name" id="rn-name"></span>
-        <span class="rn-show" id="rn-show"></span>
-        <span class="rn-foot"><span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span><span class="rn-act" id="rn-act">Listen</span></span>
-      </button>
-      <button class="rn-next" type="button" id="rn-next">Another<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button>
-    </div>
+    <div class="rn-track" id="rn-track"></div>
   </section>
 
   <section class="sec" id="sec-fav" aria-labelledby="fav-h" hidden>
@@ -1096,6 +1102,11 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
   <section class="sec" id="sec-when" aria-labelledby="when-h">
     <div class="all-top" id="all-top"><button type="button" id="all-back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg>Home</button><h2 class="all-title">All stations</h2></div>
+    <div class="kinds" id="kinds" role="radiogroup" aria-label="Which stations">
+      <button type="button" class="kind" role="radio" data-kind="live" aria-checked="false">Live now</button>
+      <button type="button" class="kind" role="radio" data-kind="most" aria-checked="false">Most listened</button>
+      <button type="button" class="kind" role="radio" data-kind="all" aria-checked="true">All</button>
+    </div>
     <h2 class="sec-h"><span id="when-h">Where it’s…</span><small>local time at each station</small></h2>
     <div class="moods" id="moods" role="radiogroup" aria-labelledby="when-h">
       <button type="button" class="mood" role="radio" data-band="all" aria-checked="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c-2.6 3-2.6 13 0 16M12 4c2.6 3 2.6 13 0 16"/></svg><span>All</span></button>
@@ -1521,24 +1532,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     };
   });
   const byId = Object.fromEntries(stations.map((s) => [s.id, s]));
-
-  // each station writes its name in its own voice: the width and weight of Archivo come from its name, always the same.
-  // Either narrow (62–76%) or wide (96–110%), so the voices are told apart; the wide ones stay lighter, so none looks like the wordmark.
-  (function voices() {
-    let css = "";
-    stations.forEach((st) => {
-      let h = 2166136261;
-      for (const ch of "voice:" + st.id) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
-      const rnd = () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return (h >>> 0) / 4294967296; };
-      rnd();
-      const wide = rnd() < 0.5;
-      st.vw = Math.round(wide ? 96 + rnd() * 14 : 62 + rnd() * 14);
-      st.vt = Math.round((wide ? 560 + rnd() * 200 : 640 + rnd() * 260) / 10) * 10;
-      css += '[data-id="' + st.id + '"]{--vw:' + st.vw + "%;--vt:" + st.vt + "}";
-    });
-    const s = document.createElement("style"); s.id = "voices"; s.textContent = css; document.head.appendChild(s);
-  })();
-
 
   /* ---------- receiver: tuning strip of cities, west to east ---------- */
   // one column per city, ordered by longitude
@@ -2701,6 +2694,33 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   const hourAt = (tz) => { try { return +new Date().toLocaleString("en-GB", { timeZone: tz, hour: "2-digit", hour12: false }) % 24; } catch (e) { return 12; } };
   const bandOf = (st) => { const h = hourAt(st.tz); return h >= 6 && h < 12 ? "morning" : h >= 12 && h < 18 ? "afternoon" : h >= 18 ? "evening" : "night"; };
   const inBand = (st) => band === "all" || bandOf(st) === band;
+  // which stations: those with someone on air now, the ones you listen to most, or all; back to All on every launch
+  var kind = "all";
+  // Most listened: how long you've listened to each station, counted on this phone only and never sent anywhere
+  const TIME_KEY = "sintonia:listened";
+  var played = {};
+  try { played = JSON.parse(localStorage.getItem(TIME_KEY) || "{}") || {}; } catch (e) { played = {}; }
+  var tallyAt = 0, tallyId = "";
+  function tally() { // adds the stretch just listened (at most half an hour at a time, in case the phone slept) and starts the next one
+    const now = Date.now();
+    if (tallyAt && tallyId && byId[tallyId]) {
+      played[tallyId] = Math.round((+played[tallyId] || 0) + Math.min(now - tallyAt, 30 * 60000) / 1000);
+      try { localStorage.setItem(TIME_KEY, JSON.stringify(played)); } catch (e) {}
+    }
+    const on = state === "live" && !!current;
+    tallyId = on ? current : ""; tallyAt = on ? now : 0;
+  }
+  setInterval(() => tally(), 60000);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) tally(); });
+  const playedS = (id) => +(played[id] || 0);
+  const inKind = (st) => kind === "all" || (kind === "live" ? isOnAir(st) : playedS(st.id) >= 60);
+  $("kinds").addEventListener("click", (ev) => {
+    const b = ev.target.closest(".kind");
+    if (!b || b.dataset.kind === kind) return;
+    kind = b.dataset.kind;
+    if (kind === "most") tally(); // what you're listening to counts up to now
+    arrange();
+  });
   // search: by name, city, country or city code; case and accents don't matter.
   // While there's text, the search goes through all the stations and the time of day steps aside; clear it and it's back.
   let query = "";
@@ -2731,22 +2751,27 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     const searching = !!query;
     const mode = searching ? "search" : allMode ? "all" : "home";
     document.documentElement.dataset.home = mode;
-    let shown = stations.filter((st) => searching ? inQuery(st) : (mode === "all" || (!favs.includes(st.id) && st.id !== rnPick)) && inBand(st)); // on the Home, not the one in Right now
+    const most = !searching && kind === "most";
+    // on the Home, not the one in Right now nor the pinned ones (they have their own row), except in Most listened
+    let shown = stations.filter((st) => searching ? inQuery(st) : (mode === "all" || most || (!favs.includes(st.id) && st.id !== rnPick)) && inBand(st) && inKind(st));
     if (mode === "home") shown = shown.slice().sort((a, b) => isOnAir(b) - isOnAir(a) || a.index - b.index);
+    if (most) shown = shown.slice().sort((a, b) => playedS(b.id) - playedS(a.id) || a.index - b.index);
     const total = shown.length;
     if (mode === "home") shown = shown.slice(0, HOME_MAX);
     const on = new Set(shown);
     stations.forEach((st) => {
       pinState(st.el.querySelector(".pin"), st.id);
-      st.el.hidden = mode === "home" && favs.includes(st.id); // on the Home, pinned ones sit in "Your stations"
+      st.el.hidden = mode === "home" && favs.includes(st.id) && !most; // on the Home, pinned ones sit in "Your stations"
       st.el.classList.toggle("out", !on.has(st));
-      st.el.style.order = mode === "home" ? String(shown.indexOf(st)) : "";
+      st.el.style.order = mode === "home" || most ? String(shown.indexOf(st)) : "";
     });
     $("sec-more").hidden = !shown.length && mode !== "home";
     $("all-btn-t").textContent = "All " + stations.length + " stations";
     $("more-h").textContent = searching ? "Found" : "All stations";
     $("more-n").textContent = total === 1 ? "1 station" : total + " stations";
     $("moods").classList.toggle("off", searching);
+    $("kinds").classList.toggle("off", searching);
+    document.querySelectorAll(".kind").forEach((b) => b.setAttribute("aria-checked", b.dataset.kind === kind ? "true" : "false"));
     document.querySelectorAll(".mood").forEach((b) => b.setAttribute("aria-checked", b.dataset.band === band ? "true" : "false"));
     const where = $("when-where");
     const cities = [...new Set(shown.map((st) => st.city))];
@@ -2756,8 +2781,10 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       const b = document.createElement("b"); b.textContent = cities.join(" · "); where.appendChild(b);
     }
     const empty = $("when-empty");
-    empty.hidden = shown.length > 0 || (!searching && band === "all");
-    empty.textContent = searching ? "No station, city or country matches “" + $("q").value.trim() + "”." : "No stations here at this hour. Try another time of day.";
+    empty.hidden = shown.length > 0 || (!searching && band === "all" && kind === "all");
+    empty.textContent = searching ? "No station, city or country matches “" + $("q").value.trim() + "”."
+      : most && !stations.some((st) => playedS(st.id) >= 60) ? "Listen for a while: the stations you listen to most line up here."
+      : kind === "live" && band === "all" ? "No one else is on air live right now." : "No stations here at this hour. Try another time of day.";
     fitNames();
   }
   // All stations: a page of its own, with the back button of the phone or the Home button
@@ -2781,43 +2808,84 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     if (!pool.length) pool = stations.filter((st) => live[st.id] && live[st.id].title && !live[st.id].rerun);
     return pool.sort((a, b) => late(b) - late(a) || a.index - b.index);
   }
-  function renderNow(step) {
-    if (!rnReady) return;
-    const list = rnCandidates();
-    $("sec-now").hidden = !list.length;
-    if (!list.length) return;
-    let i = list.findIndex((st) => st.id === rnPick);
-    if (step) i = (i + 1) % list.length; else if (i < 0) i = 0;
-    const st = list[i], info = live[st.id] || {};
-    const changed = rnPick !== st.id;
-    rnPick = st.id;
-    if (changed && step) arrange(); // the one shown in Right now leaves the stations below
-    const card = $("rn");
-    card.dataset.id = st.id;
-    const playing = current === st.id && (state === "live" || state === "loading");
+  // a card for each station, side by side: swipe between them on a phone; on a computer "Another" moves to the next one
+  const rnTrack = $("rn-track");
+  const RN_KNOB = '<span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>';
+  var rnList = [], rnIds = "";
+  function rnStep() { const c = rnTrack.firstElementChild; return c ? c.offsetWidth + (parseFloat(getComputedStyle(rnTrack).columnGap) || 0) : 1; }
+  function rnAt() { return Math.max(0, Math.min(rnList.length - 1, Math.round(rnTrack.scrollLeft / rnStep()))); }
+  function rnGo(i, smooth) { rnTrack.scrollTo({ left: i * rnStep(), behavior: smooth ? "smooth" : "auto" }); }
+  function rnFill(card, st, n) {
+    const info = live[st.id] || {}, playing = current === st.id && (state === "live" || state === "loading");
     card.classList.toggle("on", current === st.id);
     card.classList.toggle("live", current === st.id && state === "live");
     card.classList.toggle("loading", current === st.id && state === "loading");
-    const k = $("rn-k");
+    const k = card.querySelector(".rn-k");
     k.textContent = (info.onAir ? "Live from " : "On now in ") + st.city + " · " + hhmm(Date.now(), st.tz);
     k.classList.toggle("live", !!info.onAir);
-    $("rn-name").textContent = st.name;
-    const show = $("rn-show");
+    card.querySelector(".rn-name").textContent = st.name;
+    const show = card.querySelector(".rn-show");
     show.textContent = info.title || "";
     const parts = [];
     if (info.sub) parts.push(info.sub);
     if (isFinite(info.end)) parts.push("until " + hhmm(info.end, st.tz) + " there");
     if (parts.length) { const sm = document.createElement("small"); sm.textContent = parts.join(" · "); show.appendChild(sm); }
-    $("rn-act").textContent = playing ? "Playing" : "Listen";
-    $("rn-play").setAttribute("aria-label", (playing ? "Stop " : "Listen to ") + st.name);
-    $("rn-next").hidden = list.length < 2;
-    $("rn-why").textContent = list.length > 1 ? (i + 1) + " of " + list.length + (info.onAir ? " live" : "") : "";
+    card.querySelector(".rn-act").textContent = playing ? "Playing" : "Listen";
+    card.querySelector(".rn-play").setAttribute("aria-label", (playing ? "Stop " : "Listen to ") + st.name);
+    card.querySelector(".rn-next").hidden = n < 2;
   }
-  $("rn-play").addEventListener("click", () => {
-    if (!rnPick) return;
-    if (rnPick === current && (state === "live" || state === "loading")) stop(); else start(rnPick);
+  function rnWhy(i) {
+    const info = (rnList[i] && live[rnList[i].id]) || {};
+    $("rn-why").textContent = rnList.length > 1 ? (i + 1) + " of " + rnList.length + (info.onAir ? " live" : "") : "";
+  }
+  function renderNow(step) {
+    if (!rnReady) return;
+    const list = rnCandidates();
+    rnList = list;
+    $("sec-now").hidden = !list.length;
+    if (!list.length) { rnTrack.textContent = ""; rnIds = ""; return; }
+    const ids = list.map((st) => st.id).join(" "), rebuilt = ids !== rnIds;
+    if (rebuilt) {
+      rnIds = ids; rnTrack.textContent = "";
+      list.forEach((st) => {
+        const c = document.createElement("div");
+        c.className = "rn"; c.dataset.id = st.id;
+        c.innerHTML = '<button class="rn-play" type="button"><span class="rn-k"></span><span class="rn-name"></span><span class="rn-show"></span>' +
+          '<span class="rn-foot">' + RN_KNOB + '<span class="rn-act">Listen</span></span></button>' +
+          '<button class="rn-next" type="button">Another<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button>';
+        rnTrack.appendChild(c);
+      });
+    }
+    list.forEach((st, k) => rnFill(rnTrack.children[k], st, list.length));
+    let i = list.findIndex((st) => st.id === rnPick);
+    if (i < 0) i = 0;
+    if (step) i = (i + 1) % list.length;
+    const changed = rnPick !== list[i].id;
+    rnPick = list[i].id;
+    if (step || rebuilt) rnGo(i, !!step);
+    if (changed && (step || rebuilt)) arrange(); // the one in Right now leaves the stations below
+    rnWhy(i);
+  }
+  // after a swipe, the card left in view is the one in Right now
+  let rnT = 0;
+  rnTrack.addEventListener("scroll", () => {
+    clearTimeout(rnT);
+    rnT = setTimeout(() => {
+      if (!rnList.length || !rnTrack.clientWidth) return;
+      const i = rnAt(), id = rnList[i].id;
+      rnWhy(i);
+      if (id !== rnPick) { rnPick = id; arrange(); }
+    }, 140);
+  }, { passive: true });
+  rnTrack.addEventListener("click", (ev) => {
+    const card = ev.target.closest(".rn");
+    if (!card) return;
+    if (ev.target.closest(".rn-next")) { renderNow(true); return; }
+    if (ev.target.closest(".rn-play")) {
+      const id = card.dataset.id;
+      if (id === current && (state === "live" || state === "loading")) stop(); else start(id);
+    }
   });
-  $("rn-next").addEventListener("click", () => renderNow(true));
   rnReady = true;
 
   renderFavs();
@@ -3491,7 +3559,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     let h = `<div class="fp-top"><button class="fp-ib" type="button" data-fp="close" aria-label="Close player">${fpIcon("down")}</button>` +
       `<div class="fp-k">${esc(k)}<b>${esc(where)}</b></div>` +
       `<button class="fp-ib" type="button" data-fp="heard" aria-label="Songs you heard">${fpIcon("more")}</button></div>`;
-    // a poster: the station's name and its time above, the show's title as big as the page allows, in the station's own voice
+    // a poster: the station's name and its time above, the show's title as big as the page allows, 
     const hasShow = !!(info && info.title);
     h += `<div class="fp-poster"><div class="fp-pk"><span>${esc(st.name)}</span><span>${esc(st.code)} · ${hhmm(now, st.tz)}</span></div>` +
       `<h2 class="fp-ttl${hasShow ? "" : keep}" id="fp-title">${esc(hasShow ? info.title : st.name)}</h2>`;
@@ -3529,7 +3597,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       `<button class="fp-act" type="button" data-fp="share">${fpIcon("share")}<span>Share</span></button>` +
       `<button class="fp-act" type="button" data-fp="info">${fpIcon("info")}<span>Info</span></button></div>`;
     fp.style.setProperty("--fc", st.dot);
-    fp.dataset.id = st.id; // its colours, rings and voice
+    fp.dataset.id = st.id; // its colours and rings
     themeTo(st.c);
     fpIn.innerHTML = h;
     fitCover();
@@ -3901,7 +3969,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     const dur = (1.1 + rnd() * 1.3).toFixed(2) + "s";
     document.querySelectorAll(".onair .sig-live").forEach((p) => { p.setAttribute("d", d); p.style.setProperty("--sig-dur", dur); });
   }
-  function setState(s) { state = s; document.body.dataset.state = s; document.documentElement.dataset.state = s; renderPlayer(); }
+  function setState(s) { state = s; document.body.dataset.state = s; document.documentElement.dataset.state = s; tally(); renderPlayer(); }
 
   function renderPlayer() {
     renderNow();
@@ -4186,27 +4254,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   }
   function fitNames() {
     fitText(document.querySelector("h1"), 28);
-    fitVoices(false);
-  }
-  // station names in their own voice can be wider than the old narrow type: each one shrinks just enough to fit its card,
-  // no word cut and no line lost (tiles, the small cards, Right now). Only what changed is measured again.
-  function fitVoice(el) {
-    el.style.fontSize = "";
-    el._vt = el.textContent; el._vw = el.clientWidth;
-    if (!el.clientWidth) return;
-    el.style.overflowWrap = "normal"; el.style.wordBreak = "keep-all";
-    // too wide, or (on the small cards, which keep two lines) a line too many; the tight line height alone doesn't count
-    let px = parseFloat(getComputedStyle(el).fontSize);
-    const over = () => el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + px * 0.4;
-    if (over()) {
-      let hi = px, lo = px * 0.5;
-      while (hi - lo > 0.5) { px = (hi + lo) / 2; el.style.fontSize = px + "px"; if (over()) hi = px; else lo = px; }
-      px = lo; el.style.fontSize = lo + "px";
-    }
-    el.style.overflowWrap = ""; el.style.wordBreak = "";
-  }
-  function fitVoices(all) {
-    document.querySelectorAll(".name, .mini .nm, .rn-name").forEach((el) => { if (all || el._vt !== el.textContent || el._vw !== el.clientWidth) fitVoice(el); });
+    tiles.forEach((el) => fitText(el.querySelector(".name"), 16));
   }
 
   /* ---------- greeting ---------- */
@@ -4314,13 +4362,6 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(fitNames, 150); });
 
   refreshLive();
-  // names are measured again when cards are added or change, when a page of the Home opens, and once the type has loaded
-  var fitQ = 0;
-  const fitSoon = () => { if (!fitQ) fitQ = requestAnimationFrame(() => { fitQ = 0; fitVoices(false); }); };
-  new MutationObserver(fitSoon).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["hidden", "class"] });
-  new MutationObserver(fitSoon).observe(document.documentElement, { attributes: true, attributeFilter: ["data-home", "data-view"] });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitVoices(true));
-
   startPresence();
   renderOthers();
   setInterval(tickClocks, 30000);
