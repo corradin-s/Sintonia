@@ -4191,6 +4191,28 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     else if (awayAt && Date.now() - awayAt > 20000) setTimeout(() => spinA(), 400);
   });
 
+  /* ---------- back to the start ----------
+     On a phone the app stays in memory: closed and opened again, it would come back exactly where it was left.
+     So when it goes to the background, every row (the filters, Your stations) and every page goes back to
+     its start, as on a fresh launch. Not when it's a link opened from the app (a station's website):
+     coming back from it, you're where you were. */
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  const onPhone = window.matchMedia("(pointer: coarse)").matches;
+  let linkOutAt = 0;
+  document.addEventListener("click", (ev) => { if (ev.target.closest && ev.target.closest('a[target="_blank"]')) linkOutAt = Date.now(); }, true);
+  function backToStart() {
+    document.querySelectorAll("body *").forEach((el) => {
+      if (el.scrollLeft) el.scrollLeft = 0;
+      if (el.scrollTop) el.scrollTop = 0;
+    });
+    Object.keys(scrollMem).forEach((k) => { scrollMem[k] = 0; });
+    window.scrollTo(0, 0);
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (onPhone && document.hidden && Date.now() - linkOutAt > 5000) backToStart();
+  });
+  window.addEventListener("pageshow", (e) => { if (onPhone && e.persisted) backToStart(); });
+
   /* ---------- boot ---------- */
   try {
     const saved = localStorage.getItem(KEY);
