@@ -1060,6 +1060,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     <div class="chips" id="chips" role="group" aria-label="Show only">
       <button type="button" class="chip" data-f="live" aria-pressed="false">Live now</button>
       <button type="button" class="chip" data-f="most" aria-pressed="false">Most listened</button>
+      <button type="button" class="chip" data-f="new" aria-pressed="false">Recently added</button>
       <span class="chip-sep" aria-hidden="true"></span>
       <button type="button" class="chip" data-f="morning" aria-pressed="false">Morning</button>
       <button type="button" class="chip" data-f="afternoon" aria-pressed="false">Afternoon</button>
@@ -2700,13 +2701,14 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   setInterval(() => tally(), 60000);
   document.addEventListener("visibilitychange", () => { if (document.hidden) tally(); });
   const playedS = (id) => +(played[id] || 0);
-  const inKind = (st) => kind === "all" || (kind === "live" ? !!(live[st.id] && live[st.id].onAir) : playedS(st.id) >= 60);
+  const inKind = (st) => kind === "all" || (kind === "live" ? !!(live[st.id] && live[st.id].onAir) : kind === "new" ? isNew(st) : playedS(st.id) >= 60);
+  const addedAt = (st) => Date.parse(st.el.dataset.added || "") || 0;
   $("chips").addEventListener("click", (ev) => {
     const b = ev.target.closest(".chip");
     if (!b) return;
     const f = b.dataset.f, again = f === kind || f === band;
     kind = "all"; band = "all";
-    if (!again) { if (f === "live" || f === "most") kind = f; else band = f; }
+    if (!again) { if (f === "live" || f === "most" || f === "new") kind = f; else band = f; }
     if (kind === "most") tally(); // what you're listening to counts up to now
     arrange();
   });
@@ -2727,19 +2729,20 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") e.target.blur(); else if (e.key === "Escape") setQuery(""); });
   $("q-x").addEventListener("click", () => { setQuery(""); $("q").focus(); });
   function arrange() {
-    const searching = !!query, filtered = !searching && kind !== "all", most = !searching && kind === "most";
+    const searching = !!query, filtered = !searching && kind !== "all", most = !searching && kind === "most", fresh = !searching && kind === "new";
     // every station; pinned ones sit in "Your stations", but a search or a filter (Live now, Most listened) shows them too
     let shown = stations.filter((st) => searching ? inQuery(st) : (filtered || !favs.includes(st.id)) && inBand(st) && inKind(st));
     if (most) shown = shown.slice().sort((a, b) => playedS(b.id) - playedS(a.id) || a.index - b.index);
+    if (fresh) shown = shown.slice().sort((a, b) => addedAt(b) - addedAt(a) || a.index - b.index); // the newest first
     const on = new Set(shown);
     stations.forEach((st) => {
       pinState(st.el.querySelector(".pin"), st.id);
       st.el.hidden = !searching && !filtered && favs.includes(st.id);
       st.el.classList.toggle("out", !on.has(st));
-      st.el.style.order = most ? String(shown.indexOf(st)) : ""; // Most listened: the one you listen to most first
+      st.el.style.order = most || fresh ? String(shown.indexOf(st)) : ""; // Most listened, Recently added: in their own order
     });
     $("sec-more").hidden = !shown.length;
-    $("more-h").textContent = searching ? "Found" : kind === "live" ? "Live now" : most ? "Most listened" : band !== "all" ? "Where it’s " + band : "All stations";
+    $("more-h").textContent = searching ? "Found" : kind === "live" ? "Live now" : most ? "Most listened" : fresh ? "Recently added" : band !== "all" ? "Where it’s " + band : "All stations";
     $("more-n").textContent = shown.length === 1 ? "1 station" : shown.length + " stations";
     $("chips").classList.toggle("off", searching);
     document.querySelectorAll("#chips .chip").forEach((b) => b.setAttribute("aria-pressed", b.dataset.f === kind || b.dataset.f === band ? "true" : "false"));
@@ -2754,7 +2757,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     empty.hidden = shown.length > 0 || (!searching && band === "all" && kind === "all");
     empty.textContent = searching ? "No station, city or country matches “" + $("q").value.trim() + "”."
       : most && !stations.some((st) => playedS(st.id) >= 60) ? "Listen for a while: the stations you listen to most line up here."
-      : kind === "live" && band === "all" ? "No one is on air live right now." : "No stations here at this hour. Try another time of day.";
+      : kind === "live" && band === "all" ? "No one is on air live right now."
+      : fresh && band === "all" ? "No new stations in the last seven days." : "No stations here at this hour. Try another time of day.";
     fitNames();
   }
   renderFavs();
