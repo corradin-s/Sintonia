@@ -458,6 +458,7 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 [data-id="nopal"]    { --c:#A51D5C; --t:#E3F4CC; --ring:rgba(227,244,204,.14); --pill:rgba(227,244,204,.2);  --ox:18%;  --oy:-18%; --gap:12px; --dot:#8CCB5E; }
 [data-id="bcr"]      { --c:#3F4697; --t:#F4EBE0; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:10%;  --oy:115%; --gap:13px; --dot:#7C84E0; }
 [data-id="rbl"]      { --c:#FF8B6B; --t:#2A0D06; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.14);       --ox:90%;  --oy:105%; --gap:11px; --dot:#FF8B6B; }
+[data-id="relativa"] { --c:#E83FD0; --t:#22041C; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:70%;  --oy:-15%; --gap:12px; }
 [data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
 .name.keepcase { text-transform: none; }
 
@@ -1299,6 +1300,13 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Banda Larga</span><span class="meta"><span>P28 · Turin</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://rbl.media/">Info</button>
+    </li>
+    <li class="tile" data-id="relativa" data-added="2026-11-02" data-country="Spain" data-code="MAD" data-lat="40.42" data-lon="-3.7" data-region="Europe" data-city="Madrid" data-tz="Europe/Madrid" data-src="https://streamer.radio.co/sd6131729c/listen">
+      <button class="tune" type="button" aria-label="Listen to Radio Relativa">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Relativa</span><span class="meta"><span>P29 · Madrid</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://radiorelativa.eu/">Info</button>
     </li>
 
   </ol>
@@ -2395,6 +2403,37 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     };
   }
 
+  function fromRelativa(j) { // Radio Relativa on radio.co: "Host - Show", "Live Now - Show", "Show by Host" or a recorded file
+    // "2026-11-02_15-00_SHOW_Episode"; "Relativa - Relativa" is its jingle, and the weekday blocks are just playlists
+    const tr = j && j.current_track;
+    let t = clean(tr && tr.title);
+    if (!t || /^(radio )?relativa\s*-\s*relativa$/i.test(t)) return null;
+    const start = Date.parse(tr.start_time);
+    const caps = (s) => s === s.toUpperCase() ? s.toLowerCase().replace(/(^|\s)\p{L}/gu, (m) => m.toUpperCase()) : s;
+    const file = /^\d{4}-\d\d-\d\d_\d\d-\d\d_([^_]+)(?:_(.*))?$/.exec(t);
+    if (file) {
+      const title = caps(file[1].replace(/-+/g, " ").trim());
+      const rest = (file[2] || "").replace(/\.\d+$/, "");
+      const rerun = /repetici[oó]n|reemisi[oó]n/i.test(file[1] + " " + rest);
+      let sub = rerun ? "" : rest.replace(/[-_]+/g, " ").trim();
+      if (sub.toLowerCase().startsWith(title.toLowerCase())) sub = sub.slice(title.length).trim();
+      return { title, sub: caps(sub), song: null, start, end: NaN, rerun, onAir: false };
+    }
+    const live = /^live now\s*-/i.test(t) || !!(j.source && j.source.type === "live");
+    t = t.replace(/^(live now|radio relativa)\s*-\s*/i, "");
+    const rerun = /\((r|repeat)\)|repetici[oó]n|reemisi[oó]n/i.test(t);
+    t = t.replace(/\s*\((r|repeat)\)/ig, "").trim();
+    if (/^((lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\b|noches relativas$|reemisi[oó]n)/i.test(t)) return null;
+    let title = t, sub = "";
+    const by = / by /i.exec(t), d = t.indexOf(" - ");
+    if (by && (d < 0 || by.index < d)) { title = t.slice(0, by.index); sub = t.slice(by.index + 4); }
+    else if (d > 0) {
+      title = t.slice(0, d); sub = t.slice(d + 3).replace(/_/g, " ");
+      if (sub.toLowerCase().startsWith(title.toLowerCase() + " - ")) sub = sub.slice(title.length + 3);
+    }
+    return { title: caps(title.trim()), sub: sub.trim(), song: null, start, end: NaN, rerun, onAir: live && !rerun };
+  }
+
   function fromLive365(j) {
     const tr = j && j["current-track"];
     const title = clean(tr && tr.title), artist = clean(tr && tr.artist);
@@ -2516,7 +2555,8 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     { url: "https://api.radiocult.fm/api/station/rotation-radio-befbc736/schedule/live", parse: (j) => ({ rotation: fromRadioCult(j) }) },
     { url: "https://api.radiocult.fm/api/station/sonicradio/schedule/live", parse: (j) => ({ sonic: fromRadioCult(j) }) },
     { url: "https://api.radiocult.fm/api/station/rblmedia-a4a44e62/schedule/live", parse: (j) => ({ rbl: fromRadioCult(j) }) },
-    { url: "https://a9.asurahosting.com/api/nowplaying/satellite_radio", parse: (j) => ({ satellite: fromAzuraTracks(j, "satellite radio") }) }
+    { url: "https://a9.asurahosting.com/api/nowplaying/satellite_radio", parse: (j) => ({ satellite: fromAzuraTracks(j, "satellite radio") }) },
+    { url: "https://public.radio.co/stations/sd6131729c/status", parse: (j) => ({ relativa: fromRelativa(j) }) }
   ];
 
   function getJSON(url) {
@@ -2828,6 +2868,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     satellite: { desc: "Independent radio from Lisbon, live around the clock: rhythms from across continents and sounds still to be discovered, with live sets and talks with artists.", plays: "World, jazz, dub, Afrobeat, electronica and experimental", lang: "English, Portuguese", by: "Satellite Radio, Lisbon" },
     bcr: { desc: "Community-led, independent radio from Bangkok, launched by a collective to connect the city’s cultural communities.", since: "2021", plays: "Ambient, techno, molam, Balearic, disco, funk and soul", lang: "Thai, English", by: "Bangkok Community Radio collective", shop: "https://store.bangkokcommunityradio.com/" },
     rbl: { desc: "Ad-free community radio born in Turin in 2011: its first broadcast, in 2012, came live from the terrace of Imbarchino in Parco del Valentino. Run by volunteers, it now broadcasts from Turin, Berlin and Barcelona.", since: "2011", plays: "Electronic, bass, jazz, funk, afrobeat, rock and experimental, with guest mixes", lang: "Italian, English", by: "Radio Banda Larga community, Turin", support: "https://www.paypal.me/rblmedia" },
+    relativa: { desc: "Community, independent and experimental radio from Madrid, run as a non-profit association since 2018, for artists and projects working outside the mainstream: around 250 of them a year, live from its studio in the city and from satellites in Amsterdam and London.", since: "2018", plays: "Electronic, ambient, jazz, experimental and club, with interviews", lang: "Spanish, English", by: "Radio Relativa association, Madrid", support: "https://radiorelativa.eu/support" },
     setagaya: { desc: "Community FM for Tokyo’s Setagaya ward, on air at 83.4 FM.", plays: "Local programmes, music and community news", lang: "Japanese", by: "FM Setagaya, Tokyo" },
   };
 
