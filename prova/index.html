@@ -2480,10 +2480,10 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   }
   function fromAzura(j) { // AzuraCast: a live DJ by name, or the recorded set now playing ("lithium radio-2026 06 27 1700-name")
     const np = j && j.now_playing, song = np && np.song;
-    // someone is broadcasting live from the café: the "now playing" line then still shows the last recording, so ignore it
+    // someone is broadcasting live from Lithium: the "now playing" line then still shows the last recording, so ignore it
     if (j && j.live && j.live.is_live) {
       const dj = j.live.streamer_name && !/^lithium$/i.test(j.live.streamer_name) ? clean(j.live.streamer_name) : "";
-      return { title: dj || "Live from the café", sub: "", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false, onAir: true, tag: "" };
+      return { title: dj || "Live from Lithium", sub: "", start: j.live.broadcast_start * 1000, end: NaN, song: null, rerun: false, onAir: true, tag: "" };
     }
     const raw = clean(song && (song.title || song.text));
     if (!raw) return null;
@@ -2883,7 +2883,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     deepspace: { desc: "Founded by Juan Atkins, one of the inventors of techno, with hosts such as DJ Minx and Stacey “Hotwaxx” Hale.", since: "2014", plays: "Detroit techno, house, electro and the soul and funk behind them", lang: "English", by: "Deep Space Radio, Detroit", support: "https://www.patreon.com/deepspaceradio" },
     newtown: { desc: "Independent internet radio from Bushwick, Brooklyn: mostly live two-hour shows by local DJs, musicians and artists.", since: "2009", plays: "Open format: indie, rap, electronic, live sessions", lang: "English", by: "Newtown Radio, Brooklyn" },
     hanoi: { desc: "Community radio from Hanoi, giving space to the city’s DJs, musicians and creative scene.", plays: "Electronic, experimental, Vietnamese sounds", lang: "Vietnamese, English", by: "Hà Nội Community Radio" },
-    lithium: { desc: "A café and radio in Paris’s 20th arrondissement, broadcasting DJ sets and shows from its own room.", plays: "Electronic, club, bass and more", lang: "French, English", by: "Lithium, Paris" },
+    lithium: { desc: "A radio and café/bar in Paris’s 20th arrondissement, broadcasting DJ sets and shows from its own room.", plays: "Electronic, club, bass and more", lang: "French, English", by: "Lithium, Paris" },
     pass: { desc: "The radio of Chimurenga, the pan-African magazine from Cape Town: live every night from 9 to midnight Cape Town time, with musicians, DJs, poets and artists in residence, and the Chimurenga archive the rest of the day.", plays: "Music from across Africa and its diaspora, live performances, readings, sound art and interviews", lang: "English and more", by: "Chimurenga, curated by Ntone Edjabe and Neo Muyanga" },
     sonic: { desc: "Online radio from Lagos for emerging voices: electronic, alternative and African-influenced music, and talent often overlooked by mainstream radio. It broadcasts at set hours.", plays: "Electronic, alternative and African-influenced music", lang: "English", by: "Sonic Radio, Lagos" },
     lake: { desc: "Listener-supported radio from Copenhagen, on air around the clock with experimental music and sound art.", plays: "Experimental music, ambient and sound art", lang: "English, Danish", by: "The Lake Radio, Copenhagen" },
