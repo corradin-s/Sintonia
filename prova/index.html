@@ -151,7 +151,6 @@ h1.logo { line-height: 0; }
 h1.logo .hand { width: min(68vw, 300px); margin: 2px 0 -2px -3px; }
 /* the last "a" turns once, like a knob being tuned */
 .hand .lg-a { transform-box: fill-box; transform-origin: 50% 50%; } /* the middle of the letter itself, so it turns in place */
-h1.logo .lg-a { display: inline-block; transform-origin: 54% 56%; }
 h1.logo .lg-a.spin { animation: a-spin 1.1s cubic-bezier(.35, .05, .2, 1); }
 @keyframes a-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 /* the signal, no words: a flat line when nothing plays, a wave that flows while a station is on (once the words ON AIR) */
@@ -879,7 +878,6 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
 .minibar.show { opacity: 1; transform: none; pointer-events: auto; }
 .mini-logo { display: block; line-height: 0; }
 .mini-logo .hand { height: 30px; width: auto; }
-.mini-logo .lg-a { display: inline-block; transform-origin: 54% 56%; }
 .mini-logo .lg-a.spin { animation: a-spin 1.1s cubic-bezier(.35, .05, .2, 1); }
 @media (prefers-reduced-motion: reduce) { .minibar { transition: opacity .2s; transform: none; } }
 .topbar {
