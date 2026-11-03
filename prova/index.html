@@ -810,7 +810,8 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
   font-family: var(--f-mono); font-size: 12px; font-weight: 500; line-height: 1.2; letter-spacing: .05em; text-transform: uppercase;
   color: color-mix(in srgb, var(--ink) 86%, transparent);
 }
-.notice-track i { font-style: normal; color: var(--live); padding: 0 .6em; }
+.notice-track i { display: inline-block; width: 7px; height: 7px; margin: 0 12px; border-radius: 50%; background: var(--live); vertical-align: .22em;
+  font-size: 0; color: transparent; overflow: hidden; } /* the red separator: a round dot, larger than the · it replaces */
 /* it always scrolls, as asked (Reduce Motion included), at about 45 px a second: the script sets the time from the line's length */
 .notice-track { animation: notice var(--notice-s, 40s) linear infinite; }
 @keyframes notice { from { transform: translateX(0); } to { transform: translateX(-50%); } }
