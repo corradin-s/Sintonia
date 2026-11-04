@@ -261,7 +261,7 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .live-i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--live); margin-right: 7px; box-shadow: 0 0 8px var(--live); vertical-align: 1px; }
 .favs {
   display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity;
-  margin: 0 -16px; padding: 3px 16px 6px; scroll-padding: 0 16px;
+  margin: -3px -16px -2px; padding: 6px 16px 8px; scroll-padding: 0 16px; /* room for the ring of the card that's playing */
 }
 .favs::-webkit-scrollbar { display: none; }
 .mini {
