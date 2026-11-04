@@ -965,7 +965,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 /* ---------- the player as a poster: the whole page in the station's colours and rings, the show's title huge ---------- */
 .fp[data-id] {
   background: var(--c); color: var(--t);
-  --ink: var(--t); --bg: var(--c); --muted: color-mix(in srgb, var(--t) 68%, transparent); --line: color-mix(in srgb, var(--t) 24%, transparent);
+  --ink: var(--t); --bg: var(--c); --muted: color-mix(in srgb, var(--t) 86%, transparent); --line: color-mix(in srgb, var(--t) 28%, transparent);
 }
 .fp[data-id]::before { /* the rings of its tile, at the size of a page */
   position: fixed; inset: 0; height: auto;
@@ -981,7 +981,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 .fp-pk { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 10px; border-bottom: 1.5px solid var(--line);
   font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
 .fp-pk span:first-child { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fp-pk span:last-child { flex: none; opacity: .75; }
+.fp-pk span:last-child { flex: none; }
 .fp-ttl { margin: 4px 0 0; font-weight: 850; font-stretch: 62%; line-height: .86; letter-spacing: -.01em; text-transform: uppercase; overflow-wrap: normal; word-break: keep-all; text-wrap: balance; font-family: var(--f-display); }
 .fp-ttl.keepcase { text-transform: none; }
 .fp-poster .fp-meta { align-items: center; }
@@ -990,6 +990,17 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 .fp-sub .fp-tag { position: static; display: inline-block; vertical-align: 1px; margin-right: 8px; padding: 3px 7px; border: 0; border-radius: 5px;
   background: var(--t); color: var(--c); font-size: 9.5px; font-weight: 600; }
 .fp-sub .fp-tag::before { content: none; }
+/* easier to read: the small labels a size up and a touch heavier */
+.fp[data-id] .fp-k { font-size: 11.5px; font-weight: 500; }
+.fp[data-id] .fp-k b { font-size: 12.5px; font-weight: 600; }
+.fp[data-id] .fp-pk { font-size: 11.5px; }
+.fp[data-id] .fp-sub { font-size: 15.5px; font-weight: 500; }
+.fp[data-id] .fp-times { font-size: 12px; font-weight: 500; }
+.fp[data-id] .fp-skip { font-size: 10.5px; font-weight: 600; }
+.fp[data-id] .fp-tk { font-size: 10.5px; font-weight: 600; }
+.fp[data-id] .fp-track span:not(.fp-tk) { font-size: 14.5px; }
+.fp[data-id] .fp-nosong { font-size: 14px; font-weight: 500; }
+.fp[data-id] .fp-act { font-size: 12px; font-weight: 500; }
 /* on a computer, or any wide landscape window: the poster fills the left, the controls stand in a column on the right */
 @media (min-width: 700px) and (min-aspect-ratio: 5/4) {
   .fp-in { max-width: 1480px; display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr);
@@ -3415,6 +3426,18 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   }
   // while the poster is open, the browser's bar takes the station's colour; back to the page's when it closes
   let tcWas = "";
+  // the poster's ground, nudged towards black (or white) until the station's ink reads on it with a contrast of at least 4.8:1;
+  // most stations already do and keep their colour as it is
+  function readableGround(c, t) {
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    if (ratio(c, t) >= 4.8) return c;
+    const to = lum(t) > lum(c) ? 0 : 255, A = rgbOf(c);
+    for (let k = 0.04; k <= 0.6; k += 0.02) {
+      const x = "#" + A.map((v) => Math.round(v + (to - v) * k).toString(16).padStart(2, "0")).join("");
+      if (ratio(x, t) >= 4.8) return x;
+    }
+    return c;
+  }
   function themeTo(c) {
     const tc = document.querySelector('meta[name="theme-color"]');
     if (!tc) return;
@@ -3492,7 +3515,9 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       `<button class="fp-act" type="button" data-fp="info">${fpIcon("info")}<span>Info</span></button></div>`;
     fp.style.setProperty("--fc", st.dot);
     fp.dataset.id = st.id; // its colours and rings
-    themeTo(st.c);
+    const ground = readableGround(st.c, st.t);
+    if (ground !== st.c) fp.style.setProperty("--c", ground); else fp.style.removeProperty("--c");
+    themeTo(ground);
     fpIn.innerHTML = h;
     fitCover();
   }
