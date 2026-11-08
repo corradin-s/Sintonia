@@ -1,58 +1,29 @@
-== status
-{"listenurl": "http://mensajito.mx:8000/alsondebeno", "server_type": "audio/mpeg", "audio_info": "channels=2;samplerate=44100;bitrate=128", "bitrate": 128, "samplerate": 44100, "listeners": 1, "stream_start": "Fri, 06 Nov 2026 12:28:17 -0600", "title": null, "server_name": "alsondebeno"}
-{"listenurl": "http://mensajito.mx:8000/lumpenradio", "server_type": "audio/mpeg", "audio_info": null, "bitrate": 256, "samplerate": null, "listeners": 11, "stream_start": "Fri, 06 Nov 2026 02:04:48 -0600", "title": null, "server_name": "Lumpen Streamer's Broadcast"}
-{"listenurl": "http://mensajito.mx:8000/nopalA", "server_type": "audio/mpeg", "audio_info": "channels=2;samplerate=44100;bitrate=128", "bitrate": 128, "samplerate": 44100, "listeners": 7, "stream_start": "Sat, 07 Nov 2026 22:53:35 -0600", "title": null, "server_name": "nopalA"}
-{"listenurl": "http://mensajito.mx:8000/nopalVentana", "server_type": "audio/mpeg", "audio_info": "channels=2;samplerate=44100;bitrate=128", "bitrate": 128, "samplerate": 44100, "listeners": 1, "stream_start": "Sat, 07 Nov 2026 22:53:35 -0600", "title": null, "server_name": "nopalVentana"}
-{"listenurl": "http://mensajito.mx:8000/nopalradio", "server_type": "audio/mpeg", "audio_info": null, "bitrate": 128, "samplerate": null, "listeners": 2, "stream_start": "Sun, 08 Nov 2026 10:21:10 -0600", "title": null, "server_name": "Radio Nopal - Estudio B"}
-{"listenurl": "http://mensajito.mx:8000/reddelamontana", "server_type": "audio/mpeg", "audio_info": "channels=2;samplerate=44100;bitrate=128", "bitrate": 128, "samplerate": 44100, "listeners": 0, "stream_start": "Sat, 07 Nov 2026 22:53:35 -0600", "title": "radio en comunitaria.- programa 5 teolocholco", "server_name": "reddelamontana"}
-== headers https://radio.mensajito.mx/nopalA
-HTTP/1.1 200 OK
-Date: Sun, 08 Nov 2026 16:24:22 GMT
-Server: Icecast 2.4.4
-Content-Type: audio/mpeg
-Cache-Control: no-cache, no-store
-Expires: Sat, 26 Jul 1997 05:00:00 GMT
-Pragma: no-cache
-Access-Control-Allow-Origin: *
-icy-br: 128
-ice-audio-info: channels=2;samplerate=44100;bitrate=128
-icy-name: nopalA
-icy-pub: 1
-Via: 1.1 radio.mensajito.mx (Apache/2.4.52)
-Transfer-Encoding: chunked
-
--rw-r--r-- 1 runner runner 245000 Nov  8 16:24 /tmp/s.bin
-/tmp/s.bin: data
--- loudness of 12s
-== headers https://radio.mensajito.mx/nopalVentana
-HTTP/1.1 200 OK
-Date: Sun, 08 Nov 2026 16:24:34 GMT
-Server: Icecast 2.4.4
-Content-Type: audio/mpeg
-Cache-Control: no-cache, no-store
-Expires: Sat, 26 Jul 1997 05:00:00 GMT
-Pragma: no-cache
-Access-Control-Allow-Origin: *
-icy-br: 128
-ice-audio-info: channels=2;samplerate=44100;bitrate=128
-icy-name: nopalVentana
-icy-pub: 1
-Via: 1.1 radio.mensajito.mx (Apache/2.4.52)
-Transfer-Encoding: chunked
-
--rw-r--r-- 1 runner runner 243600 Nov  8 16:24 /tmp/s.bin
-/tmp/s.bin: data
--- loudness of 12s
-== range / HEAD (Safari asks for a range first)
-HTTP/1.1 200 OK
-Date: Sun, 08 Nov 2026 16:24:46 GMT
-Server: Icecast 2.4.4
-Content-Type: audio/mpeg
-Cache-Control: no-cache, no-store
-Expires: Sat, 26 Jul 1997 05:00:00 GMT
-Pragma: no-cache
-Access-Control-Allow-Origin: *
-icy-br: 128
-ice-audio-info: channels=2;samplerate=44100;bitrate=128
-icy-name: nopalA
-icy-pub: 1
+== nopalA: 371000 bytes in 20s
+  Stream #0:0: Audio: mp3, 44100 Hz, stereo, fltp, 128 kb/s
+  Stream #0:0: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s
+[Parsed_volumedetect_0 @ 0x55ff5c74e240] mean_volume: -38.0 dB
+[Parsed_volumedetect_0 @ 0x55ff5c74e240] max_volume: -25.3 dB
+== nopalVentana: 372400 bytes in 20s
+  Stream #0:0: Audio: mp3, 44100 Hz, stereo, fltp, 128 kb/s
+  Stream #0:0: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s
+[Parsed_volumedetect_0 @ 0x562223fe1240] mean_volume: -91.0 dB
+[Parsed_volumedetect_0 @ 0x562223fe1240] max_volume: -90.3 dB
+[silencedetect @ 0x55b16a9e9c40] silence_start: 0
+[silencedetect @ 0x55b16a9e9c40] silence_end: 23.2751 | silence_duration: 23.2751
+== nopalradio: 425573 bytes in 20s
+  Stream #0:0: Audio: mp3, 48000 Hz, stereo, fltp, 148 kb/s
+  Stream #0:0: Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s
+[Parsed_volumedetect_0 @ 0x557a7454c440] mean_volume: -37.4 dB
+[Parsed_volumedetect_0 @ 0x557a7454c440] max_volume: -25.3 dB
+== radionopal.com: stream addresses in the page and its scripts
+http://www.radionopal.com
+  [/static/js/main.768c6dc1.js] https://github.com/Radio-Nopal/radio-nopal
+  [/static/js/main.768c6dc1.js] https://radio.mensajito.mx/2e6953be728b
+  [/static/js/main.768c6dc1.js] https://radio.mensajito.mx/nopalA
+  [/static/js/main.768c6dc1.js] https://radio.mensajito.mx/nopalVentana
+  [/static/js/main.768c6dc1.js] https://radionopal.us18.list-manage.com/subscribe?u=57b34f7f4e73dc46a559eff4e&id=cfdfd29eb2
+  [/static/js/main.768c6dc1.js] https://socket.mensajito.mx/
+  [/static/js/main.768c6dc1.js] https://twitter.com/radio_nopal
+  [/static/js/main.768c6dc1.js] https://www.buymeacoffee.com/radionopal
+  [/static/js/main.768c6dc1.js] https://www.instagram.com/radionopal/
+  [/static/js/main.768c6dc1.js] https://www.mixcloud.com/radionopal/
