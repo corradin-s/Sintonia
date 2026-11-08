@@ -1,24 +1,24 @@
 {
- "week": "2026-11-02",
+ "week": "2026-11-08",
  "note": "Three shows picked by hand each week. Times in UTC; the app shows them in the listener's own time.",
  "picks": [
   {
-   "id": "setagaya",
-   "title": "MUSIC Hot Flavor",
-   "start": "2026-11-03T15:00:00.000Z",
-   "end": "2026-11-03T16:00:00.000Z"
+   "id": "wwfm",
+   "title": "First Light: Rohan Rakhit (Live from Goa)",
+   "start": "2026-11-10T10:00:00.000Z",
+   "end": "2026-11-10T12:00:00.000Z"
   },
   {
-   "id": "sonic",
-   "title": "The Listening Room (Palmwine)",
-   "start": "2026-11-05T16:00:00.000Z",
-   "end": "2026-11-05T17:30:00.000Z"
+   "id": "nts2",
+   "title": "3XL w/ Special Guest DJ",
+   "start": "2026-11-11T23:00:00.000Z",
+   "end": "2026-11-12T00:00:00.000Z"
   },
   {
-   "id": "cashmere",
-   "title": "Live from Le Guest Who? Festival",
-   "start": "2026-11-05T23:00:00.000Z",
-   "end": "2026-11-06T01:00:00.000Z"
+   "id": "hanoi",
+   "title": "Viet Jazz",
+   "start": "2026-11-15T10:00:00.000Z",
+   "end": "2026-11-15T11:00:00.000Z"
   }
  ]
 }
