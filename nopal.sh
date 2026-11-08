@@ -1,14 +1,19 @@
 set +e
+sudo apt-get install -y -qq ffmpeg >/dev/null 2>&1
 UA="Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
 {
-echo "== status"; curl -s -m 20 https://radio.mensajito.mx/status-json.xsl | python3 -c "
-import json,sys
-d=json.load(sys.stdin)['icestats']; src=d.get('source') or []; src=src if isinstance(src,list) else [src]
-for s in src: print(json.dumps({k:s.get(k) for k in ('listenurl','server_type','audio_info','bitrate','samplerate','listeners','stream_start','title','server_name')}, ensure_ascii=False))"
-for u in https://radio.mensajito.mx/nopalA https://radio.mensajito.mx/nopalVentana; do
-  echo "== headers $u"; curl -s -m 12 -A "$UA" -D - -o /tmp/s.bin --max-time 12 -H "Origin: https://corradin-s.github.io" "$u" | tr -d '\r' | head -25
-  ls -l /tmp/s.bin; file /tmp/s.bin
-  echo "-- loudness of 12s"; ffmpeg -hide_banner -nostats -i /tmp/s.bin -af volumedetect -f null - 2>&1 | grep -E "Stream|mean_volume|max_volume|Input"
+for m in nopalA nopalVentana nopalradio; do
+  u=https://radio.mensajito.mx/$m
+  curl -s -A "$UA" --max-time 20 -o /tmp/$m.mp3 "$u"
+  echo "== $m: $(stat -c %s /tmp/$m.mp3) bytes in 20s"
+  ffmpeg -hide_banner -nostats -i /tmp/$m.mp3 -af volumedetect -f null - 2>&1 | grep -E "Audio:|mean_volume|max_volume"
+  ffmpeg -hide_banner -nostats -i /tmp/$m.mp3 -af silencedetect=n=-50dB:d=2 -f null - 2>&1 | grep -E "silence_(start|end|duration)" | head -4
 done
-echo "== range / HEAD (Safari asks for a range first)"; curl -s -m 10 -A "$UA" -r 0-1 -D - -o /dev/null https://radio.mensajito.mx/nopalA | tr -d '\r' | head -12
+echo "== radionopal.com: stream addresses in the page and its scripts"
+curl -s -A "$UA" -L --max-time 20 https://www.radionopal.com/ -o /tmp/site.html
+grep -oE "https?://[a-zA-Z0-9./_:?=&-]*(mensajito|icecast|stream|:8000|\.mp3|nopal)[a-zA-Z0-9./_:?=&-]*" /tmp/site.html | sort -u | head -20
+for js in $(grep -oE '(src|href)="[^"]+\.js[^"]*"' /tmp/site.html | sed -E 's/^(src|href)="//; s/"$//' | head -12); do
+  case "$js" in http*) ju="$js";; //*) ju="https:$js";; /*) ju="https://www.radionopal.com$js";; *) ju="https://www.radionopal.com/$js";; esac
+  curl -s -A "$UA" --max-time 15 "$ju" | grep -oE "https?://[a-zA-Z0-9./_:?=&-]*(mensajito|icecast|stream|:8000|\.mp3|nopal)[a-zA-Z0-9./_:?=&-]*" | sort -u | sed "s|^|  [$js] |" | head -10
+done
 } > nopal.txt 2>&1
