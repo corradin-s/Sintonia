@@ -1,14 +1,12 @@
-name: probe links (one-off)
-on: { push: { branches: [probe-links], paths: [links.json, check.mjs, .github/workflows/probe-links.yml] } }
+name: probe (one-off)
+on: { push: { branches: [probe-links], paths: [nopal.sh, .github/workflows/probe-links.yml] } }
 permissions: { contents: write }
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: node check.mjs
+      - run: bash nopal.sh
       - run: |
           git config user.name "probe"; git config user.email "probe@users.noreply.github.com"
-          git add results.json; git commit -m "results"; git push
+          git add nopal.txt; git commit -m "nopal results"; git push
