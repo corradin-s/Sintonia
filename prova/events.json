@@ -2,22 +2,13 @@
  "note": "Events shown in This week while they last. Times in UTC; the app shows them in the listener's own time.",
  "events": [
   {
-   "title": "Le Guess Who?, Utrecht",
-   "dates": "5 Nov – 8 Nov",
-   "url": "https://leguesswho.com/",
-   "until": "2026-11-08T23:00:00Z",
-   "note": "Le Guess Who? marks its 20th edition across venues in Utrecht, with programmes curated by KMRU, Los Thuthanaka and aja monet. Cashmere Radio broadcasts live from the festival on the opening night.",
-   "stations": [],
-   "also": "KMRU, one of this year's guest curators, hosts Palettes on Stegi.Radio on Thursday, and Radio alHara is also on the programme.",
-   "live": [
-    {
-     "id": "cashmere",
-     "title": "Live from Le Guest Who? Festival",
-     "start": "2026-11-05T23:00:00Z",
-     "end": "2026-11-06T01:00:00Z",
-     "why": "Cashmere Radio broadcasts live from the festival on its first night."
-    }
-   ],
+   "title": "EFG London Jazz Festival, London",
+   "dates": "13 Nov – 22 Nov",
+   "url": "https://efglondonjazzfestival.org.uk/",
+   "until": "2026-11-22T23:59:00Z",
+   "note": "Ten days of jazz across more than 70 London venues, from the Barbican and Royal Festival Hall to small clubs. The opening weekend includes Emma-Jean Thackray's Dear Miles, a Coltrane centenary concert and Goldie's Dare to Dream.",
+   "stations": ["nts1", "nts2", "rinse", "wwfm"],
+   "live": [],
    "shows": []
   }
  ]
