@@ -1003,6 +1003,37 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 .fp[data-id] .fp-track span:not(.fp-tk) { font-size: 14.5px; }
 .fp[data-id] .fp-nosong { font-size: 14px; font-weight: 500; }
 .fp[data-id] .fp-act { font-size: 12px; font-weight: 500; }
+/* From the archive: a station's past shows, from its Mixcloud archive, as a typographic list in the poster */
+.fp-arch { margin-top: 18px; border-top: 1px solid var(--line); }
+.fp-ah { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0; padding: 12px 0 4px;
+  font-family: var(--f-mono); font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+button.fp-ah { width: 100%; appearance: none; -webkit-appearance: none; border: 0; background: none; color: var(--ink); cursor: pointer; padding: 14px 0; text-align: left; }
+.fp-alive { appearance: none; -webkit-appearance: none; flex: none; border: 0; border-radius: 999px; padding: 7px 12px; background: var(--ink); color: var(--bg); cursor: pointer;
+  font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.fp-ar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 12px; width: 100%; appearance: none; -webkit-appearance: none;
+  border: 0; border-top: 1px solid var(--line); background: none; color: var(--ink); padding: 12px 0; text-align: left; cursor: pointer; }
+.fp-ah + .fp-ar, .fp-aw + .fp-ar { border-top: 0; }
+.fp-ar time, .fp-ar .fp-ad { font-family: var(--f-mono); font-size: 11px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+.fp-ar time { min-width: 7.2em; }
+.fp-ar b { min-width: 0; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fp-ar.on b::before { content: "● "; font-size: .7em; vertical-align: .15em; }
+.fp-ar:focus-visible, .fp-alive:focus-visible, button.fp-ah:focus-visible, .fp-amore:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.fp-amore { appearance: none; -webkit-appearance: none; border: 0; border-top: 1px solid var(--line); background: none; color: var(--muted); width: 100%; text-align: left; cursor: pointer;
+  font-family: var(--f-mono); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; padding: 12px 0; }
+.fp-aw { margin: 2px 0 8px; font-size: 13.5px; font-weight: 500; color: var(--muted); }
+.fp-seek { cursor: pointer; padding: 9px 0; margin: -9px 0; } /* a taller target around the thin line, to tap a point in the show */
+/* the Mixcloud player itself: out of sight, unless the browser wants a tap inside it to start */
+#mcx { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); width: min(420px, calc(100vw - 32px)); height: 60px; transform: translateX(-50%);
+  z-index: 40; opacity: 0; pointer-events: none; border-radius: 10px; overflow: hidden; }
+#mcx.show { opacity: 1; pointer-events: auto; box-shadow: 0 10px 34px rgba(0, 0, 0, .4); }
+#mcx iframe { display: block; width: 100%; height: 60px; border: 0; }
+body[data-arch="on"] .player {
+  background: linear-gradient(100deg, color-mix(in srgb, var(--bar-c) 62%, var(--dock)) 0%, color-mix(in srgb, var(--bar-c) 34%, var(--dock)) 55%, color-mix(in srgb, var(--bar-c) 14%, var(--dock)) 100%);
+}
+body[data-arch="on"] .pp { background: var(--bar-c); color: var(--bar-t); box-shadow: 0 6px 20px -8px var(--bar-c); }
+body[data-arch="on"] .pp .i-play { display: none; }
+body[data-arch="on"] .pp .i-stop { display: block; }
+@media (min-width: 700px) and (min-aspect-ratio: 5/4) { .fp-arch { grid-column: 2; grid-row: 7; align-self: start; margin-top: 4px; } }
 /* on a computer, or any wide landscape window: the poster fills the left, the controls stand in a column on the right */
 @media (min-width: 700px) and (min-aspect-ratio: 5/4) {
   .fp-in { max-width: 1480px; display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr);
@@ -1447,6 +1478,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 </section>
 
 <section class="fp" id="fp" role="dialog" aria-modal="true" aria-labelledby="fp-title" hidden><div class="fp-in" id="fp-in"></div></section>
+<div id="mcx" aria-label="Mixcloud player"></div>
 <section class="cp" id="cp" role="dialog" aria-modal="true" aria-labelledby="cp-title" hidden><div class="cp-in" id="cp-in"></div></section>
 
 <div class="dock">
@@ -3468,30 +3500,142 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   }
   audio.addEventListener("timeupdate", sleepCheck);
 
+  /* ---------- From the archive: each station's past shows on Mixcloud ---------- */
+  // the stations' own Mixcloud accounts (checked one by one: same name, same website, their shows)
+  const ARCH = { nts1: "NTSRadio", nts2: "NTSRadio", kiosk: "KioskRadio", noods: "NoodsRadio", nopal: "radionopal", super45: "super45",
+    pass: "chimurenga", refuge: "refugeworldwide", satellite: "satelliteradio", cashmere: "CashmereRadio", wwfm: "worldwidefm",
+    hanoi: "HàNộiCommunityRadio", rbl: "radiobandalarga", alhara: "RadioAlhara" };
+  const archLists = {}, archShown = {}, archOpen = {};
+  let arch = null; // the archive show playing (or about to): { id, key, name, date, dur, pos, playing, loading, needTap, error }
+  let mcWidget = null, mcFrame = null, mcScript = null;
+  const archDate = (iso) => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }); };
+  const mmss = (s) => { s = Math.max(0, Math.round(s || 0)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+    return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(x).padStart(2, "0"); };
+  function loadArch(id) { // the station's latest shows, from Mixcloud's public API (no pictures are used)
+    if (archLists[id]) return;
+    archLists[id] = "loading";
+    fetch("https://api.mixcloud.com/" + encodeURIComponent(ARCH[id]) + "/cloudcasts/?limit=12")
+      .then((r) => r.ok ? r.json() : Promise.reject(r.status))
+      .then((j) => { archLists[id] = (j.data || []).filter((c) => c && c.key && c.name).map((c) => ({ key: c.key, name: clean(c.name), date: archDate(c.created_time), dur: +c.audio_length || 0 })); })
+      .catch(() => { archLists[id] = "error"; setTimeout(() => { if (archLists[id] === "error") delete archLists[id]; }, 120000); })
+      .then(() => { if (fpOpen && current === id) renderFP(); });
+  }
+  function archHTML(st, A, onAir) {
+    if (!ARCH[st.id]) return "";
+    const L = archLists[st.id];
+    if (!L || L === "loading") { loadArch(st.id); return '<div class="fp-arch"><p class="fp-ah">From the archive</p><p class="fp-aw">Looking for past shows…</p></div>'; }
+    if (L === "error" || !L.length) return "";
+    if (!A && onAir && !archOpen[st.id]) // live now: only a quiet line, to open the list
+      return `<div class="fp-arch"><button class="fp-ah" type="button" data-fp="arch-open" aria-expanded="false">From the archive<span aria-hidden="true">${L.length} shows ›</span></button></div>`;
+    const n = Math.min(L.length, archShown[st.id] || 3);
+    let h = '<div class="fp-arch"><div class="fp-ah"><span>From the archive</span>' + (A ? '<button class="fp-alive" type="button" data-fp="arch-live">Back to live</button>' : "") + "</div>";
+    if (A && A.needTap) h += '<p class="fp-aw">One more tap: press ▶ in the Mixcloud player at the bottom of the screen.</p>';
+    if (A && A.error) h += '<p class="fp-aw">This show didn’t start. Try again, or pick another one.</p>';
+    L.slice(0, n).forEach((c, i) => {
+      const on = A && A.key === c.key;
+      h += `<button class="fp-ar${on ? " on" : ""}" type="button" data-fp="arch" data-i="${i}" aria-label="Play ${esc(c.name)}, ${esc(c.date)}"><time>${esc(c.date)}</time><b>${esc(c.name)}</b>` +
+        `<span class="fp-ad">${c.dur ? Math.round(c.dur / 60) + " min" : ""}</span></button>`;
+    });
+    if (L.length > n) h += '<button class="fp-amore" type="button" data-fp="arch-more">More shows</button>';
+    return h + "</div>";
+  }
+  function mcLoadScript() { // Mixcloud's widget API, only when an archive show is played
+    if (window.Mixcloud) return Promise.resolve();
+    if (!mcScript) mcScript = new Promise((res, rej) => {
+      const s = document.createElement("script"); s.src = "https://widget.mixcloud.com/media/js/widgetApi.js"; s.async = true;
+      s.onload = res; s.onerror = () => { mcScript = null; rej(new Error("widget")); }; document.head.appendChild(s);
+    });
+    return mcScript;
+  }
+  const mcSrc = (key) => "https://player-widget.mixcloud.com/widget/iframe/?" +
+    new URLSearchParams({ feed: key, hide_cover: "1", mini: "1", hide_artwork: "1", light: "1", autoplay: "1" }).toString();
+  function archBar() { // the progress bar and times, updated in place while a show plays
+    if (!arch || !fpOpen || current !== arch.id) return;
+    const i = fpIn.querySelector(".fp-bar.arch i"), p = fpIn.querySelector(".fp-bar.arch .a-pos"), d = fpIn.querySelector(".fp-bar.arch .a-dur");
+    if (i) i.style.width = (arch.dur ? Math.min(100, arch.pos / arch.dur * 100) : 0).toFixed(2) + "%";
+    if (p) p.textContent = mmss(arch.pos);
+    if (d) d.textContent = mmss(arch.dur);
+  }
+  function archBind(w) {
+    w.events.play.on(() => { if (!arch) { w.pause(); return; } arch.playing = true; arch.loading = false; arch.needTap = false; arch.error = false; $("mcx").classList.remove("show"); renderPlayer(); });
+    w.events.pause.on(() => { if (arch) { arch.playing = false; renderPlayer(); } });
+    w.events.buffering.on(() => { if (arch && !arch.playing) { arch.loading = true; } });
+    w.events.progress.on((pos, dur) => {
+      if (!arch) return;
+      arch.pos = pos; if (dur) arch.dur = dur;
+      if (sleepAt && Date.now() >= sleepAt) { sleepAt = 0; clearTimeout(sleepTimer); w.pause(); }
+      archBar();
+    });
+    w.events.ended.on(() => { if (!arch) return; const id = arch.id; archStop(); start(id); }); // the show is over: back to live
+    w.events.error.on(() => { if (arch) { arch.error = true; arch.loading = false; arch.playing = false; renderPlayer(); } });
+  }
+  async function archPlay(id, c) {
+    if (state === "live" || state === "loading") stop();
+    arch = { id, key: c.key, name: c.name, date: c.date, dur: c.dur, pos: 0, playing: false, loading: true, needTap: false, error: false };
+    renderPlayer();
+    const key = c.key, box = $("mcx");
+    try {
+      await mcLoadScript();
+      if (!mcFrame) {
+        mcFrame = document.createElement("iframe");
+        mcFrame.allow = "autoplay; encrypted-media"; mcFrame.title = "Mixcloud player"; mcFrame.src = mcSrc(key);
+        box.appendChild(mcFrame);
+        mcWidget = window.Mixcloud.PlayerWidget(mcFrame);
+        await mcWidget.ready;
+        archBind(mcWidget);
+      } else {
+        await mcWidget.ready;
+        await mcWidget.load(key, true);
+      }
+      if (!arch || arch.key !== key) return;
+      try { await mcWidget.play(); } catch (e) {}
+    } catch (e) {
+      if (arch && arch.key === key) { arch.error = true; arch.loading = false; renderPlayer(); }
+      return;
+    }
+    // some browsers (Safari on iPhone) don't let a page start sound inside another site's player: then it asks for one tap in it
+    setTimeout(() => { if (arch && arch.key === key && !arch.playing && !arch.error) { arch.needTap = true; box.classList.add("show"); renderPlayer(); } }, 3500);
+  }
+  function archStop() {
+    if (!arch) return;
+    arch = null;
+    try { if (mcWidget) mcWidget.pause(); } catch (e) {}
+    $("mcx").classList.remove("show");
+    renderPlayer();
+  }
+  function archToggle() { if (mcWidget && arch) { try { mcWidget.togglePlay(); } catch (e) {} } }
+
   function renderFP() {
     const st = current ? byId[current] : null;
     if (!st) { closePlayer(); return; }
-    const info = live[st.id] || null, playing = state === "live" || state === "loading", now = Date.now();
+    const A = arch && arch.id === st.id ? arch : null;
+    const info = A ? null : live[st.id] || null, playing = A ? (A.playing || A.loading) : state === "live" || state === "loading", now = Date.now();
+    const onAir = !!(live[st.id] && live[st.id].onAir);
     const keep = st.el.querySelector(".name").classList.contains("keepcase") ? " keepcase" : "";
-    const k = { loading: "Tuning in to", live: "Live from", error: "Can’t reach" }[state] || "Paused";
-    const where = state === "error" ? st.name : st.city + ", " + st.country;
+    const k = A ? "From the archive" : { loading: "Tuning in to", live: "Live from", error: "Can’t reach" }[state] || "Paused";
+    const where = A ? A.date : state === "error" ? st.name : st.city + ", " + st.country;
     const tag = info && info.title ? (info.rerun ? `<span class="fp-tag">${esc(info.tag || "Rerun")}</span>` : '<span class="fp-tag on">On air</span>') : "";
     let h = `<div class="fp-top"><button class="fp-ib" type="button" data-fp="close" aria-label="Close player">${fpIcon("down")}</button>` +
       `<div class="fp-k">${esc(k)}<b>${esc(where)}</b></div>` +
       `<button class="fp-ib" type="button" data-fp="heard" aria-label="Songs you heard">${fpIcon("more")}</button></div>`;
     // a poster: the station's name and its time above, the show's title as big as the page allows, 
-    const hasShow = !!(info && info.title);
+    const hasShow = !!(A || (info && info.title));
     h += `<div class="fp-poster"><div class="fp-pk"><span>${esc(st.name)}</span><span>${esc(st.code)} · ${hhmm(now, st.tz)}</span></div>` +
-      `<h2 class="fp-ttl${hasShow ? "" : keep}" id="fp-title">${esc(hasShow ? info.title : st.name)}</h2>`;
+      `<h2 class="fp-ttl${hasShow ? "" : keep}" id="fp-title">${esc(A ? A.name : hasShow ? info.title : st.name)}</h2>`;
     const sub = [];
     if (info && info.sub && !(info.song && info.song.title && info.sub.toLowerCase().includes(info.song.title.toLowerCase())) &&
       !(info.song && info.sub === info.song.artist)) sub.push(esc(info.sub)); // the song has its own card below
     if (info && isFinite(info.end)) sub.push("until " + hhmm(info.end, st.tz));
-    if (!info || !info.title) sub.push(esc(st.city) + ", " + esc(st.country));
+    if (A) sub.push(esc(st.name) + " · " + esc(A.date) + (A.loading && !A.playing ? " · loading…" : A.playing ? "" : " · paused"));
+    else if (!info || !info.title) sub.push(esc(st.city) + ", " + esc(st.country));
     const pinned = favs.includes(st.id);
     h += `<div class="fp-meta"><p class="fp-sub">${tag}${sub.join(" · ")}</p>` +
       `<button class="fp-star${pinned ? " on" : ""}" type="button" data-fp="pin" aria-pressed="${pinned}" aria-label="${pinned ? "Unpin" : "Pin"} ${esc(st.name)}">${pinned ? "★" : "☆"}</button></div></div>`;
-    if (info && isFinite(info.start) && isFinite(info.end) && info.end > info.start) {
+    if (A) { // the show's own progress: tap the line to move through it
+      h += `<div class="fp-bar arch"><div class="fp-seek" data-fp="seek" role="slider" aria-label="Position in the show" aria-valuemin="0" aria-valuemax="${Math.round(A.dur)}" aria-valuenow="${Math.round(A.pos)}">` +
+        `<div class="fp-line"><i style="width:${(A.dur ? Math.min(100, A.pos / A.dur * 100) : 0).toFixed(2)}%"></i></div></div>` +
+        `<div class="fp-times"><span class="a-pos">${mmss(A.pos)}</span><span>Archive</span><span class="a-dur">${mmss(A.dur)}</span></div></div>`;
+    } else if (info && isFinite(info.start) && isFinite(info.end) && info.end > info.start) {
       const pct = Math.min(100, Math.max(0, (now - info.start) / (info.end - info.start) * 100));
       h += `<div class="fp-bar"><div class="fp-line"><i style="width:${pct.toFixed(1)}%"></i></div>` +
         `<div class="fp-times"><span>${hhmm(info.start, st.tz)}</span><span>${hhmm(now, st.tz)} in ${esc(st.city)}</span><span>${hhmm(info.end, st.tz)}</span></div></div>`;
@@ -3500,10 +3644,12 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     }
     h += '<div class="fp-ctrl">' +
       '<button class="fp-skip" type="button" data-fp="prev" aria-label="Previous station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2.4v14H6zM20 5v14L9.5 12z"/></svg><span>Prev</span></button>' +
-      `<button class="fp-big" type="button" data-fp="toggle" aria-label="${playing ? "Stop" : "Play"}">` +
-      (playing ? '<svg viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg>' : '<svg viewBox="0 0 10 12" aria-hidden="true"><path d="M1 0 10 6 1 12z"/></svg>') + "</button>" +
+      `<button class="fp-big" type="button" data-fp="toggle" aria-label="${playing ? (A ? "Pause" : "Stop") : "Play"}">` +
+      (playing && A ? '<svg viewBox="0 0 10 10" aria-hidden="true"><rect width="3.4" height="10" rx="1"/><rect x="6.6" width="3.4" height="10" rx="1"/></svg>' :
+        playing ? '<svg viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg>' : '<svg viewBox="0 0 10 12" aria-hidden="true"><path d="M1 0 10 6 1 12z"/></svg>') + "</button>" +
       '<button class="fp-skip" type="button" data-fp="next" aria-label="Next station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.6 5H18v14h-2.4zM4 5v14l10.5-7z"/></svg><span>Next</span></button></div>';
-    if (info && info.song && info.song.title) {
+    if (A) { /* no song card for an archive show */ }
+    else if (info && info.song && info.song.title) {
       const q = (info.song.artist ? info.song.artist + " " : "") + info.song.title;
       h += `<div class="fp-track"><div><span class="fp-tk">♪ Playing now</span><b>${esc(info.song.title)}</b><span>${esc(info.song.artist || "")}</span></div>` +
         `<button class="fp-copy" type="button" data-fp="copy" data-q="${esc(q)}">Copy</button></div>`;
@@ -3516,6 +3662,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       `<button class="fp-act${left ? " on" : ""}" type="button" data-fp="sleep">${fpIcon("sleep")}<span>${left ? left + " min" : "Sleep"}</span></button>` +
       `<button class="fp-act" type="button" data-fp="share">${fpIcon("share")}<span>Share</span></button>` +
       `<button class="fp-act" type="button" data-fp="info">${fpIcon("info")}<span>Info</span></button></div>`;
+    h += archHTML(st, A, onAir);
     fp.style.setProperty("--fc", st.dot);
     fp.dataset.id = st.id; // its colours and rings
     const ground = readableGround(st.c, st.t);
@@ -3552,7 +3699,12 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
     if (!b || !current) return;
     const a = b.dataset.fp, id = current;
     if (a === "close") closePlayer();
-    else if (a === "toggle") { if (state === "live" || state === "loading") stop(); else start(id); }
+    else if (a === "toggle") { if (arch && arch.id === id) archToggle(); else if (state === "live" || state === "loading") stop(); else start(id); }
+    else if (a === "arch") { const c = (archLists[id] || [])[+b.dataset.i]; if (c && c.key) { if (arch && arch.key === c.key) archToggle(); else archPlay(id, c); } }
+    else if (a === "arch-open") { archOpen[id] = true; renderFP(); }
+    else if (a === "arch-more") { archShown[id] = (archShown[id] || 3) + 3; renderFP(); }
+    else if (a === "arch-live") { archStop(); start(id); }
+    else if (a === "seek") { if (arch && arch.id === id && arch.dur && mcWidget) { const r = b.getBoundingClientRect(); const t = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * arch.dur; arch.pos = t; archBar(); try { mcWidget.seek(t); } catch (e) {} } }
     else if (a === "prev") step(-1);
     else if (a === "next") step(1);
     else if (a === "pin") { togglePin(id); renderFP(); }
@@ -3943,8 +4095,14 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
       else if (state === "error") text = "Can’t reach this station. Try again";
       else text = "Paused · " + st.city;
     }
+    const AR = arch && st && arch.id === st.id ? arch : null;
+    if (AR) {
+      text = (AR.playing ? "From the archive · " : AR.loading ? "Loading from the archive · " : "Paused · archive · ") + AR.date;
+      npShow.hidden = false; npShow.textContent = AR.name;
+    }
+    document.body.dataset.arch = AR ? (AR.playing || AR.loading ? "on" : "off") : "";
     npStatus.textContent = text;
-    pp.setAttribute("aria-label", (state === "live" || state === "loading") ? "Stop" : "Play");
+    pp.setAttribute("aria-label", (AR ? AR.playing || AR.loading : state === "live" || state === "loading") ? "Pause" : "Play");
     updateProgress();
     setMetadata();
 
@@ -4047,6 +4205,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
   function start(id) {
     const st = byId[id];
     if (!st) return;
+    if (arch) archStop();
     current = id;
     startedAt = Date.now();
     try { localStorage.setItem(KEY, id); } catch (e) {}
@@ -4097,6 +4256,7 @@ body[data-state="live"] .eq i:nth-child(3) { animation-delay: -.7s; }
 
   pp.addEventListener("click", () => {
     if (!current) return;
+    if (arch && arch.id === current) { archToggle(); return; }
     if (state === "live" || state === "loading") stop();
     else start(current);
   });
