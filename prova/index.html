@@ -1027,6 +1027,7 @@ button.fp-ah { width: 100%; appearance: none; -webkit-appearance: none; border: 
   z-index: 40; opacity: 0; pointer-events: none; border-radius: 10px; overflow: hidden; }
 #mcx.show { opacity: 1; pointer-events: auto; box-shadow: 0 10px 34px rgba(0, 0, 0, .4); }
 #mcx iframe { display: block; width: 100%; height: 60px; border: 0; }
+.fp { overflow-anchor: none; } /* it keeps its place by itself when it's redrawn */
 .fp-aw.tap { margin-bottom: 92px; } /* room for Mixcloud's player under the note */
 body[data-arch="on"] .player {
   background: linear-gradient(100deg, color-mix(in srgb, var(--bar-c) 62%, var(--dock)) 0%, color-mix(in srgb, var(--bar-c) 34%, var(--dock)) 55%, color-mix(in srgb, var(--bar-c) 14%, var(--dock)) 100%);
@@ -3530,7 +3531,8 @@ body[data-arch="on"] .pp .i-stop { display: block; }
       return `<div class="fp-arch"><button class="fp-ah" type="button" data-fp="arch-open" aria-expanded="false">From the archive<span aria-hidden="true">${L.length} shows ›</span></button></div>`;
     const n = Math.min(L.length, archShown[st.id] || 3);
     let h = '<div class="fp-arch"><div class="fp-ah"><span>From the archive</span>' + (A ? '<button class="fp-alive" type="button" data-fp="arch-live">Back to live</button>' : "") + "</div>";
-    if (A && A.needTap) h += '<p class="fp-aw tap">Mixcloud’s player is at the bottom of the screen: if the show doesn’t start, press ▶ there.</p>';
+    if (A && A.needTap) h += '<p class="fp-aw tap">One more tap: press ▶ in Mixcloud’s player, at the bottom of the screen.</p>';
+    else if (A && A.slow && !A.playing && !A.error) h += '<p class="fp-aw">Mixcloud is taking a while to start this show…</p>';
     if (A && A.error) h += '<p class="fp-aw">This show didn’t start. Try again, or pick another one.</p>';
     L.slice(0, n).forEach((c, i) => {
       const on = A && A.key === c.key;
@@ -3576,7 +3578,14 @@ body[data-arch="on"] .pp .i-stop { display: block; }
   }
   function archBind(w) {
     w.events.play.on(() => { if (!arch) { w.pause(); return; } arch.playing = true; arch.loading = false; arch.needTap = false; arch.error = false; $("mcx").classList.remove("show"); renderPlayer(); });
-    w.events.pause.on(() => { if (arch) { arch.playing = false; arch.pausedAt = Date.now(); renderPlayer(); } });
+    w.events.pause.on(() => {
+      if (!arch) return;
+      // paused by the phone the moment the silent sound started (it won't play two at once): no silent sound, then, and on with the show
+      if (comp && compAt && Date.now() - compAt < 1500 && !(arch.wantPause && Date.now() - arch.wantPause < 3000)) {
+        compOff = true; compAt = 0; comp.pause(); try { w.play(); } catch (e) {} return;
+      }
+      arch.playing = false; arch.pausedAt = Date.now(); renderPlayer();
+    });
     w.events.buffering.on(() => { if (arch && !arch.playing) { arch.loading = true; } });
     w.events.progress.on((pos, dur) => {
       if (!arch) return;
@@ -3585,8 +3594,13 @@ body[data-arch="on"] .pp .i-stop { display: block; }
       if (!arch.playing && moved) { // sound already going (started from Mixcloud's own player before it answered)
         arch.playing = true; arch.loading = false; arch.needTap = false; $("mcx").classList.remove("show"); renderPlayer();
       }
-      if (sleepAt && Date.now() >= sleepAt) { sleepAt = 0; clearTimeout(sleepTimer); w.pause(); }
+      if (sleepAt && Date.now() >= sleepAt) { sleepAt = 0; clearTimeout(sleepTimer); arch.wantPause = Date.now(); w.pause(); }
       archBar();
+      // the lock screen's progress line, now and then
+      if (arch.playing && arch.dur && "mediaSession" in navigator && navigator.mediaSession.setPositionState && Date.now() - (arch.posAt || 0) > 4000) {
+        arch.posAt = Date.now();
+        try { navigator.mediaSession.setPositionState({ duration: arch.dur, playbackRate: 1, position: Math.min(pos, arch.dur) }); } catch (e) {}
+      }
     });
     w.events.ended.on(() => { if (!arch) return; const id = arch.id; archStop(); start(id); }); // the show is over: back to live
     w.events.error.on(() => { if (arch) { arch.error = true; arch.loading = false; arch.playing = false; renderPlayer(); } });
@@ -3596,8 +3610,8 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     arch = { id, key: c.key, name: c.name, date: c.date, dur: c.dur, pos: 0, playing: false, loading: true, needTap: false, error: false };
     renderPlayer();
     const key = c.key, box = $("mcx");
-    // some browsers (Safari on iPhone) don't let a page start sound inside another site's player: then it asks for one tap in it
-    setTimeout(() => { if (arch && arch.key === key && !arch.playing && !arch.error) { arch.needTap = true; box.classList.add("show"); renderPlayer(); } }, 5000);
+    // Mixcloud's player can take a while to start: then the poster says so, and its own player stays out of sight
+    setTimeout(() => { if (arch && arch.key === key && !arch.playing && !arch.needTap && !arch.error) { arch.slow = true; renderPlayer(); } }, 10000);
     try {
       await mcLoadScript();
       if (!mcFrame) {
@@ -3620,6 +3634,8 @@ body[data-arch="on"] .pp .i-stop { display: block; }
       }
       if (!arch || arch.key !== key) return;
       try { await mcWidget.play(); } catch (e) {}
+      // only if the browser won't let the page start it (Safari on iPhone, sometimes): Mixcloud's own player shows up, for one tap on its ▶
+      setTimeout(() => { if (arch && arch.key === key && !arch.playing && !arch.error) { arch.needTap = true; arch.slow = false; box.classList.add("show"); renderPlayer(); } }, 3000);
     } catch (e) {
       if (arch && arch.key === key) { arch.error = true; arch.loading = false; renderPlayer(); }
     }
@@ -3632,8 +3648,41 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     $("mcx").classList.remove("show");
     renderPlayer();
   }
-  function archToggle() { if (mcWidget && arch && typeof mcWidget.togglePlay === "function") { archEnsureBound(); try { mcWidget.togglePlay(); } catch (e) {} } }
+  function archToggle() { if (mcWidget && arch && typeof mcWidget.togglePlay === "function") { archEnsureBound(); if (arch.playing) arch.wantPause = Date.now(); try { mcWidget.togglePlay(); } catch (e) {} } }
+  function archPause() { if (mcWidget && arch && typeof mcWidget.pause === "function") { arch.wantPause = Date.now(); try { mcWidget.pause(); } catch (e) {} } }
+  function archResume() { if (mcWidget && arch && typeof mcWidget.play === "function") { archEnsureBound(); try { mcWidget.play(); } catch (e) {} } }
+  // The lock screen. An archive show plays in Mixcloud's player, so the phone would name its page ("Mixcloud") and nothing
+  // else; a silent sound of Sintonia's own plays alongside, so the lock screen shows the show, its station, Sintonia's icon
+  // and the show's progress, and its buttons work the show. If the phone won't play both at once, the silent one stops for good.
+  let comp = null, compOff = false, compAt = 0;
+  function compEl() { if (!comp) { comp = new Audio("quiet.mp3"); comp.loop = true; comp.preload = "auto"; } return comp; }
+  let compReady = false;
+  function compUnlock() { // on the first tap, so the phone lets it play later, once the show is going
+    if (compOff || compReady) return;
+    compReady = true;
+    const c = compEl();
+    try { const p = c.play(); if (p && p.catch) p.catch(() => {}); c.pause(); } catch (e) {} // started and stopped at once: that's enough for later
+  }
+  function compSync() {
+    if (compOff || !comp) return;
+    const on = !!(arch && arch.playing);
+    if (on && comp.paused) { compAt = Date.now(); const p = comp.play(); if (p && p.catch) p.catch(() => {}); }
+    else if (!on && !comp.paused) comp.pause();
+    if (!arch && "mediaSession" in navigator && navigator.mediaSession.setPositionState) { try { navigator.mediaSession.setPositionState(); } catch (e) {} }
+  }
 
+  // the poster's scroll, on purpose: a show that starts is shown from the top; a list that opens or grows comes into view
+  const fpCalm = () => !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  function fpToTop() { if (fp.scrollTop > 0) fp.scrollTo({ top: 0, behavior: fpCalm() ? "auto" : "smooth" }); }
+  function archReveal(from) {
+    const rows = fpIn.querySelectorAll(".fp-ar");
+    if (!rows.length) return;
+    const first = rows[Math.min(from, rows.length - 1)], last = fpIn.querySelector(".fp-amore") || rows[rows.length - 1];
+    const box = fp.getBoundingClientRect();
+    // down until the last new show (and More shows) is in view, but never so far that the first new one goes off the top
+    const by = Math.min(last.getBoundingClientRect().bottom - (box.bottom - 24), first.getBoundingClientRect().top - (box.top + 72));
+    if (by > 2) fp.scrollBy({ top: by, behavior: fpCalm() ? "auto" : "smooth" });
+  }
   function renderFP() {
     const st = current ? byId[current] : null;
     if (!st) { closePlayer(); return; }
@@ -3697,8 +3746,13 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     const ground = readableGround(st.c, st.t);
     if (ground !== st.c) fp.style.setProperty("--c", ground); else fp.style.removeProperty("--c");
     themeTo(ground);
+    // redrawn without losing your place: the poster can't get shorter while its new title is measured
+    const y = fp.scrollTop;
+    fpIn.style.minHeight = fpIn.offsetHeight + "px";
     fpIn.innerHTML = h;
     fitCover();
+    fpIn.style.minHeight = "";
+    if (fp.scrollTop !== y) fp.scrollTop = y;
   }
   const fpWide = window.matchMedia("(min-width: 700px) and (min-aspect-ratio: 5/4)");
   function fitCover() { // the poster's title as big as it goes: no word cut, and no more than about 40% of the screen's height
@@ -3729,10 +3783,10 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     const a = b.dataset.fp, id = current;
     if (a === "close") closePlayer();
     else if (a === "toggle") { if (arch && arch.id === id) archToggle(); else if (state === "live" || state === "loading") stop(); else start(id); }
-    else if (a === "arch") { const c = (archLists[id] || [])[+b.dataset.i]; if (c && c.key) { if (arch && arch.key === c.key) archToggle(); else archPlay(id, c); } }
-    else if (a === "arch-open") { archOpen[id] = true; renderFP(); }
-    else if (a === "arch-more") { archShown[id] = (archShown[id] || 3) + 3; renderFP(); }
-    else if (a === "arch-live") { archStop(); start(id); }
+    else if (a === "arch") { const c = (archLists[id] || [])[+b.dataset.i]; if (c && c.key) { if (arch && arch.key === c.key) archToggle(); else { compUnlock(); archPlay(id, c); fpToTop(); } } }
+    else if (a === "arch-open") { archOpen[id] = true; renderFP(); archReveal(0); }
+    else if (a === "arch-more") { const was = Math.min((archLists[id] || []).length, archShown[id] || 3); archShown[id] = was + 3; renderFP(); archReveal(was); }
+    else if (a === "arch-live") { archStop(); start(id); fpToTop(); }
     else if (a === "seek") { if (arch && arch.id === id && arch.dur && mcWidget && typeof mcWidget.seek === "function") { const r = b.getBoundingClientRect(); const t = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * arch.dur; arch.pos = t; archBar(); try { mcWidget.seek(t); } catch (e) {} } }
     else if (a === "prev") step(-1);
     else if (a === "next") step(1);
@@ -4130,13 +4184,14 @@ body[data-arch="on"] .pp .i-stop { display: block; }
       npShow.hidden = false; npShow.textContent = AR.name;
     }
     document.body.dataset.arch = AR ? (AR.playing || AR.loading ? "on" : "off") : "";
+    compSync();
     npStatus.textContent = text;
     pp.setAttribute("aria-label", (AR ? AR.playing || AR.loading : state === "live" || state === "loading") ? "Pause" : "Play");
     updateProgress();
     setMetadata();
 
     if ("mediaSession" in navigator) {
-      try { navigator.mediaSession.playbackState = (state === "live" || state === "loading") ? "playing" : (st ? "paused" : "none"); } catch (e) {}
+      try { navigator.mediaSession.playbackState = (AR ? AR.playing || AR.loading : state === "live" || state === "loading") ? "playing" : (st ? "paused" : "none"); } catch (e) {}
     }
     noteHeard();
     if (sheetOpen) renderSheet();
@@ -4155,15 +4210,15 @@ body[data-arch="on"] .pp .i-stop { display: block; }
   let lastMeta = "";
   function setMetadata() {
     if (!current || !("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;
-    const st = byId[current], info = live[current];
-    const title = info ? info.title : st.name;
-    const sig = [st.id, title].join("|");
+    const st = byId[current], info = live[current], AR = arch && arch.id === st.id ? arch : null;
+    const title = AR ? AR.name : info ? info.title : st.name;
+    const sig = [st.id, title, AR ? "archive" : ""].join("|");
     if (sig === lastMeta) return;
     lastMeta = sig;
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
         title,
-        artist: info ? st.name + " · " + st.city : st.city + " · live",
+        artist: AR ? st.name + " · from the archive" : info ? st.name + " · " + st.city : st.city + " · live",
         album: "Sintonia",
         artwork: [ // Sintonia's own icon: no cover pictures, from anyone
           { src: "icon-512.png?v=7", sizes: "512x512", type: "image/png" },
@@ -4344,9 +4399,10 @@ body[data-arch="on"] .pp .i-stop { display: block; }
 
   if ("mediaSession" in navigator) {
     const handlers = {
-      play: () => { if (current) start(current); },
-      pause: stop,
-      stop: stop,
+      play: () => { if (arch && arch.id === current) archResume(); else if (current) start(current); },
+      pause: () => { if (arch && arch.id === current) archPause(); else stop(); },
+      stop: () => { if (arch && arch.id === current) archPause(); else stop(); },
+      seekto: (d) => { if (arch && arch.dur && d && isFinite(d.seekTime) && mcWidget && typeof mcWidget.seek === "function") { arch.pos = Math.max(0, Math.min(arch.dur, d.seekTime)); archBar(); try { mcWidget.seek(arch.pos); } catch (e) {} } },
       nexttrack: () => step(1),
       previoustrack: () => step(-1)
     };
