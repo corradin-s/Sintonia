@@ -3566,7 +3566,9 @@ body[data-arch="on"] .pp .i-stop { display: block; }
       try { frame.contentWindow.postMessage(JSON.stringify({ type: "getApi" }), "https://player-widget.mixcloud.com"); } catch (e) {}
       setTimeout(ask, 600);
     };
-    frame.addEventListener("load", () => setTimeout(ask, 150), { once: true });
+    let started = false;
+    const begin = () => { if (!started) { started = true; setTimeout(ask, 150); } };
+    frame.addEventListener("load", begin, { once: true }); setTimeout(begin, 1500);
   }
   function archEnsureBound() { // the listeners, attached again if the widget has rebuilt its event lists since
     if (mcWidget && mcWidget.events && mcWidget.events.play && mcWidget.events.play !== mcBound) { mcBound = mcWidget.events.play; archBind(mcWidget); }
@@ -3596,9 +3598,9 @@ body[data-arch="on"] .pp .i-stop { display: block; }
       if (!mcFrame) {
         mcFrame = document.createElement("iframe");
         mcFrame.allow = "autoplay; encrypted-media"; mcFrame.title = "Mixcloud player"; mcFrame.src = mcSrc(key);
-        const w = window.Mixcloud.PlayerWidget(mcFrame); // before it loads, so its listener is there when the page answers
+        box.appendChild(mcFrame); // in the page first: the widget talks to the frame's window
+        const w = window.Mixcloud.PlayerWidget(mcFrame);
         mcHandshake(mcFrame, w);
-        box.appendChild(mcFrame);
         mcWidget = w;
         await Promise.race([w.ready, new Promise((res, rej) => setTimeout(() => rej(new Error("timeout")), 16000))]);
         if (mcWidget !== w) return; // stopped meanwhile
