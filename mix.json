@@ -1,0 +1,723 @@
+[
+ {
+  "id": "bcr",
+  "name": "Bangkok Community Radio",
+  "site": "https://www.bangkokcommunityradio.com/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "cashmere",
+  "name": "Cashmere Radio",
+  "site": "https://cashmereradio.com/",
+  "handles": [
+   "media",
+   "CashmereRadio"
+  ],
+  "found": [
+   {
+    "handle": "media",
+    "shows": 1,
+    "latest": [
+     [
+      "2014-10-15",
+      "SWCMX vs TRKTO (Dembowlrd)",
+      "28min",
+      "Dembow/Mexico/SWCMX"
+     ]
+    ]
+   },
+   {
+    "handle": "CashmereRadio",
+    "shows": 7462,
+    "latest": [
+     [
+      "2026-11-08",
+      "The Endless Tape Machine #53: THE MIZELL BROTHERS 07.11.2026",
+      "87min",
+      "Mizell/Sky High/Funk"
+     ],
+     [
+      "2026-11-08",
+      "Cashmere Guest Mixes Brasilianische Imperialismus - #01 Lulamania 20.10.2026",
+      "91min",
+      "Lula13/#vaidarpt/Brazilian"
+     ],
+     [
+      "2026-11-08",
+      "Memorias #107 “millennial pleasures” w/ naga 08.11.2026",
+      "93min",
+      "Millenial/Electronic/Indie"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "deepspace",
+  "name": "Deep Space Radio",
+  "site": "https://deepspaceradio.com/",
+  "handles": [
+   "deepspaceradio_"
+  ],
+  "found": [
+   {
+    "handle": "deepspaceradio_",
+    "shows": 0,
+    "latest": []
+   }
+  ]
+ },
+ {
+  "id": "setagaya",
+  "name": "FM Setagaya",
+  "site": "https://fmsetagaya.com/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "hanoi",
+  "name": "Hà Nội Community Radio",
+  "site": "https://www.hanoicommunityradio.com/",
+  "handles": [
+   "H"
+  ],
+  "found": [
+   {
+    "handle": "H",
+    "shows": 0,
+    "latest": []
+   }
+  ]
+ },
+ {
+  "id": "ida",
+  "name": "IDA Radio",
+  "site": "https://idaidaida.net/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "kiosk",
+  "name": "Kiosk Radio",
+  "site": "https://www.kioskradio.com/schedule",
+  "handles": [
+   "KioskRadio"
+  ],
+  "found": [
+   {
+    "handle": "KioskRadio",
+    "shows": 21621,
+    "latest": [
+     [
+      "2026-11-09",
+      "Outsiders: Understory w/ Ciel @ Kiosk Radio 08.11.2026",
+      "62min",
+      "Minimal/Tech house/Deep house"
+     ],
+     [
+      "2026-11-09",
+      "Outsiders: Endless Process w/ Cristian Vogel  @ Kiosk Radio 07.11.2026",
+      "68min",
+      "Minimal synth/Live/Experimental Loneliness"
+     ],
+     [
+      "2026-11-09",
+      "Outsiders: Ashes57 | Teklife Records w/ Realist Radio @ Kiosk Radio 06.11.2026",
+      "60min",
+      "160 bpm/Footwork/Drum & Bass"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "lithium",
+  "name": "Lithium",
+  "site": "https://lithium.fm/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "newtown",
+  "name": "Newtown Radio",
+  "site": "https://newtownradio.com/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "noods",
+  "name": "Noods Radio",
+  "site": "https://www.noodsradio.com/",
+  "handles": [
+   "NoodsRadio",
+   "noodsradio",
+   "media"
+  ],
+  "found": [
+   {
+    "handle": "NoodsRadio",
+    "shows": 22008,
+    "latest": [
+     [
+      "2026-11-02",
+      "Diminishing Returns w/ Mithril: 3rd November '26",
+      "60min",
+      "Post Club/Breakbeat/Techno"
+     ],
+     [
+      "2026-10-01",
+      "The Rest Is Noise w/ Haime: 1st October '26",
+      "60min",
+      "Ambient/Downtempo/Balearic"
+     ],
+     [
+      "2026-09-30",
+      "Esther: 1st October '26",
+      "60min",
+      "Downtempo/Synth-pop"
+     ]
+    ]
+   },
+   {
+    "handle": "noodsradio",
+    "shows": 22008,
+    "latest": [
+     [
+      "2026-11-02",
+      "Diminishing Returns w/ Mithril: 3rd November '26",
+      "60min",
+      "Post Club/Breakbeat/Techno"
+     ],
+     [
+      "2026-10-01",
+      "The Rest Is Noise w/ Haime: 1st October '26",
+      "60min",
+      "Ambient/Downtempo/Balearic"
+     ],
+     [
+      "2026-09-30",
+      "Esther: 1st October '26",
+      "60min",
+      "Downtempo/Synth-pop"
+     ]
+    ]
+   },
+   {
+    "handle": "media",
+    "shows": 1,
+    "latest": [
+     [
+      "2014-10-15",
+      "SWCMX vs TRKTO (Dembowlrd)",
+      "28min",
+      "Dembow/Mexico/SWCMX"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "nts1",
+  "name": "NTS 1",
+  "site": "https://www.nts.live/",
+  "handles": [
+   "NTSRadio",
+   "georgecayley_",
+   "_cavey",
+   "media"
+  ],
+  "found": [
+   {
+    "handle": "NTSRadio",
+    "shows": 90830,
+    "latest": [
+     [
+      "2026-11-06",
+      "Temporal Cove w/ Carissa's Wierd - 5th November 2026",
+      "60min",
+      "Folk/Experimental/Indie rock"
+     ],
+     [
+      "2026-11-06",
+      "Chico Blanco INVITES LAFRANCESSSA - 5th November 2026",
+      "58min",
+      "Synth-pop/NTS/Chico blanco"
+     ],
+     [
+      "2026-11-05",
+      "Mil Townley - 4th November 2026",
+      "60min",
+      "Shoegaze/Ambient/Dream pop"
+     ]
+    ]
+   },
+   {
+    "handle": "georgecayley_",
+    "shows": 15,
+    "latest": [
+     [
+      "2019-06-04",
+      "Fudge Sunday // RADIO #7 - Vinyl Special (25.03.19)",
+      "53min",
+      "Funk - Soul  - Jazz/Live radio show/World music"
+     ],
+     [
+      "2019-06-04",
+      "Fudge Sunday // RADIO #5 (04.03.19)",
+      "57min",
+      "Funk - Soul  - Jazz/Live radio show/World music"
+     ],
+     [
+      "2019-06-04",
+      "Fudge Sunday // RADIO #4 w/ Zelda Solo (25.02.19)",
+      "60min",
+      "World music/Funk - Soul  - Jazz/Live radio show"
+     ]
+    ]
+   },
+   {
+    "handle": "_cavey",
+    "shows": 9,
+    "latest": [
+     [
+      "2025-10-21",
+      "Corriente - 9/13/25 - Brazilian music",
+      "114min",
+      "Samba/Funk Carioca / Baile Funk/Latin Music"
+     ],
+     [
+      "2023-04-16",
+      "Too Much (April 2023)",
+      "39min",
+      "Cumbia/Latin/Baile funk"
+     ],
+     [
+      "2022-08-18",
+      "Georgian Underground Music",
+      "47min",
+      "Georgia/Post-punk/Tbilisi"
+     ]
+    ]
+   },
+   {
+    "handle": "media",
+    "shows": 1,
+    "latest": [
+     [
+      "2014-10-15",
+      "SWCMX vs TRKTO (Dembowlrd)",
+      "28min",
+      "Dembow/Mexico/SWCMX"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "nts2",
+  "name": "NTS 2",
+  "site": "https://www.nts.live/",
+  "handles": [
+   "NTSRadio",
+   "georgecayley_",
+   "_cavey",
+   "media"
+  ],
+  "found": [
+   {
+    "handle": "NTSRadio",
+    "shows": 90830,
+    "latest": [
+     [
+      "2026-11-06",
+      "Temporal Cove w/ Carissa's Wierd - 5th November 2026",
+      "60min",
+      "Folk/Experimental/Indie rock"
+     ],
+     [
+      "2026-11-06",
+      "Chico Blanco INVITES LAFRANCESSSA - 5th November 2026",
+      "58min",
+      "Synth-pop/NTS/Chico blanco"
+     ],
+     [
+      "2026-11-05",
+      "Mil Townley - 4th November 2026",
+      "60min",
+      "Shoegaze/Ambient/Dream pop"
+     ]
+    ]
+   },
+   {
+    "handle": "georgecayley_",
+    "shows": 15,
+    "latest": [
+     [
+      "2019-06-04",
+      "Fudge Sunday // RADIO #7 - Vinyl Special (25.03.19)",
+      "53min",
+      "Funk - Soul  - Jazz/Live radio show/World music"
+     ],
+     [
+      "2019-06-04",
+      "Fudge Sunday // RADIO #5 (04.03.19)",
+      "57min",
+      "Funk - Soul  - Jazz/Live radio show/World music"
+     ],
+     [
+      "2019-06-04",
+      "Fudge Sunday // RADIO #4 w/ Zelda Solo (25.02.19)",
+      "60min",
+      "World music/Funk - Soul  - Jazz/Live radio show"
+     ]
+    ]
+   },
+   {
+    "handle": "_cavey",
+    "shows": 9,
+    "latest": [
+     [
+      "2025-10-21",
+      "Corriente - 9/13/25 - Brazilian music",
+      "114min",
+      "Samba/Funk Carioca / Baile Funk/Latin Music"
+     ],
+     [
+      "2023-04-16",
+      "Too Much (April 2023)",
+      "39min",
+      "Cumbia/Latin/Baile funk"
+     ],
+     [
+      "2022-08-18",
+      "Georgian Underground Music",
+      "47min",
+      "Georgia/Post-punk/Tbilisi"
+     ]
+    ]
+   },
+   {
+    "handle": "media",
+    "shows": 1,
+    "latest": [
+     [
+      "2014-10-15",
+      "SWCMX vs TRKTO (Dembowlrd)",
+      "28min",
+      "Dembow/Mexico/SWCMX"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "pass",
+  "name": "Pan African Space Station",
+  "site": "https://panafricanspacestation.org.za/",
+  "handles": [
+   "chimurenga"
+  ],
+  "found": [
+   {
+    "handle": "chimurenga",
+    "shows": 243,
+    "latest": [
+     [
+      "2026-09-18",
+      "Theo Parrish Interview at the Pan African Space Station, Cape Town 2010",
+      "46min",
+      ""
+     ],
+     [
+      "2026-07-30",
+      "My country, Tonight, 30 June 2026 - part 2",
+      "128min",
+      ""
+     ],
+     [
+      "2026-07-30",
+      "My country, Tonight, 30 June 2026 - part 1",
+      "154min",
+      ""
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "alhara",
+  "name": "Radio alHara",
+  "site": "https://radioalhara.net/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "rbl",
+  "name": "Radio Banda Larga",
+  "site": "https://rbl.media/",
+  "handles": [
+   "media",
+   "radiobandalarga"
+  ],
+  "found": [
+   {
+    "handle": "media",
+    "shows": 1,
+    "latest": [
+     [
+      "2014-10-15",
+      "SWCMX vs TRKTO (Dembowlrd)",
+      "28min",
+      "Dembow/Mexico/SWCMX"
+     ]
+    ]
+   },
+   {
+    "handle": "radiobandalarga",
+    "shows": 7027,
+    "latest": [
+     [
+      "2026-09-30",
+      "Sustain w/ Resisting Waters - 23rd September 2026",
+      "60min",
+      ""
+     ],
+     [
+      "2026-09-04",
+      "Sustain w/ Konstantine Vlasis - 26th July 2026",
+      "60min",
+      ""
+     ],
+     [
+      "2026-08-13",
+      "Per un pugno di ascolti al SOLID | BRL-151125",
+      "121min",
+      "Berlin/Cinema"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "batuta",
+  "name": "Rádio Batuta",
+  "site": "https://radiobatuta.com.br/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "nopal",
+  "name": "Radio Nopal",
+  "site": "https://www.radionopal.com/",
+  "handles": [
+   "radionopal"
+  ],
+  "found": [
+   {
+    "handle": "radionopal",
+    "shows": 4036,
+    "latest": [
+     [
+      "2026-11-06",
+      "MITOTEMX con TOROMATA",
+      "54min",
+      ""
+     ],
+     [
+      "2026-11-04",
+      "Cine Frecuencias Programa #23 El sol de la libertad volverá a salir",
+      "127min",
+      "Cinema/Combat breathing/NAZA"
+     ],
+     [
+      "2026-10-28",
+      "MITOTE_MX con Funky Maya",
+      "73min",
+      "Dance/Hip Hop"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "raheem",
+  "name": "Radio Raheem",
+  "site": "https://www.radioraheem.it/",
+  "handles": [
+   "media"
+  ],
+  "found": [
+   {
+    "handle": "media",
+    "shows": 1,
+    "latest": [
+     [
+      "2014-10-15",
+      "SWCMX vs TRKTO (Dembowlrd)",
+      "28min",
+      "Dembow/Mexico/SWCMX"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "relativa",
+  "name": "Radio Relativa",
+  "site": "https://radiorelativa.eu/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "refuge",
+  "name": "Refuge Worldwide",
+  "site": "https://refugeworldwide.com/radio",
+  "handles": [
+   "RefugeWorldwide"
+  ],
+  "found": [
+   {
+    "handle": "RefugeWorldwide",
+    "shows": 6326,
+    "latest": [
+     [
+      "2025-11-27",
+      "Le Guess Who? 2025 - TITI BAKORTA - 07 Nov 2025",
+      "52min",
+      "Folk/Psychedelic folk"
+     ],
+     [
+      "2025-11-27",
+      "Le Guess Who? 2025 - Amirtha Kidambi, Saul Williams, Dirar Kalash & Masello Motan - 08 Nov 2025",
+      "105min",
+      "Talk show"
+     ],
+     [
+      "2025-11-27",
+      "Le Guess Who? 2025 - Shawn Reynaldo & Emma Warren - 08 Nov 2025",
+      "61min",
+      "Electro"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "retreat",
+  "name": "Retreat Radio",
+  "site": "https://www.retreatradio.net/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "rinse",
+  "name": "Rinse FM",
+  "site": "https://www.rinse.fm/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "rotation",
+  "name": "Rotation Radio",
+  "site": "https://rotationradio.fm/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "satellite",
+  "name": "Satellite Radio",
+  "site": "https://www.satelliteradio.online/",
+  "handles": [
+   "satelliteradio"
+  ],
+  "found": [
+   {
+    "handle": "satelliteradio",
+    "shows": 14,
+    "latest": [
+     [
+      "2025-11-13",
+      "Satellite radio live from Prisma - Artist Talks 003 Sophie",
+      "47min",
+      "Interview/Talk"
+     ],
+     [
+      "2025-10-27",
+      "The passenger is ready for the next train @ Satellite Radio live Oct #001",
+      "37min",
+      "Experimental/World/Electronica"
+     ],
+     [
+      "2025-09-17",
+      "Satellite Radio @ Prisma - Artist Talks 002 Billy",
+      "47min",
+      "Interview/Talk"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "sonic",
+  "name": "Sonic Radio",
+  "site": "https://sonicradio.live/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "stegi",
+  "name": "Stegi.Radio",
+  "site": "https://stegi.radio/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "super45",
+  "name": "Super45",
+  "site": "https://www.super45.fm/",
+  "handles": [
+   "super45"
+  ],
+  "found": [
+   {
+    "handle": "super45",
+    "shows": 1173,
+    "latest": [
+     [
+      "2026-11-05",
+      "[super45.fm] Eureka | 2026-11-04",
+      "61min",
+      "Ambient/Experimental/Free jazz"
+     ],
+     [
+      "2026-11-04",
+      "[Super45.fm] Calipso #156-2026 -11–03",
+      "62min",
+      "Indie rock/Art rock/Psychedelic rock"
+     ],
+     [
+      "2026-11-04",
+      "[Super45.fm] Calipso #155-2026 -10–21",
+      "63min",
+      "Indie pop/Synth-pop/Indie folk"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "lake",
+  "name": "The Lake Radio",
+  "site": "https://thelakeradio.com/",
+  "handles": [],
+  "found": []
+ },
+ {
+  "id": "wwfm",
+  "name": "Worldwide FM",
+  "site": "https://www.worldwidefm.net/schedule",
+  "handles": [],
+  "found": []
+ }
+]
