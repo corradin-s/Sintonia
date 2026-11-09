@@ -3507,7 +3507,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     hanoi: "HàNộiCommunityRadio", rbl: "radiobandalarga", alhara: "RadioAlhara" };
   const archLists = {}, archShown = {}, archOpen = {};
   let arch = null; // the archive show playing (or about to): { id, key, name, date, dur, pos, playing, loading, needTap, error }
-  let mcWidget = null, mcFrame = null, mcScript = null;
+  let mcWidget = null, mcFrame = null, mcScript = null, mcBound = null;
   const archDate = (iso) => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }); };
   const mmss = (s) => { s = Math.max(0, Math.round(s || 0)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
     return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(x).padStart(2, "0"); };
@@ -3556,6 +3556,21 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     if (p) p.textContent = mmss(arch.pos);
     if (d) d.textContent = mmss(arch.dur);
   }
+  // Mixcloud's player answers only once its own page has started, so ask until it does (each answer rebuilds the
+  // widget's event lists, which is why the listeners are attached, and checked again, only after it has answered)
+  function mcHandshake(frame, w) {
+    let done = false, n = 0;
+    w.ready.then(() => { done = true; });
+    const ask = () => {
+      if (done || n++ > 24 || mcFrame !== frame) return;
+      try { frame.contentWindow.postMessage(JSON.stringify({ type: "getApi" }), "https://player-widget.mixcloud.com"); } catch (e) {}
+      setTimeout(ask, 600);
+    };
+    frame.addEventListener("load", () => setTimeout(ask, 150), { once: true });
+  }
+  function archEnsureBound() { // the listeners, attached again if the widget has rebuilt its event lists since
+    if (mcWidget && mcWidget.events && mcWidget.events.play && mcWidget.events.play !== mcBound) { mcBound = mcWidget.events.play; archBind(mcWidget); }
+  }
   function archBind(w) {
     w.events.play.on(() => { if (!arch) { w.pause(); return; } arch.playing = true; arch.loading = false; arch.needTap = false; arch.error = false; $("mcx").classList.remove("show"); renderPlayer(); });
     w.events.pause.on(() => { if (arch) { arch.playing = false; renderPlayer(); } });
@@ -3574,36 +3589,43 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     arch = { id, key: c.key, name: c.name, date: c.date, dur: c.dur, pos: 0, playing: false, loading: true, needTap: false, error: false };
     renderPlayer();
     const key = c.key, box = $("mcx");
+    // some browsers (Safari on iPhone) don't let a page start sound inside another site's player: then it asks for one tap in it
+    setTimeout(() => { if (arch && arch.key === key && !arch.playing && !arch.error) { arch.needTap = true; box.classList.add("show"); renderPlayer(); } }, 5000);
     try {
       await mcLoadScript();
       if (!mcFrame) {
         mcFrame = document.createElement("iframe");
         mcFrame.allow = "autoplay; encrypted-media"; mcFrame.title = "Mixcloud player"; mcFrame.src = mcSrc(key);
+        const w = window.Mixcloud.PlayerWidget(mcFrame); // before it loads, so its listener is there when the page answers
+        mcHandshake(mcFrame, w);
         box.appendChild(mcFrame);
-        mcWidget = window.Mixcloud.PlayerWidget(mcFrame);
-        await mcWidget.ready;
-        archBind(mcWidget);
+        mcWidget = w;
+        await Promise.race([w.ready, new Promise((res, rej) => setTimeout(() => rej(new Error("timeout")), 16000))]);
+        if (mcWidget !== w) return; // stopped meanwhile
+        archEnsureBound(); setTimeout(archEnsureBound, 1200); setTimeout(archEnsureBound, 4000);
+        if (!arch || arch.key !== key) { try { w.pause(); } catch (e) {} return; }
       } else {
-        await mcWidget.ready;
-        await mcWidget.load(key, true);
+        const w = mcWidget;
+        await w.ready;
+        archEnsureBound();
+        if (!arch || arch.key !== key) return;
+        await w.load(key, true);
       }
       if (!arch || arch.key !== key) return;
       try { await mcWidget.play(); } catch (e) {}
     } catch (e) {
       if (arch && arch.key === key) { arch.error = true; arch.loading = false; renderPlayer(); }
-      return;
     }
-    // some browsers (Safari on iPhone) don't let a page start sound inside another site's player: then it asks for one tap in it
-    setTimeout(() => { if (arch && arch.key === key && !arch.playing && !arch.error) { arch.needTap = true; box.classList.add("show"); renderPlayer(); } }, 3500);
   }
   function archStop() {
     if (!arch) return;
     arch = null;
-    try { if (mcWidget) mcWidget.pause(); } catch (e) {}
+    if (mcWidget && typeof mcWidget.pause === "function") { try { mcWidget.pause(); } catch (e) {} }
+    else if (mcFrame) { mcFrame.remove(); mcFrame = mcWidget = mcBound = null; } // not answering yet: let it go, so it can't start on its own
     $("mcx").classList.remove("show");
     renderPlayer();
   }
-  function archToggle() { if (mcWidget && arch) { try { mcWidget.togglePlay(); } catch (e) {} } }
+  function archToggle() { if (mcWidget && arch && typeof mcWidget.togglePlay === "function") { archEnsureBound(); try { mcWidget.togglePlay(); } catch (e) {} } }
 
   function renderFP() {
     const st = current ? byId[current] : null;
@@ -3704,7 +3726,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     else if (a === "arch-open") { archOpen[id] = true; renderFP(); }
     else if (a === "arch-more") { archShown[id] = (archShown[id] || 3) + 3; renderFP(); }
     else if (a === "arch-live") { archStop(); start(id); }
-    else if (a === "seek") { if (arch && arch.id === id && arch.dur && mcWidget) { const r = b.getBoundingClientRect(); const t = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * arch.dur; arch.pos = t; archBar(); try { mcWidget.seek(t); } catch (e) {} } }
+    else if (a === "seek") { if (arch && arch.id === id && arch.dur && mcWidget && typeof mcWidget.seek === "function") { const r = b.getBoundingClientRect(); const t = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * arch.dur; arch.pos = t; archBar(); try { mcWidget.seek(t); } catch (e) {} } }
     else if (a === "prev") step(-1);
     else if (a === "next") step(1);
     else if (a === "pin") { togglePin(id); renderFP(); }
