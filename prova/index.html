@@ -3529,7 +3529,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
       return `<div class="fp-arch"><button class="fp-ah" type="button" data-fp="arch-open" aria-expanded="false">From the archive<span aria-hidden="true">${L.length} shows ›</span></button></div>`;
     const n = Math.min(L.length, archShown[st.id] || 3);
     let h = '<div class="fp-arch"><div class="fp-ah"><span>From the archive</span>' + (A ? '<button class="fp-alive" type="button" data-fp="arch-live">Back to live</button>' : "") + "</div>";
-    if (A && A.needTap) h += '<p class="fp-aw">One more tap: press ▶ in the Mixcloud player at the bottom of the screen.</p>';
+    if (A && A.needTap) h += '<p class="fp-aw">Mixcloud’s player is at the bottom of the screen: if the show doesn’t start, press ▶ there.</p>';
     if (A && A.error) h += '<p class="fp-aw">This show didn’t start. Try again, or pick another one.</p>';
     L.slice(0, n).forEach((c, i) => {
       const on = A && A.key === c.key;
@@ -3548,7 +3548,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     return mcScript;
   }
   const mcSrc = (key) => "https://player-widget.mixcloud.com/widget/iframe/?" +
-    new URLSearchParams({ feed: key, hide_cover: "1", mini: "1", hide_artwork: "1", light: "1", autoplay: "1" }).toString();
+    new URLSearchParams({ feed: key, hide_cover: "1", mini: "1", hide_artwork: "1", light: "1" }).toString();
   function archBar() { // the progress bar and times, updated in place while a show plays
     if (!arch || !fpOpen || current !== arch.id) return;
     const i = fpIn.querySelector(".fp-bar.arch i"), p = fpIn.querySelector(".fp-bar.arch .a-pos"), d = fpIn.querySelector(".fp-bar.arch .a-dur");
@@ -3562,9 +3562,9 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     let done = false, n = 0;
     w.ready.then(() => { done = true; });
     const ask = () => {
-      if (done || n++ > 24 || mcFrame !== frame) return;
+      if (done || n++ > 70 || mcFrame !== frame) return; // it can take from a second to half a minute
       try { frame.contentWindow.postMessage(JSON.stringify({ type: "getApi" }), "https://player-widget.mixcloud.com"); } catch (e) {}
-      setTimeout(ask, 600);
+      setTimeout(ask, n < 20 ? 600 : 1500);
     };
     let started = false;
     const begin = () => { if (!started) { started = true; setTimeout(ask, 150); } };
@@ -3580,6 +3580,9 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     w.events.progress.on((pos, dur) => {
       if (!arch) return;
       arch.pos = pos; if (dur) arch.dur = dur;
+      if (!arch.playing && pos > 0) { // sound already going (started from Mixcloud's own player before it answered)
+        arch.playing = true; arch.loading = false; arch.needTap = false; $("mcx").classList.remove("show"); renderPlayer();
+      }
       if (sleepAt && Date.now() >= sleepAt) { sleepAt = 0; clearTimeout(sleepTimer); w.pause(); }
       archBar();
     });
@@ -3602,7 +3605,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
         const w = window.Mixcloud.PlayerWidget(mcFrame);
         mcHandshake(mcFrame, w);
         mcWidget = w;
-        await Promise.race([w.ready, new Promise((res, rej) => setTimeout(() => rej(new Error("timeout")), 16000))]);
+        await w.ready; // meanwhile, after 5 s, Mixcloud's own player shows up with its ▶
         if (mcWidget !== w) return; // stopped meanwhile
         archEnsureBound(); setTimeout(archEnsureBound, 1200); setTimeout(archEnsureBound, 4000);
         if (!arch || arch.key !== key) { try { w.pause(); } catch (e) {} return; }
