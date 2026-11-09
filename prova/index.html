@@ -1027,6 +1027,7 @@ button.fp-ah { width: 100%; appearance: none; -webkit-appearance: none; border: 
   z-index: 40; opacity: 0; pointer-events: none; border-radius: 10px; overflow: hidden; }
 #mcx.show { opacity: 1; pointer-events: auto; box-shadow: 0 10px 34px rgba(0, 0, 0, .4); }
 #mcx iframe { display: block; width: 100%; height: 60px; border: 0; }
+.fp-aw.tap { margin-bottom: 92px; } /* room for Mixcloud's player under the note */
 body[data-arch="on"] .player {
   background: linear-gradient(100deg, color-mix(in srgb, var(--bar-c) 62%, var(--dock)) 0%, color-mix(in srgb, var(--bar-c) 34%, var(--dock)) 55%, color-mix(in srgb, var(--bar-c) 14%, var(--dock)) 100%);
 }
@@ -3529,7 +3530,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
       return `<div class="fp-arch"><button class="fp-ah" type="button" data-fp="arch-open" aria-expanded="false">From the archive<span aria-hidden="true">${L.length} shows ›</span></button></div>`;
     const n = Math.min(L.length, archShown[st.id] || 3);
     let h = '<div class="fp-arch"><div class="fp-ah"><span>From the archive</span>' + (A ? '<button class="fp-alive" type="button" data-fp="arch-live">Back to live</button>' : "") + "</div>";
-    if (A && A.needTap) h += '<p class="fp-aw">Mixcloud’s player is at the bottom of the screen: if the show doesn’t start, press ▶ there.</p>';
+    if (A && A.needTap) h += '<p class="fp-aw tap">Mixcloud’s player is at the bottom of the screen: if the show doesn’t start, press ▶ there.</p>';
     if (A && A.error) h += '<p class="fp-aw">This show didn’t start. Try again, or pick another one.</p>';
     L.slice(0, n).forEach((c, i) => {
       const on = A && A.key === c.key;
@@ -3575,12 +3576,13 @@ body[data-arch="on"] .pp .i-stop { display: block; }
   }
   function archBind(w) {
     w.events.play.on(() => { if (!arch) { w.pause(); return; } arch.playing = true; arch.loading = false; arch.needTap = false; arch.error = false; $("mcx").classList.remove("show"); renderPlayer(); });
-    w.events.pause.on(() => { if (arch) { arch.playing = false; renderPlayer(); } });
+    w.events.pause.on(() => { if (arch) { arch.playing = false; arch.pausedAt = Date.now(); renderPlayer(); } });
     w.events.buffering.on(() => { if (arch && !arch.playing) { arch.loading = true; } });
     w.events.progress.on((pos, dur) => {
       if (!arch) return;
+      const moved = pos > arch.pos + 0.5 && Date.now() - (arch.pausedAt || 0) > 1500; // a late update right after a pause doesn't count
       arch.pos = pos; if (dur) arch.dur = dur;
-      if (!arch.playing && pos > 0) { // sound already going (started from Mixcloud's own player before it answered)
+      if (!arch.playing && moved) { // sound already going (started from Mixcloud's own player before it answered)
         arch.playing = true; arch.loading = false; arch.needTap = false; $("mcx").classList.remove("show"); renderPlayer();
       }
       if (sleepAt && Date.now() >= sleepAt) { sleepAt = 0; clearTimeout(sleepTimer); w.pause(); }
