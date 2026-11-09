@@ -1015,17 +1015,34 @@ button.fp-ah { width: 100%; appearance: none; -webkit-appearance: none; border: 
 .fp-ar time { min-width: 7.2em; }
 .fp-ar b { min-width: 0; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fp-ar.on b::before { content: "● "; font-size: .7em; vertical-align: .15em; }
-.fp-ar:focus-visible, .fp-alive:focus-visible, button.fp-ah:focus-visible, .fp-amore:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.fp-ar:focus-visible, .fp-alive:focus-visible, button.fp-ah:focus-visible, .fp-amore:focus-visible, .fp-atg:focus-visible, .fp-seek:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* the list's header: a toggle, with a small chevron (up: close the list; down: open it) */
+.fp-ah.shut { padding: 4px 0; }
+.fp-atg { appearance: none; -webkit-appearance: none; border: 0; background: none; padding: 0; margin: 0; min-height: 34px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 10px; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; }
+.fp-atg.wide { flex: 1; justify-content: space-between; min-height: 44px; color: var(--ink); }
+.fp-atg span { display: inline-flex; align-items: center; gap: 10px; }
+.fp-atg i { flex: none; width: 6px; height: 6px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+.fp-atg[aria-expanded="true"] i { transform: translateY(2px) rotate(-135deg); }
+@media (prefers-reduced-motion: no-preference) { .fp-atg i { transition: transform .2s ease; } }
 .fp-amore { appearance: none; -webkit-appearance: none; border: 0; border-top: 1px solid var(--line); background: none; color: var(--muted); width: 100%; text-align: left; cursor: pointer;
   font-family: var(--f-mono); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; padding: 12px 0; }
 .fp-aw { margin: 2px 0 8px; font-size: 13.5px; font-weight: 500; color: var(--muted); }
-.fp-seek { cursor: pointer; padding: 9px 0; margin: -9px 0; } /* a taller target around the thin line, to tap a point in the show */
+.fp-seek { cursor: pointer; padding: 11px 0; margin: -11px 0; touch-action: pan-y; } /* a taller target around the thin line: tap a point, or drag */
+.fp-seek .fp-line i::after { transition: transform .12s ease; }
+.fp-seek:hover .fp-line i::after, .fp-seek.drag .fp-line i::after { transform: scale(1.4); }
 /* the Mixcloud player itself: out of sight, unless the browser wants a tap inside it to start */
 #mcx { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); width: min(420px, calc(100vw - 32px)); height: 60px; transform: translateX(-50%);
   z-index: 40; opacity: 0; pointer-events: none; border-radius: 10px; overflow: hidden; }
 #mcx.show { opacity: 1; pointer-events: auto; box-shadow: 0 10px 34px rgba(0, 0, 0, .4); }
 #mcx iframe { display: block; width: 100%; height: 60px; border: 0; }
 .fp { overflow-anchor: none; } /* it keeps its place by itself when it's redrawn */
+/* on a computer, one scrollbar: the page behind the poster doesn't scroll, and the poster's own is thin, in its ink */
+html.fp-on, html.fp-on body { overflow: hidden; }
+.fp { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 38%, transparent) transparent; }
+.fp::-webkit-scrollbar { width: 8px; }
+.fp::-webkit-scrollbar-track { background: transparent; }
+.fp::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ink) 38%, transparent); border-radius: 4px; }
 .fp-aw.tap { margin-bottom: 92px; } /* room for Mixcloud's player under the note */
 body[data-arch="on"] .player {
   background: linear-gradient(100deg, color-mix(in srgb, var(--bar-c) 62%, var(--dock)) 0%, color-mix(in srgb, var(--bar-c) 34%, var(--dock)) 55%, color-mix(in srgb, var(--bar-c) 14%, var(--dock)) 100%);
@@ -3454,6 +3471,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
   function openPlayer() {
     if (!current) return;
     fpOpen = true;
+    document.documentElement.classList.add("fp-on"); // the page behind doesn't scroll (and shows no scrollbar of its own)
     fp.hidden = false; // visible first, so the name can be measured
     renderFP();
     fp.scrollTop = 0;
@@ -3480,6 +3498,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
   }
   function closePlayer() {
     fpOpen = false;
+    document.documentElement.classList.remove("fp-on");
     fp.hidden = true;
     themeTo("");
     fpIn.style.transform = "";
@@ -3524,11 +3543,14 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     const L = archLists[st.id];
     if (!L || L === "loading") { loadArch(st.id); return '<div class="fp-arch"><p class="fp-ah">From the archive</p><p class="fp-aw">Looking for past shows…</p></div>'; }
     if (L === "error" || !L.length) return "";
-    if (!A && onAir && !archOpen[st.id]) // live now: only a quiet line, to open the list
-      return `<div class="fp-arch"><button class="fp-ah" type="button" data-fp="arch-open" aria-expanded="false">From the archive<span aria-hidden="true">${L.length} shows ›</span></button></div>`;
+    // open or closed: as you left it; otherwise open, unless the station is live right now (then only a quiet line)
+    const open = archOpen[st.id] !== undefined ? archOpen[st.id] : !!(A || !onAir);
+    const live = A ? '<button class="fp-alive" type="button" data-fp="arch-live">Back to live</button>' : "";
+    if (!open)
+      return `<div class="fp-arch"><div class="fp-ah shut"><button class="fp-atg wide" type="button" data-fp="arch-open" aria-expanded="false">From the archive<span>${L.length} shows<i aria-hidden="true"></i></span></button>${live}</div></div>`;
     mcPrewarm(st.id, L[0].key);
     const n = Math.min(L.length, archShown[st.id] || 3);
-    let h = '<div class="fp-arch"><div class="fp-ah"><span>From the archive</span>' + (A ? '<button class="fp-alive" type="button" data-fp="arch-live">Back to live</button>' : "") + "</div>";
+    let h = '<div class="fp-arch"><div class="fp-ah"><button class="fp-atg" type="button" data-fp="arch-close" aria-expanded="true">From the archive<i aria-hidden="true"></i></button>' + live + "</div>";
     if (A && A.needTap) h += '<p class="fp-aw tap">One more tap: press ▶ in Mixcloud’s player, at the bottom of the screen.</p>';
     else if (A && A.slow && !A.playing && !A.error) h += '<p class="fp-aw">Mixcloud is taking a while to start this show…</p>';
     if (A && A.error) h += '<p class="fp-aw">This show didn’t start. Try again, or pick another one.</p>';
@@ -3551,7 +3573,8 @@ body[data-arch="on"] .pp .i-stop { display: block; }
   const mcSrc = (key) => "https://player-widget.mixcloud.com/widget/iframe/?" +
     new URLSearchParams({ feed: key, hide_cover: "1", mini: "1", hide_artwork: "1", light: "1" }).toString();
   function archBar() { // the progress bar and times, updated in place while a show plays
-    if (!arch || !fpOpen || current !== arch.id) return;
+    if (!arch || !fpOpen || current !== arch.id || seekDrag) return;
+    const sk = fpIn.querySelector(".fp-seek"); if (sk) sk.setAttribute("aria-valuenow", Math.round(arch.pos));
     const i = fpIn.querySelector(".fp-bar.arch i"), p = fpIn.querySelector(".fp-bar.arch .a-pos"), d = fpIn.querySelector(".fp-bar.arch .a-dur");
     if (i) i.style.width = (arch.dur ? Math.min(100, arch.pos / arch.dur * 100) : 0).toFixed(2) + "%";
     if (p) p.textContent = mmss(arch.pos);
@@ -3587,6 +3610,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     w.events.buffering.on(() => { if (arch && !arch.playing) { arch.loading = true; } });
     w.events.progress.on((pos, dur) => {
       if (!arch) return;
+      if (arch.seekAt && Date.now() - arch.seekAt < 1500 && Math.abs(pos - arch.pos) > 8) return; // the jump hasn't reached the player yet
       const moved = pos > arch.pos + 0.5 && Date.now() - (arch.pausedAt || 0) > 1500; // a late update right after a pause doesn't count
       arch.pos = pos; if (dur) arch.dur = dur;
       if (!arch.playing && moved) { // sound already going (started from Mixcloud's own player before it answered)
@@ -3727,7 +3751,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     h += `<div class="fp-meta"><p class="fp-sub">${tag}${sub.join(" · ")}</p>` +
       `<button class="fp-star${pinned ? " on" : ""}" type="button" data-fp="pin" aria-pressed="${pinned}" aria-label="${pinned ? "Unpin" : "Pin"} ${esc(st.name)}">${pinned ? "★" : "☆"}</button></div></div>`;
     if (A) { // the show's own progress: tap the line to move through it
-      h += `<div class="fp-bar arch"><div class="fp-seek" data-fp="seek" role="slider" aria-label="Position in the show" aria-valuemin="0" aria-valuemax="${Math.round(A.dur)}" aria-valuenow="${Math.round(A.pos)}">` +
+      h += `<div class="fp-bar arch"><div class="fp-seek" data-fp="seek" tabindex="0" role="slider" aria-label="Position in the show" aria-valuemin="0" aria-valuemax="${Math.round(A.dur)}" aria-valuenow="${Math.round(A.pos)}">` +
         `<div class="fp-line"><i style="width:${(A.dur ? Math.min(100, A.pos / A.dur * 100) : 0).toFixed(2)}%"></i></div></div>` +
         `<div class="fp-times"><span class="a-pos">${mmss(A.pos)}</span><span>Archive</span><span class="a-dur">${mmss(A.dur)}</span></div></div>`;
     } else if (info && isFinite(info.start) && isFinite(info.end) && info.end > info.start) {
@@ -3802,9 +3826,10 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     else if (a === "toggle") { if (arch && arch.id === id) archToggle(); else if (state === "live" || state === "loading") stop(); else start(id); }
     else if (a === "arch") { const c = (archLists[id] || [])[+b.dataset.i]; if (c && c.key) { if (arch && arch.key === c.key) archToggle(); else { compTouch(); archPlay(id, c); fpToTop(); } } }
     else if (a === "arch-open") { archOpen[id] = true; renderFP(); archReveal(0); }
+    else if (a === "arch-close") { archOpen[id] = false; archShown[id] = 3; renderFP(); }
     else if (a === "arch-more") { const was = Math.min((archLists[id] || []).length, archShown[id] || 3); archShown[id] = was + 3; renderFP(); archReveal(was); }
     else if (a === "arch-live") { archStop(); start(id); fpToTop(); }
-    else if (a === "seek") { if (arch && arch.id === id && arch.dur && mcWidget && typeof mcWidget.seek === "function") { const r = b.getBoundingClientRect(); const t = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * arch.dur; arch.pos = t; archBar(); try { mcWidget.seek(t); } catch (e) {} } }
+    else if (a === "seek") { /* by the pointer handlers below: tap or drag */ }
     else if (a === "prev") step(-1);
     else if (a === "next") step(1);
     else if (a === "pin") { togglePin(id); renderFP(); }
@@ -3815,6 +3840,42 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     else if (a === "info") openSheet("info", id);
     else if (a === "heard") openSheet("heard");
     else if (a === "map") openCity(id);
+  });
+  // the show's line: tap a point or drag along it (the line and the time follow), then the show moves there; arrow keys: 30 s
+  let seekDrag = null;
+  function seekTo(t) {
+    if (!arch || !arch.dur || !mcWidget || typeof mcWidget.seek !== "function") return;
+    arch.pos = Math.max(0, Math.min(arch.dur, t)); arch.seekAt = Date.now();
+    try { mcWidget.seek(arch.pos); } catch (e) {}
+    archBar();
+  }
+  function seekMove(e) {
+    const r = seekDrag.el.getBoundingClientRect(), k = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    seekDrag.t = k * arch.dur;
+    const i = seekDrag.el.querySelector(".fp-line i"), p = fpIn.querySelector(".fp-bar.arch .a-pos");
+    if (i) i.style.width = (k * 100).toFixed(2) + "%";
+    if (p) p.textContent = mmss(seekDrag.t);
+  }
+  fp.addEventListener("pointerdown", (e) => {
+    const b = e.target.closest('[data-fp="seek"]');
+    if (!b || !arch || arch.id !== current || !arch.dur || e.button > 0) return;
+    seekDrag = { el: b, id: e.pointerId, t: NaN };
+    try { b.setPointerCapture(e.pointerId); } catch (x) {}
+    b.classList.add("drag");
+    seekMove(e);
+  });
+  fp.addEventListener("pointermove", (e) => { if (seekDrag && e.pointerId === seekDrag.id) seekMove(e); });
+  const seekEnd = (done) => (e) => {
+    if (!seekDrag || e.pointerId !== seekDrag.id) return;
+    const t = seekDrag.t; seekDrag.el.classList.remove("drag"); seekDrag = null;
+    if (done && isFinite(t)) seekTo(t); else archBar();
+  };
+  fp.addEventListener("pointerup", seekEnd(true));
+  fp.addEventListener("pointercancel", seekEnd(false));
+  fp.addEventListener("keydown", (e) => {
+    if (!(e.key === "ArrowLeft" || e.key === "ArrowRight") || !e.target.closest || !e.target.closest('[data-fp="seek"]') || !arch) return;
+    e.preventDefault();
+    seekTo(arch.pos + (e.key === "ArrowRight" ? 30 : -30));
   });
   // swipe down from the top to close; nothing behind the player scrolls meanwhile
   let fpDrag = null;
