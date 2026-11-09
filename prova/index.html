@@ -3529,6 +3529,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     if (L === "error" || !L.length) return "";
     if (!A && onAir && !archOpen[st.id]) // live now: only a quiet line, to open the list
       return `<div class="fp-arch"><button class="fp-ah" type="button" data-fp="arch-open" aria-expanded="false">From the archive<span aria-hidden="true">${L.length} shows ›</span></button></div>`;
+    mcPrewarm(st.id, L[0].key);
     const n = Math.min(L.length, archShown[st.id] || 3);
     let h = '<div class="fp-arch"><div class="fp-ah"><span>From the archive</span>' + (A ? '<button class="fp-alive" type="button" data-fp="arch-live">Back to live</button>' : "") + "</div>";
     if (A && A.needTap) h += '<p class="fp-aw tap">One more tap: press ▶ in Mixcloud’s player, at the bottom of the screen.</p>';
@@ -3577,11 +3578,11 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     if (mcWidget && mcWidget.events && mcWidget.events.play && mcWidget.events.play !== mcBound) { mcBound = mcWidget.events.play; archBind(mcWidget); }
   }
   function archBind(w) {
-    w.events.play.on(() => { if (!arch) { w.pause(); return; } arch.playing = true; arch.loading = false; arch.needTap = false; arch.error = false; $("mcx").classList.remove("show"); renderPlayer(); });
+    w.events.play.on(() => { if (!arch) { w.pause(); return; } if (!arch.playing) arch.playAt = Date.now(); arch.playing = arch.started = true; arch.loading = false; arch.needTap = false; arch.error = false; $("mcx").classList.remove("show"); renderPlayer(); });
     w.events.pause.on(() => {
       if (!arch) return;
       // paused by the phone the moment the silent sound started (it won't play two at once): no silent sound, then, and on with the show
-      if (comp && compAt && Date.now() - compAt < 1500 && !(arch.wantPause && Date.now() - arch.wantPause < 3000)) {
+      if (comp && compAt && arch.playAt && compAt >= arch.playAt && Date.now() - compAt < 1500 && !(arch.wantPause && Date.now() - arch.wantPause < 3000)) {
         compOff = true; compAt = 0; comp.pause(); try { w.play(); } catch (e) {} return;
       }
       arch.playing = false; arch.pausedAt = Date.now(); renderPlayer();
@@ -3592,7 +3593,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
       const moved = pos > arch.pos + 0.5 && Date.now() - (arch.pausedAt || 0) > 1500; // a late update right after a pause doesn't count
       arch.pos = pos; if (dur) arch.dur = dur;
       if (!arch.playing && moved) { // sound already going (started from Mixcloud's own player before it answered)
-        arch.playing = true; arch.loading = false; arch.needTap = false; $("mcx").classList.remove("show"); renderPlayer();
+        arch.playAt = Date.now(); arch.playing = arch.started = true; arch.loading = false; arch.needTap = false; $("mcx").classList.remove("show"); renderPlayer();
       }
       if (sleepAt && Date.now() >= sleepAt) { sleepAt = 0; clearTimeout(sleepTimer); arch.wantPause = Date.now(); w.pause(); }
       archBar();
@@ -3605,37 +3606,56 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     w.events.ended.on(() => { if (!arch) return; const id = arch.id; archStop(); start(id); }); // the show is over: back to live
     w.events.error.on(() => { if (arch) { arch.error = true; arch.loading = false; arch.playing = false; renderPlayer(); } });
   }
+  function mcMake(key) { // Mixcloud's player, in the page and asked for its controls
+    mcFrame = document.createElement("iframe");
+    mcFrame.allow = "autoplay; encrypted-media"; mcFrame.title = "Mixcloud player"; mcFrame.src = mcSrc(key);
+    $("mcx").appendChild(mcFrame); // in the page first: the widget talks to the frame's window
+    const w = window.Mixcloud.PlayerWidget(mcFrame);
+    mcHandshake(mcFrame, w);
+    mcWidget = w;
+    w.ready.then(() => { if (mcWidget === w) { archEnsureBound(); setTimeout(archEnsureBound, 1200); setTimeout(archEnsureBound, 4000); } });
+    return w;
+  }
+  // made ready while a station's list of shows is on screen, so that a tap reaches it in time (Safari passes a tap on to
+  // another site's player only within a second)
+  let mcWarmT = 0;
+  function mcPrewarm(id, key) {
+    if (mcFrame || mcWarmT || !key) return;
+    mcWarmT = setTimeout(() => {
+      mcWarmT = 0;
+      if (mcFrame || !fpOpen || current !== id) return;
+      mcLoadScript().then(() => { if (!mcFrame) mcMake(key); }).catch(() => {});
+    }, 1200);
+  }
   async function archPlay(id, c) {
     if (state === "live" || state === "loading") stop();
     arch = { id, key: c.key, name: c.name, date: c.date, dur: c.dur, pos: 0, playing: false, loading: true, needTap: false, error: false };
     renderPlayer();
     const key = c.key, box = $("mcx");
+    const w0 = mcWidget;
+    if (w0 && typeof w0.load === "function") { // ready: told within the tap
+      try {
+        archEnsureBound();
+        await w0.load(key, true);
+        compTouch(); // right after Mixcloud took the show: the lock screen's most recent
+      } catch (e) {}
+      setTimeout(() => { if (arch && arch.key === key && !arch.started && !arch.error) { arch.needTap = true; arch.slow = false; box.classList.add("show"); renderPlayer(); } }, 3500);
+      return;
+    }
     // Mixcloud's player can take a while to start: then the poster says so, and its own player stays out of sight
-    setTimeout(() => { if (arch && arch.key === key && !arch.playing && !arch.needTap && !arch.error) { arch.slow = true; renderPlayer(); } }, 10000);
+    setTimeout(() => { if (arch && arch.key === key && !arch.started && !arch.needTap && !arch.error) { arch.slow = true; renderPlayer(); } }, 10000);
     try {
       await mcLoadScript();
-      if (!mcFrame) {
-        mcFrame = document.createElement("iframe");
-        mcFrame.allow = "autoplay; encrypted-media"; mcFrame.title = "Mixcloud player"; mcFrame.src = mcSrc(key);
-        box.appendChild(mcFrame); // in the page first: the widget talks to the frame's window
-        const w = window.Mixcloud.PlayerWidget(mcFrame);
-        mcHandshake(mcFrame, w);
-        mcWidget = w;
-        await w.ready; // meanwhile, after 5 s, Mixcloud's own player shows up with its ▶
-        if (mcWidget !== w) return; // stopped meanwhile
-        archEnsureBound(); setTimeout(archEnsureBound, 1200); setTimeout(archEnsureBound, 4000);
-        if (!arch || arch.key !== key) { try { w.pause(); } catch (e) {} return; }
-      } else {
-        const w = mcWidget;
-        await w.ready;
-        archEnsureBound();
-        if (!arch || arch.key !== key) return;
-        await w.load(key, true);
-      }
+      const fresh = !mcFrame, w = fresh ? mcMake(key) : mcWidget;
+      await w.ready; // not ready yet: once it is (the tap has gone by then, so Safari may want one in its own player)
+      if (mcWidget !== w) return; // stopped meanwhile
+      archEnsureBound();
+      if (!arch || arch.key !== key) { try { w.pause(); } catch (e) {} return; }
+      if (fresh) { try { await w.play(); } catch (e) {} } else await w.load(key, true);
       if (!arch || arch.key !== key) return;
-      try { await mcWidget.play(); } catch (e) {}
+      compTouch();
       // only if the browser won't let the page start it (Safari on iPhone, sometimes): Mixcloud's own player shows up, for one tap on its ▶
-      setTimeout(() => { if (arch && arch.key === key && !arch.playing && !arch.error) { arch.needTap = true; arch.slow = false; box.classList.add("show"); renderPlayer(); } }, 3000);
+      setTimeout(() => { if (arch && arch.key === key && !arch.started && !arch.error) { arch.needTap = true; arch.slow = false; box.classList.add("show"); renderPlayer(); } }, 3000);
     } catch (e) {
       if (arch && arch.key === key) { arch.error = true; arch.loading = false; renderPlayer(); }
     }
@@ -3648,21 +3668,21 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     $("mcx").classList.remove("show");
     renderPlayer();
   }
-  function archToggle() { if (mcWidget && arch && typeof mcWidget.togglePlay === "function") { archEnsureBound(); if (arch.playing) arch.wantPause = Date.now(); try { mcWidget.togglePlay(); } catch (e) {} } }
+  function archToggle() { if (mcWidget && arch && typeof mcWidget.togglePlay === "function") { archEnsureBound(); const was = arch.playing; if (was) arch.wantPause = Date.now(); try { mcWidget.togglePlay(); } catch (e) {} if (!was) compTouch(); } }
   function archPause() { if (mcWidget && arch && typeof mcWidget.pause === "function") { arch.wantPause = Date.now(); try { mcWidget.pause(); } catch (e) {} } }
-  function archResume() { if (mcWidget && arch && typeof mcWidget.play === "function") { archEnsureBound(); try { mcWidget.play(); } catch (e) {} } }
+  function archResume() { if (mcWidget && arch && typeof mcWidget.play === "function") { archEnsureBound(); try { mcWidget.play(); } catch (e) {} compTouch(); } }
   // The lock screen. An archive show plays in Mixcloud's player, so the phone would name its page ("Mixcloud") and nothing
   // else; a silent sound of Sintonia's own plays alongside, so the lock screen shows the show, its station, Sintonia's icon
   // and the show's progress, and its buttons work the show. If the phone won't play both at once, the silent one stops for good.
   let comp = null, compOff = false, compAt = 0;
   function compEl() { if (!comp) { comp = new Audio("quiet.mp3"); comp.loop = true; comp.preload = "auto"; } return comp; }
-  let compReady = false;
-  function compUnlock() { // on the first tap, so the phone lets it play later, once the show is going
-    if (compOff || compReady) return;
-    compReady = true;
-    const c = compEl();
-    try { const p = c.play(); if (p && p.catch) p.catch(() => {}); c.pause(); } catch (e) {} // started and stopped at once: that's enough for later
+  function compTouch() { // played within a tap, or as close to one as can be: the lock screen goes by the most recently touched
+    if (compOff) return;
+    const c = compEl(), wasOn = !c.paused;
+    try { const p = c.play(); if (p && p.catch) p.catch(() => {}); if (!wasOn) compAt = Date.now(); } catch (e) {}
+    if (!(arch && arch.playing) && !wasOn) setTimeout(() => { if (!(arch && arch.playing) && !c.paused) c.pause(); }, 0); // only while a show plays
   }
+  document.addEventListener("pointerup", () => { if (arch && arch.playing) compTouch(); }, true);
   function compSync() {
     if (compOff || !comp) return;
     const on = !!(arch && arch.playing);
@@ -3783,7 +3803,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     const a = b.dataset.fp, id = current;
     if (a === "close") closePlayer();
     else if (a === "toggle") { if (arch && arch.id === id) archToggle(); else if (state === "live" || state === "loading") stop(); else start(id); }
-    else if (a === "arch") { const c = (archLists[id] || [])[+b.dataset.i]; if (c && c.key) { if (arch && arch.key === c.key) archToggle(); else { compUnlock(); archPlay(id, c); fpToTop(); } } }
+    else if (a === "arch") { const c = (archLists[id] || [])[+b.dataset.i]; if (c && c.key) { if (arch && arch.key === c.key) archToggle(); else { compTouch(); archPlay(id, c); fpToTop(); } } }
     else if (a === "arch-open") { archOpen[id] = true; renderFP(); archReveal(0); }
     else if (a === "arch-more") { const was = Math.min((archLists[id] || []).length, archShown[id] || 3); archShown[id] = was + 3; renderFP(); archReveal(was); }
     else if (a === "arch-live") { archStop(); start(id); fpToTop(); }
