@@ -1119,49 +1119,53 @@ body[data-arch="on"] .pp .i-stop { display: block; }
 html[data-look="a"] { --pg-bg: var(--bg); --pg-ink: var(--ink); --pg-muted: var(--muted); --pg-line: var(--line); }
 html[data-look="a"] .aura, html[data-look="a"] .wrap::before { display: none; }
 html[data-look="a"] .dock { --dock-glow: var(--dock); }
-/* the type: Archivo narrow and heavy for names and titles (the wordmark keeps its own) */
+/* the ground: black in the dark theme, so the colours stand out (as in the B proposal) */
+html[data-look="a"][data-theme="dark"] { --bg: #000000 !important; --bg-2: #0F0F0F !important; --line: #262626 !important; --dock: rgba(0, 0, 0, .92) !important; }
+/* the type: Archivo narrow and heavy for section titles (the wordmark keeps its own) */
 html[data-look="a"] .title { font-stretch: 62%; font-weight: 800; letter-spacing: -.005em; }
-/* square edges, hairlines */
-html[data-look="a"] .search { border-radius: 0; background: none; border: 0; border-bottom: 1.5px solid var(--ink); padding-left: 2px; }
-html[data-look="a"] .chips { display: flex; flex-wrap: wrap; gap: 0 18px; padding-bottom: 0; border-bottom: 1.5px solid var(--ink); }
-html[data-look="a"] .chip-kinds, html[data-look="a"] .chip-times { display: flex; flex-wrap: wrap; gap: 0 18px; padding: 0; border: 0; border-radius: 0; background: none; }
-html[data-look="a"] .chips .chip { width: auto; border: 0; border-radius: 0; background: none; padding: 10px 0 9px; border-bottom: 3px solid transparent; color: var(--ink);
-  font-family: var(--f-body); font-size: 14px; font-weight: 500; letter-spacing: 0; text-transform: none; }
-html[data-look="a"] .chip-times .chip { color: var(--muted); }
-html[data-look="a"] .chips .chip[aria-pressed="true"] { background: none; color: var(--ink); font-weight: 650; border-bottom-color: var(--ink); }
-/* the index: each row in its station's colour */
-html[data-look="a"] .crate { grid-template-columns: minmax(0, 1fr); gap: 0; }
-html[data-look="a"] .crate .tile, html[data-look="a"] .crate .tile:nth-child(-n+2) { grid-column: auto; min-height: 0; }
-html[data-look="a"] .crate .tile { margin-left: 50px; overflow: visible; isolation: auto; border-radius: 0; background: var(--c) !important; color: var(--t) !important;
-  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .12) !important; animation: none !important; }
-html[data-look="a"] .crate .tile::after { content: none; }
-html[data-look="a"] .crate .tile::before { content: none; }
-html[data-look="a"] .crate .tile[data-l]::before { content: attr(data-l); content: attr(data-l) / ""; position: absolute; inset: auto; left: -50px; top: 9px; z-index: 0; width: 42px; background: none;
-  font-family: var(--f-display); font-stretch: 62%; font-weight: 900; font-size: 42px; line-height: .9; color: color-mix(in srgb, var(--pg-ink) 34%, var(--pg-bg)); animation: none; }
-html[data-look="a"] .tile .tune { flex-direction: row; align-items: center; gap: 0; padding: 13px 118px 13px 14px; border-radius: 0; min-height: 64px; }
-html[data-look="a"] .tile .knob { display: none; }
-html[data-look="a"] .tile .label { display: flex; flex-direction: column; gap: 5px; }
-html[data-look="a"] .tile .name { order: 1; font-family: var(--f-display); font-weight: 800; font-stretch: 62%; font-size: 25px; line-height: .95; letter-spacing: .005em; text-transform: uppercase; color: inherit !important; }
-html[data-look="a"] .tile .meta { order: 2; padding-right: 0; font-family: var(--f-body); font-size: 12.5px; letter-spacing: .01em; text-transform: none; opacity: .84; }
-html[data-look="a"] .tile .now { order: 3; display: flex; gap: 6px; align-items: baseline; padding: 0; border: 0; min-width: 0; }
+/* search and filters: a hairline, and words; the chosen one with a dot */
+html[data-look="a"] .search { border-radius: 0; background: none; border: 0; border-bottom: 1px solid var(--line); padding-left: 2px; }
+html[data-look="a"] .chips { display: flex; flex-wrap: wrap; gap: 0 18px; }
+html[data-look="a"] .chip-kinds, html[data-look="a"] .chip-times { display: flex; flex-wrap: wrap; gap: 0 17px; padding: 0; border: 0; border-radius: 0; background: none; }
+html[data-look="a"] .chips .chip { width: auto; border: 0; border-radius: 0; background: none; padding: 8px 0; color: var(--muted);
+  font-family: var(--f-body); font-size: 13.5px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+html[data-look="a"] .chips .chip[aria-pressed="true"] { background: none; color: var(--ink); font-weight: 600; }
+html[data-look="a"] .chips .chip[aria-pressed="true"]::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 50%; background: currentColor; vertical-align: .12em; }
+/* the stations: a mosaic of rectangles, each in its station's colour, edge to edge, no gaps and no corners; A to Z */
+html[data-look="a"] .crate { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); }
+@media (min-width: 700px) { html[data-look="a"] .crate { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 900px) { html[data-look="a"] .crate { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 1012px) { html[data-look="a"] .crate { margin: 0; } }
+html[data-look="a"] .crate .tile, html[data-look="a"] .crate .tile:nth-child(-n+2) { grid-column: auto; min-height: 0; aspect-ratio: 1.3 / 1; }
+html[data-look="a"] .crate .tile { border-radius: 0; isolation: auto; background: var(--c) !important; color: var(--t) !important; box-shadow: none !important; animation: none !important; }
+html[data-look="a"] .crate .tile::before, html[data-look="a"] .crate .tile::after { content: none; }
+html[data-look="a"] .tile .tune { padding: 12px 12px 12px; gap: 0; border-radius: 0; justify-content: flex-start; }
+html[data-look="a"] .tile .knob, html[data-look="a"] .tile .sched { display: none; }
+html[data-look="a"] .tile .label { display: flex; flex-direction: column; gap: 6px; height: 100%; }
+html[data-look="a"] .tile .name { order: 1; padding-right: 16px; font-family: var(--f-body); font-weight: 600; font-stretch: 100%; font-size: 17px; line-height: 1.14; letter-spacing: -.005em;
+  text-transform: none; color: inherit !important; text-wrap: pretty; }
+html[data-look="a"] .tile .now { order: 2; display: grid; gap: 2px; padding: 0; border: 0; min-width: 0; }
 html[data-look="a"] .tile .now[hidden] { display: none; }
-html[data-look="a"] .tile .now-k { flex: none; font-family: var(--f-body); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .9; }
+html[data-look="a"] .tile .now-k { font-family: var(--f-body); font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .78; }
+html[data-look="a"] .tile .now-k.live::before { content: none; }
 html[data-look="a"] .tile .now-k .rr { border: 0; padding: 0; }
-html[data-look="a"] .tile .now-t { font-size: 13px; font-weight: 500; -webkit-line-clamp: 1; }
+html[data-look="a"] .tile .now-t { font-size: 12.5px; font-weight: 500; line-height: 1.22; opacity: .9; }
 html[data-look="a"] .tile .now-s { display: none; }
-html[data-look="a"] .tile .sched { top: 50%; right: 6px; transform: translateY(-50%); background: none; color: inherit; padding: 12px 10px; border: 0; border-radius: 0;
-  font-family: var(--f-body); font-size: 12.5px; letter-spacing: 0; text-transform: none; text-decoration: underline; text-underline-offset: 3px; }
-html[data-look="a"] .tile .pin { top: 50%; bottom: auto; right: 58px; transform: translateY(-50%); color: inherit; border-radius: 0; }
-/* the station you're on: a bar of its ink on the left, and the word */
-html[data-look="a"] .crate .tile.on { box-shadow: inset 7px 0 0 var(--t) !important; }
-html[data-look="a"] .crate .tile.on .tune { padding-left: 22px; }
-html[data-look="a"] .tile.on .meta::before { content: "Playing ·"; font-weight: 600; }
-html[data-look="a"] .tile.on.loading .meta::before { content: "Tuning in ·"; }
-/* on a computer: the index in two columns, read down the first, then the second */
-@media (min-width: 900px) {
-  html[data-look="a"] .crate { display: block; column-count: 2; column-gap: 34px; }
-  html[data-look="a"] .crate .tile { break-inside: avoid; -webkit-column-break-inside: avoid; }
-}
+html[data-look="a"] .tile .meta { order: 3; margin-top: auto; padding-right: 30px; font-family: var(--f-body); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .82; }
+html[data-look="a"] .tile .meta .newtag { display: none; }
+html[data-look="a"] .tile .pin { right: 3px; bottom: 3px; border-radius: 0; color: inherit; }
+/* on air now: a dot in the corner; the station you're on: a frame of the page and the word */
+html[data-look="a"] .crate .tile.b-live:not(.on)::after { content: ""; position: absolute; z-index: 1; inset: auto; top: 15px; right: 12px; opacity: 1; width: 7px; height: 7px; border-radius: 50%; background: var(--t); }
+html[data-look="a"] .crate .tile.on { box-shadow: inset 0 0 0 4px var(--bg) !important; isolation: isolate; }
+/* and in it, as on the first Sintonia, the rough little drawing: rings spreading from a corner (they move while it plays), and print grain */
+html[data-look="a"] .crate .tile.on::before { content: ""; inset: 4px; }
+html[data-look="a"] .crate .tile.on::after { content: ""; inset: 4px; opacity: .26; }
+html[data-look="a"] .tile.on .meta { visibility: hidden; }
+/* "Playing" as a tab of the frame, in the festival's dotted face, fuchsia */
+html[data-look="a"] .tile.on .tune::after { content: "Playing"; visibility: visible; position: absolute; left: 0; bottom: 0; z-index: 1; padding: 8px 12px 7px 12px; background: var(--bg);
+  font-family: "Doto", ui-monospace, Menlo, monospace; font-weight: 800; font-variation-settings: "ROND" 100; font-size: 17px; line-height: 1; letter-spacing: .02em; color: #FF2BC2; }
+html[data-look="a"][data-theme="light"] .tile.on .tune::after { color: #C4008A; }
+html[data-look="a"] .tile.on.loading .tune::after { content: "Tuning in"; }
 /* Your stations and Recently added: the same colours and edges */
 html[data-look="a"] .mini, html[data-look="a"] .favs.stack .mini, html[data-look="a"] .favs.stack .mini .tune, html[data-look="a"] .set-link { border-radius: 0 !important; }
 html[data-look="a"] .mini { border-radius: 0; isolation: auto; background: var(--c) !important; color: var(--t) !important; box-shadow: none !important; animation: none !important; }
@@ -4787,8 +4791,9 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
       prev = L; y = top;
     });
   }
-  function lookTick() { aLetters(); }
-  function lookOnPlayer() { document.documentElement.classList.toggle("has-st", !!current); }
+  function bMarks() { tiles.forEach((el) => { const info = live[el.dataset.id]; el.classList.toggle("b-live", !!(info && info.onAir)); }); } // a dot on those on air now
+  function lookTick() { bMarks(); }
+  function lookOnPlayer() { document.documentElement.classList.toggle("has-st", !!current); bMarks(); }
   var aContrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
   function aSplits(words) { // every way of setting the words on one to four lines, in order; fewer lines first
     const out = [];
@@ -4910,10 +4915,8 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
   };
   fp.addEventListener("pointerup", aEnd(true));
   fp.addEventListener("pointercancel", aEnd(false));
-  window.addEventListener("resize", () => { aLetters(); if (!fp.hidden) renderFP(); });
-  $("chips").addEventListener("click", () => setTimeout(aLetters, 0));
-  $("q").addEventListener("input", () => setTimeout(aLetters, 0));
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { aLetters(); if (!fp.hidden) renderFP(); });
+  window.addEventListener("resize", () => { if (!fp.hidden) renderFP(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!fp.hidden) renderFP(); });
   lookTick(); lookOnPlayer();
 
   /* ---------- the turning "a" ----------
