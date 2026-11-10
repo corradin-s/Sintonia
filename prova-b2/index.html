@@ -1155,11 +1155,17 @@ html[data-look="a"] .tile .meta { order: 3; margin-top: auto; padding-right: 30p
 html[data-look="a"] .tile .meta .newtag { display: none; }
 html[data-look="a"] .tile .pin { right: 3px; bottom: 3px; border-radius: 0; color: inherit; }
 /* on air now: a dot in the corner; the station you're on: a frame of the page and the word */
-html[data-look="a"] .crate .tile.b-live::after { content: ""; position: absolute; z-index: 1; inset: auto; top: 15px; right: 12px; opacity: 1; width: 7px; height: 7px; border-radius: 50%; background: var(--t); }
-html[data-look="a"] .crate .tile.on { box-shadow: inset 0 0 0 4px var(--bg) !important; }
-html[data-look="a"] .tile.on .meta { font-size: 0; }
-html[data-look="a"] .tile.on .meta::before { content: "Playing"; font-size: 10.5px; }
-html[data-look="a"] .tile.on.loading .meta::before { content: "Tuning in"; }
+html[data-look="a"] .crate .tile.b-live:not(.on)::after { content: ""; position: absolute; z-index: 1; inset: auto; top: 15px; right: 12px; opacity: 1; width: 7px; height: 7px; border-radius: 50%; background: var(--t); }
+html[data-look="a"] .crate .tile.on { box-shadow: inset 0 0 0 4px var(--bg) !important; isolation: isolate; }
+/* and in it, as on the first Sintonia, the rough little drawing: rings spreading from a corner (they move while it plays), and print grain */
+html[data-look="a"] .crate .tile.on::before { content: ""; inset: 4px; }
+html[data-look="a"] .crate .tile.on::after { content: ""; inset: 4px; opacity: .26; }
+html[data-look="a"] .tile.on .meta { visibility: hidden; }
+/* "Playing" as a tab of the frame, in the festival's dotted face, fuchsia */
+html[data-look="a"] .tile.on .tune::after { content: "Playing"; visibility: visible; position: absolute; left: 0; bottom: 0; z-index: 1; padding: 8px 12px 7px 12px; background: var(--bg);
+  font-family: "Doto", ui-monospace, Menlo, monospace; font-weight: 800; font-variation-settings: "ROND" 100; font-size: 17px; line-height: 1; letter-spacing: .02em; color: #FF2BC2; }
+html[data-look="a"][data-theme="light"] .tile.on .tune::after { color: #C4008A; }
+html[data-look="a"] .tile.on.loading .tune::after { content: "Tuning in"; }
 /* Your stations and Recently added: the same colours and edges */
 html[data-look="a"] .mini, html[data-look="a"] .favs.stack .mini, html[data-look="a"] .favs.stack .mini .tune, html[data-look="a"] .set-link { border-radius: 0 !important; }
 html[data-look="a"] .mini { border-radius: 0; isolation: auto; background: var(--c) !important; color: var(--t) !important; box-shadow: none !important; animation: none !important; }
