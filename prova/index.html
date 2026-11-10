@@ -1125,7 +1125,14 @@ html[data-look="a"][data-theme="dark"] { --bg: #000000 !important; --bg-2: #0F0F
 /* the type: Archivo narrow and heavy for section titles (the wordmark keeps its own) */
 html[data-look="a"] .title { font-stretch: 62%; font-weight: 800; letter-spacing: -.005em; }
 /* search and filters: a hairline, and words; the chosen one with a dot */
-html[data-look="a"] .search { border-radius: 0; background: none; border: 0; border-bottom: 1px solid var(--line); padding-left: 2px; }
+html[data-look="a"] { --fuchsia: #FF2BC2; }
+html[data-look="a"][data-theme="light"] { --fuchsia: #C8008E; }
+html[data-look="a"] .search { height: 54px; gap: 11px; padding: 0 6px 0 15px; border-radius: 0; background: none; border: 2px solid var(--ink); color: var(--ink); }
+html[data-look="a"] .search:focus-within { border-color: var(--fuchsia); color: var(--ink); }
+html[data-look="a"] .search svg { width: 21px; height: 21px; stroke-width: 2.2; color: var(--fuchsia); }
+html[data-look="a"] .search input { font-family: "Doto", ui-monospace, Menlo, monospace; font-weight: 900; font-variation-settings: "ROND" 100; font-size: 16px; letter-spacing: 0; caret-color: var(--fuchsia); }
+html[data-look="a"] .search input::placeholder { color: var(--ink); opacity: .78; }
+html[data-look="a"] .search button { border-radius: 0; color: var(--ink); }
 html[data-look="a"] .chips { display: flex; flex-wrap: wrap; gap: 0 18px; }
 html[data-look="a"] .chip-kinds, html[data-look="a"] .chip-times { display: flex; flex-wrap: wrap; gap: 0 17px; padding: 0; border: 0; border-radius: 0; background: none; }
 html[data-look="a"] .chips .chip { width: auto; border: 0; border-radius: 0; background: none; padding: 8px 0; color: var(--muted);
@@ -1329,7 +1336,7 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
   </section>
 
   <section class="sec" id="sec-when" aria-label="Find a station">
-    <label class="search" for="q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search a station, city or country" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search stations"><button type="button" id="q-x" aria-label="Clear the search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></label>
+    <label class="search" for="q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="q" type="search" placeholder="Station, city or country" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search stations"><button type="button" id="q-x" aria-label="Clear the search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></label>
     <div class="chips" id="chips" role="group" aria-label="Show only">
       <div class="chip-kinds">
         <button type="button" class="chip" data-f="live" aria-pressed="false">Live now</button>
