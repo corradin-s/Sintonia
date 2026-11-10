@@ -3411,67 +3411,34 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
   function drawStory(d) {
     const st = d.st, cv = document.createElement("canvas");
     cv.width = S_W; cv.height = S_H;
-    const c = cv.getContext("2d"), M = 76, W = S_W - 2 * M, light = d.mode === "light";
-    const page = S_PAL[d.mode].bg, ink = S_PAL[d.mode].ink;
+    const c = cv.getContext("2d"), M = 76, W = S_W - 2 * M;
     const field = readableGround(st.c, st.t), fInk = st.t;
     const ratio = (p, q) => { const x = lum(p), y = lum(q); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
-    const knock = ratio(field, page) >= 2.2; // the name in the page's colour, standing on the field's edge
+    const BAND = "page";
+    const page = BAND === "ink" ? fInk : S_PAL[d.mode].bg, pInk = BAND === "ink" ? field : S_PAL[d.mode].ink;
+    const knock = ratio(field, page) >= 2.2; // the name in the band's colour, standing on the field's edge
     SP = Object.assign({}, S_PAL[d.mode]);
-    c.fillStyle = page; c.fillRect(0, 0, S_W, S_H);
-
-    // measure first: the name, then how deep the field is
-    const nm = storyName(c, d.words, W, 470);
-    const nameH = nm.px * (0.72 + (nm.n - 1) * nm.lh);
-    const FB = Math.round(Math.max(1020, Math.min(1240, 470 + 60 + nameH))); // the field's lower edge
-    const lift = knock ? 0 : 56; // inside the field, its baseline a little above the edge
-
-    // the field, the veil, the map
+    const FB = 1540, lift = knock ? 0 : 60; // the field's lower edge; below it, the band
     c.fillStyle = field; c.fillRect(0, 0, S_W, FB);
-    if (!knock && ratio(field, page) < 1.35) { c.fillStyle = rgba(ink, 0.18); c.fillRect(0, FB - 2, S_W, 2); }
-    const now = Date.now(), dur = d.end - d.start;
-    if (isFinite(dur) && dur > 0) {
-      const k = Math.max(0, Math.min(1, (now - d.start) / dur)), vx = Math.round(S_W * k);
-      c.fillStyle = rgba(fInk, 0.13); c.fillRect(0, 0, vx, FB);
-      c.fillStyle = rgba(fInk, 0.45); c.fillRect(vx - 2, 0, 3, FB);
-    }
+    c.fillStyle = page; c.fillRect(0, FB, S_W, S_H - FB);
+    if (!knock && ratio(field, page) < 1.35) { c.fillStyle = rgba(pInk, 0.18); c.fillRect(0, FB - 2, S_W, 2); }
+    const now = Date.now();
+    // the name, measured first: the map takes the room above it
+    const nm = storyName(c, d.words, W, 470);
+    const nameH = nm.px * (0.72 + (nm.n - 1) * nm.lh), nameTop = FB - lift - nameH;
     // above: what this is, and where from (below the bar Instagram draws over a story)
     c.textBaseline = "alphabetic"; c.font = fLabel(30); c.fillStyle = rgba(fInk, 0.8);
     spaced(c, clip1(c, d.kicker.toUpperCase(), W), M, 318, 4);
     c.font = fBody(600, 34); c.fillStyle = fInk;
     spaced(c, clip1(c, d.place.toUpperCase() + " · " + hhmm(now, st.tz), W), M, 368, 3);
-    const mapTop = 410, mapBottom = FB - lift - nameH - 46;
-    storyFieldMap(c, st, 0, mapTop, S_W, Math.round(mapBottom - mapTop), fInk);
+    storyFieldMap(c, st, 0, 410, S_W, Math.round(nameTop - 60 - 410), fInk);
     // the name: from its last line's baseline (on the edge, or a little above it) upwards
     c.font = fBig(nm.px); c.fillStyle = knock ? page : fInk; c.textAlign = "left";
     let by = FB - lift + (knock ? 3 : 0);
     for (let j = nm.lines.length - 1; j >= 0; j--) { c.fillText(nm.lines[j], M - nm.px * 0.02, by); by -= nm.px * nm.lh; }
-
-    // below, on the page: on air (and until when), the show or what the station plays, the song
-    let y = FB + 104;
-    if (d.chip) {
-      c.font = fBody(600, 30);
-      const label = d.chip.toUpperCase(), until = isFinite(d.end) ? "UNTIL " + hhmm(d.end, st.tz) : "";
-      c.fillStyle = d.live ? S_PAL[d.mode].live : rgba(ink, 0.72); spaced(c, label, M, y, 4);
-      if (until) { const lw = spacedW(c, label, 4); c.fillStyle = rgba(ink, 0.72); spaced(c, until, M + lw + 30, y, 4); }
-      y += 34;
-    } else {
-      c.font = fBody(600, 30); c.fillStyle = rgba(ink, 0.72); spaced(c, d.show ? "" : "WHAT IT PLAYS", M, y, 4); y += 34;
-    }
-    const title = d.show || d.plays;
-    if (title) {
-      const big = !!d.show, px = big ? 92 : 70;
-      c.font = fMid(big ? 700 : 600, px); c.fillStyle = ink;
-      const lines = wrap(c, title, W, 3);
-      y += 26;
-      lines.forEach((l) => { y += px * 1.02; c.fillText(l, M, y - px * 0.18); });
-    }
-    if (d.song) {
-      c.font = fBody(500, 38); c.fillStyle = rgba(ink, 0.72);
-      wrap(c, "♪ " + d.song, W, 2).forEach((l) => { y += 52; c.fillText(l, M, y); });
-    }
-    // at the foot (above where Instagram puts its reply bar): the wordmark
-    c.font = fWord(58); c.fillStyle = ink; c.textBaseline = "alphabetic";
-    spaced(c, "Sintonìa", M, 1640, -2.5);
+    // the band: the wordmark (above where Instagram puts its reply bar)
+    c.font = fWord(54); c.fillStyle = pInk; c.textBaseline = "alphabetic";
+    spaced(c, "Sintonìa", M, 1662, -2.5);
     return cv;
   }
 
