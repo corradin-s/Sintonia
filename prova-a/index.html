@@ -33,7 +33,7 @@ window.SintoniaTheme = (function () {
   function mode(pref) { return pref === "auto" ? (window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : (pref === "light" ? "light" : "dark"); }
   function rgba(h, a) { var n = parseInt(h.slice(1), 16); return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")"; }
   function apply() {
-    var pref = get("sintonia:theme", "dark"), bg = get("sintonia:bg", "graphite");
+    var pref = get("sintonia:theme", "dark"), bg = "graphite";
     if (!BG[bg]) bg = "graphite";
     var m = mode(pref), c = BG[bg][m], ink = INK[m], root = document.documentElement, st = root.style;
     st.setProperty("--bg", c[0]); st.setProperty("--bg-2", c[1]); st.setProperty("--line", c[2]);
@@ -1115,75 +1115,118 @@ body[data-arch="on"] .pp .i-stop { display: block; }
   @keyframes ripple { from { --ph: 0px; } to { --ph: var(--gap); } }
 }
 
-/* ================= Look A · Luce ================= */
+/* ================= Look A · Indice (in colour) ================= */
+html[data-look="a"] { --pg-bg: var(--bg); --pg-ink: var(--ink); --pg-muted: var(--muted); --pg-line: var(--line); }
 html[data-look="a"] .aura, html[data-look="a"] .wrap::before { display: none; }
 html[data-look="a"] .dock { --dock-glow: var(--dock); }
-html[data-look="a"] h1.logo, html[data-look="a"] .mini-logo { font-stretch: 75%; font-weight: 700; letter-spacing: -.02em; }
-/* square edges and hairlines */
+/* the type: Archivo narrow and heavy for names and titles */
+html[data-look="a"] h1.logo, html[data-look="a"] .mini-logo, html[data-look="a"] .title { font-stretch: 62%; font-weight: 800; letter-spacing: -.005em; }
+/* square edges, hairlines */
 html[data-look="a"] .search { border-radius: 0; background: none; border: 0; border-bottom: 1.5px solid var(--ink); padding-left: 2px; }
-html[data-look="a"] .chip-kinds, html[data-look="a"] .chip-times { gap: 0; padding: 0; border-radius: 0; background: none; border: 0; border-bottom: 1px solid var(--line); }
-html[data-look="a"] .chips { gap: 0; border-top: 1px solid var(--line); }
-html[data-look="a"] .chips .chip { border-radius: 0; border: 0; background: none; color: var(--ink); padding: 13px 2px; font-family: var(--f-body); font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; }
-html[data-look="a"] .chips .chip + .chip { box-shadow: inset 1px 0 0 var(--line); }
+html[data-look="a"] .chips { display: flex; flex-wrap: wrap; gap: 0 18px; padding-bottom: 0; border-bottom: 1.5px solid var(--ink); }
+html[data-look="a"] .chip-kinds, html[data-look="a"] .chip-times { display: flex; flex-wrap: wrap; gap: 0 18px; padding: 0; border: 0; border-radius: 0; background: none; }
+html[data-look="a"] .chips .chip { width: auto; border: 0; border-radius: 0; background: none; padding: 10px 0 9px; border-bottom: 3px solid transparent; color: var(--ink);
+  font-family: var(--f-body); font-size: 14px; font-weight: 500; letter-spacing: 0; text-transform: none; }
 html[data-look="a"] .chip-times .chip { color: var(--muted); }
-html[data-look="a"] .chips .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-@media (min-width: 700px) { html[data-look="a"] .chips .chip { padding: 13px 16px; } html[data-look="a"] .chips { border-bottom: 1px solid var(--line); } html[data-look="a"] .chip-kinds, html[data-look="a"] .chip-times { border-bottom: 0; } }
-/* the list: one column, each station in the light of its own hour */
+html[data-look="a"] .chips .chip[aria-pressed="true"] { background: none; color: var(--ink); font-weight: 650; border-bottom-color: var(--ink); }
+/* the index */
 html[data-look="a"] .crate { grid-template-columns: minmax(0, 1fr); gap: 0; }
 html[data-look="a"] .crate .tile, html[data-look="a"] .crate .tile:nth-child(-n+2) { grid-column: auto; min-height: 0; }
-html[data-look="a"] .tile, html[data-look="a"] .mini { border-radius: 0; isolation: auto; }
-html[data-look="a"] .tile::before, html[data-look="a"] .tile::after, html[data-look="a"] .mini::before, html[data-look="a"] .mini::after { content: none; }
-/* (important: over the light theme's and the "busy" station's gradients; the station's own colours stay untouched, the app reads them) */
-html[data-look="a"] .tile:not(.on), html[data-look="a"] .mini:not(.on) { background: var(--day, var(--bg-2)) !important; color: var(--day-ink, var(--ink)) !important;
-  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--day-ink, var(--ink)) 13%, transparent) !important; animation: none !important; --hue: currentColor; --pill: transparent; }
-html[data-look="a"] .tile:not(.on) .name, html[data-look="a"] .mini:not(.on) .nm, html[data-look="a"] .tile:not(.on) .pin, html[data-look="a"] .mini:not(.on) .pin, html[data-look="a"] .tile:not(.on) .sched { color: inherit; }
-html[data-look="a"] .tile .tune { flex-direction: row; align-items: center; gap: 0; padding: 15px 128px 15px 16px; border-radius: 0; min-height: 66px; }
+html[data-look="a"] .crate .tile { margin-left: 50px; overflow: visible; isolation: auto; border-radius: 0; background: var(--c) !important; color: var(--t) !important;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .12) !important; animation: none !important; }
+html[data-look="a"] .crate .tile::after { content: none; }
+html[data-look="a"] .crate .tile::before { content: none; }
+html[data-look="a"] .crate .tile[data-l]::before { content: attr(data-l); content: attr(data-l) / ""; position: absolute; inset: auto; left: -50px; top: 9px; z-index: 0; width: 42px; background: none;
+  font-family: var(--f-display); font-stretch: 62%; font-weight: 900; font-size: 42px; line-height: .9; color: color-mix(in srgb, var(--pg-ink) 34%, var(--pg-bg)); animation: none; }
+html[data-look="a"] .tile .tune { flex-direction: row; align-items: center; gap: 0; padding: 13px 118px 13px 14px; border-radius: 0; min-height: 64px; }
 html[data-look="a"] .tile .knob { display: none; }
-html[data-look="a"] .tile .label { display: flex; flex-direction: column; gap: 4px; }
-html[data-look="a"] .tile .name { order: 1; font-family: var(--f-display); font-weight: 700; font-stretch: 75%; font-size: 24px; line-height: 1; letter-spacing: -.012em; text-transform: none; text-wrap: pretty; }
-html[data-look="a"] .tile .meta { order: 2; padding-right: 0; font-family: var(--f-body); font-size: 12px; letter-spacing: .02em; text-transform: none; opacity: .76; }
+html[data-look="a"] .tile .label { display: flex; flex-direction: column; gap: 5px; }
+html[data-look="a"] .tile .name { order: 1; font-family: var(--f-display); font-weight: 800; font-stretch: 62%; font-size: 25px; line-height: .95; letter-spacing: .005em; text-transform: uppercase; color: inherit !important; }
+html[data-look="a"] .tile .meta { order: 2; padding-right: 0; font-family: var(--f-body); font-size: 12.5px; letter-spacing: .01em; text-transform: none; opacity: .84; }
 html[data-look="a"] .tile .now { order: 3; display: flex; gap: 6px; align-items: baseline; padding: 0; border: 0; min-width: 0; }
 html[data-look="a"] .tile .now[hidden] { display: none; }
-html[data-look="a"] .tile .now-k { flex: none; font-family: var(--f-body); font-size: 12px; letter-spacing: 0; text-transform: none; opacity: .76; }
-html[data-look="a"] .tile .now-k.live::before { width: 5px; height: 5px; }
-html[data-look="a"] .tile .now-k .rr { border: 0; padding: 0; letter-spacing: 0; }
+html[data-look="a"] .tile .now-k { flex: none; font-family: var(--f-body); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .9; }
+html[data-look="a"] .tile .now-k .rr { border: 0; padding: 0; }
 html[data-look="a"] .tile .now-t { font-size: 13px; font-weight: 500; -webkit-line-clamp: 1; }
 html[data-look="a"] .tile .now-s { display: none; }
-/* Info and the star: quiet, on the right */
 html[data-look="a"] .tile .sched { top: 50%; right: 6px; transform: translateY(-50%); background: none; color: inherit; padding: 12px 10px; border: 0; border-radius: 0;
   font-family: var(--f-body); font-size: 12.5px; letter-spacing: 0; text-transform: none; text-decoration: underline; text-underline-offset: 3px; }
 html[data-look="a"] .tile .pin { top: 50%; bottom: auto; right: 58px; transform: translateY(-50%); color: inherit; border-radius: 0; }
-html[data-look="a"] .tile .meta .newtag { margin-right: 4px; }
-/* the station you're on: in its own colour, and always in view: pinned to the top or the bottom edge while its place
-   in the list is off the screen, back in its place when it's on it */
-html[data-look="a"] .crate .tile.on { position: sticky; top: var(--a-top, 52px); bottom: var(--a-dock, 70px); z-index: 4; background: var(--c); color: var(--t); box-shadow: none; }
-html[data-look="a"] .tile.on .name { color: var(--t); }
-html[data-look="a"] .tile.on .pin { display: none; }
-html[data-look="a"] .tile.on .meta::before { content: "Playing ·"; }
+/* the station you're on: a bar of its ink on the left, and the word */
+html[data-look="a"] .crate .tile.on { box-shadow: inset 7px 0 0 var(--t) !important; }
+html[data-look="a"] .crate .tile.on .tune { padding-left: 22px; }
+html[data-look="a"] .tile.on .meta::before { content: "Playing ·"; font-weight: 600; }
 html[data-look="a"] .tile.on.loading .meta::before { content: "Tuning in ·"; }
-html[data-look="a"] .a-pp { display: none; }
-html[data-look="a"] .tile.on .a-pp { display: block; position: absolute; top: 50%; right: 62px; transform: translateY(-50%); z-index: 2; appearance: none; -webkit-appearance: none;
-  border: 1.5px solid currentColor; background: none; color: var(--t); padding: 9px 12px; cursor: pointer; font: 600 12.5px var(--f-body); }
-html[data-look="a"] .a-pp:focus-visible { outline: 2px solid var(--t); outline-offset: 2px; }
-/* Your stations, the same way */
+/* Your stations and Recently added: the same colours and edges */
+html[data-look="a"] .mini, html[data-look="a"] .favs.stack .mini, html[data-look="a"] .favs.stack .mini .tune, html[data-look="a"] .set-link { border-radius: 0 !important; }
+html[data-look="a"] .mini { border-radius: 0; isolation: auto; background: var(--c) !important; color: var(--t) !important; box-shadow: none !important; animation: none !important; }
+html[data-look="a"] .mini::before, html[data-look="a"] .mini::after { content: none; }
+html[data-look="a"] .mini .tune { border-radius: 0; }
 html[data-look="a"] .mini .knob { display: none; }
-html[data-look="a"] .mini .nm { font-stretch: 75%; font-weight: 700; text-transform: none; letter-spacing: -.012em; }
-html[data-look="a"] .mini.on { background: var(--c); color: var(--t); box-shadow: none; }
-/* the bar at the bottom: not on the Stations page (the station you're on is in the list); flat elsewhere */
-html[data-look="a"][data-view="stations"] .player { display: none; }
-html[data-look="a"] body[data-state] .player { background: color-mix(in srgb, var(--bar-c, var(--bg-2)) 20%, var(--dock)); }
-html[data-look="a"] .swatch { border-radius: 0; }
-html[data-look="a"] .pp { border-radius: 0; box-shadow: none !important; }
-/* the poster: flat colour, and one sentence */
+html[data-look="a"] .mini .nm { color: inherit !important; font-stretch: 62%; font-weight: 800; text-transform: uppercase; }
+html[data-look="a"] .mini.on { box-shadow: inset 6px 0 0 var(--t) !important; }
+/* the player bar: always there; a flat band in the colour of the station you're on */
+html[data-look="a"] .player { background: var(--dock) !important; }
+html[data-look="a"].has-st .player { background: var(--bar-c) !important; color: var(--bar-t); --ink: var(--bar-t); --muted: color-mix(in srgb, var(--bar-t) 80%, transparent); }
+html[data-look="a"] .swatch { display: none; }
+html[data-look="a"] .player-inner { grid-template-columns: minmax(0, 1fr) auto; }
+html[data-look="a"] .np-name { font-size: 20px; }
+html[data-look="a"] .np-status .dot { box-shadow: none !important; }
+html[data-look="a"] .pp { width: auto; min-width: 60px; height: 44px; padding: 0 16px; border-radius: 0; box-shadow: none !important; background: var(--ink) !important; color: var(--bg) !important; }
+html[data-look="a"].has-st .pp { background: var(--bar-t) !important; color: var(--bar-c) !important; }
+html[data-look="a"] .pp:disabled { background: var(--bg-2) !important; color: var(--muted) !important; }
+html[data-look="a"] .progress i { box-shadow: none; background: var(--bar-t); }
+/* the poster: the station's colour at the top, with its name; the rest on the page's own ground */
+html[data-look="a"] .fp[data-id] { background: var(--pg-bg); color: var(--pg-ink); --ink: var(--pg-ink); --bg: var(--pg-bg); --muted: var(--pg-muted); --line: var(--pg-line); }
 html[data-look="a"] .fp[data-id]::before, html[data-look="a"] .fp[data-id]::after { content: none; }
-html[data-look="a"] .a-sent { margin: 14px 0 0; font-family: var(--f-display); font-stretch: 75%; font-weight: 500; font-size: clamp(30px, 9vw, 46px); line-height: 1.08;
-  letter-spacing: -.012em; color: var(--ink); text-wrap: pretty; overflow-wrap: anywhere; }
-html[data-look="a"] .a-sent b { font-weight: 800; }
-html[data-look="a"] .a-sent .q { opacity: .74; }
-html[data-look="a"] .a-meta { display: flex; justify-content: flex-start; }
-@media (min-width: 700px) and (min-aspect-ratio: 5/4) { html[data-look="a"] .a-sent { font-size: clamp(36px, 4.4vw, 68px); } }
-html[data-look="a"] .fp-big { background: none; width: 64px; height: 64px; border-radius: 0; }
-html[data-look="a"] .fp-big svg { fill: var(--ink); width: 34px; height: 34px; }
+html[data-look="a"] .ai-field { position: relative; overflow: hidden; flex: none; display: flex; flex-direction: column; height: min(54vh, 480px);
+  margin: calc(-1 * (env(safe-area-inset-top, 0px) + 10px)) calc(-1 * max(22px, env(safe-area-inset-right, 0px))) 0 calc(-1 * max(22px, env(safe-area-inset-left, 0px)));
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) max(22px, env(safe-area-inset-right, 0px)) 0 max(22px, env(safe-area-inset-left, 0px));
+  background: var(--c); color: var(--t); --ink: var(--t); --muted: color-mix(in srgb, var(--t) 84%, transparent); --line: color-mix(in srgb, var(--t) 28%, transparent); }
+html[data-look="a"] .ai-big { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); bottom: -.17em; margin: 0; font-family: var(--f-display); font-stretch: 62%; font-weight: 900;
+  font-size: 170px; line-height: .8; letter-spacing: -.01em; text-transform: uppercase; white-space: nowrap; color: var(--t); }
+html[data-look="a"] .fp-pk { display: none; }
+html[data-look="a"] .ai-ttl { margin: 4px 0 0; font-family: var(--f-display); font-stretch: 75%; font-weight: 700; font-size: clamp(28px, 8vw, 40px); line-height: 1.02; letter-spacing: -.005em; text-wrap: balance; }
+html[data-look="a"] .fp-sub { font-size: 11px !important; font-weight: 600 !important; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); order: -1; }
+html[data-look="a"] .fp-poster { gap: 8px; padding-top: 18px; }
+html[data-look="a"] .fp-meta { order: -1; }
+html[data-look="a"] .fp-tag { border: 0 !important; background: none !important; padding: 0 !important; color: var(--live) !important; letter-spacing: .14em; }
+html[data-look="a"] .fp-tag.on::before { color: var(--live); }
+html[data-look="a"] .fp-line { height: 2px; border-radius: 0; background: var(--line); }
+html[data-look="a"] .fp-line i { border-radius: 0; background: var(--ink); }
+html[data-look="a"] .fp-line i::after { display: none; }
+html[data-look="a"] .fp-ctrl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; align-items: stretch; border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); }
+html[data-look="a"] .fp[data-id] .fp-skip { display: flex; align-items: center; height: 58px; font-family: var(--f-display); font-stretch: 62%; font-weight: 800; font-size: 20px; letter-spacing: 0; text-transform: uppercase; color: var(--ink); }
+html[data-look="a"] .fp-skip svg { display: none; }
+html[data-look="a"] .fp-skip span { font: inherit !important; letter-spacing: inherit !important; color: inherit; }
+html[data-look="a"] .fp-skip[data-fp="prev"] span::before { content: "← "; }
+html[data-look="a"] .fp-skip[data-fp="next"] { justify-content: flex-end; }
+html[data-look="a"] .fp-skip[data-fp="next"] span::after { content: " →"; }
+html[data-look="a"] .fp-big { width: auto; height: 58px; border-radius: 0; background: var(--ink); }
+html[data-look="a"] .fp-big svg { display: none; }
+html[data-look="a"] .fp-big::after { content: attr(aria-label); color: var(--bg); font-family: var(--f-display); font-stretch: 62%; font-weight: 800; font-size: 22px; text-transform: uppercase; }
+html[data-look="a"] .fp-acts { display: flex; gap: 24px; justify-content: flex-start; }
+html[data-look="a"] .fp[data-id] .fp-act { display: block; padding: 10px 0; font-size: 14px; font-weight: 500; color: var(--ink); }
+html[data-look="a"] .fp-act svg { display: none; }
+html[data-look="a"] .fp-act span { text-decoration: underline; text-underline-offset: 4px; }
+html[data-look="a"] .fp-act.on span { font-weight: 700; }
+@media (min-width: 700px) and (min-aspect-ratio: 5/4) {
+  html[data-look="a"] .ai-field { grid-column: 1 / -1; grid-row: 1; height: min(46vh, 420px); margin: -24px calc(-1 * clamp(28px, 4vw, 64px)) 0; padding: 24px clamp(28px, 4vw, 64px) 0; }
+  html[data-look="a"] .ai-big { left: clamp(24px, 4vw, 60px); }
+  html[data-look="a"] .fp-poster { align-content: start; }
+  html[data-look="a"] .ai-ttl { font-size: clamp(34px, 3.6vw, 60px); }
+}
+/* Map, This week, Settings: the same type, colours and edges */
+html[data-look="a"] .world, html[data-look="a"] .locate, html[data-look="a"] .set-card, html[data-look="a"] .seg, html[data-look="a"] .seg button,
+html[data-look="a"] .btn, html[data-look="a"] .map-ctl button, html[data-look="a"] .react-b button, html[data-look="a"] .event, html[data-look="a"] .ev-info,
+html[data-look="a"] .hello-card, html[data-look="a"] .hello-row input, html[data-look="a"] .save { border-radius: 0 !important; }
+html[data-look="a"] .locate strong { font-stretch: 62%; font-weight: 800; font-size: 22px; text-transform: uppercase; }
+html[data-look="a"] .pick { border-radius: 0; background: var(--c) !important; color: var(--t); box-shadow: none; }
+html[data-look="a"] .pick .pk, html[data-look="a"] .pick .pw { color: inherit; opacity: .84; }
+html[data-look="a"] .pick .pn { font-family: var(--f-display); font-stretch: 62%; font-weight: 800; font-size: 21px; line-height: 1; text-transform: uppercase; }
+html[data-look="a"] .pick .when { border-radius: 0; background: var(--t); color: var(--c); }
+html[data-look="a"] .pick button { border-radius: 0; }
+html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bottom: 8px; }
 </style>
 </head>
 <body data-state="idle">
@@ -1535,7 +1578,7 @@ html[data-look="a"] .fp-big svg { fill: var(--ink); width: 34px; height: 34px; }
       <p class="set-note">Auto follows your iPhone. The status bar at the top updates the next time you open the app.</p>
     </div>
 
-    <div class="set-card">
+    <div class="set-card" style="display: none">
       <span class="set-k" id="bg-k">Background</span>
       <div class="bgs" id="bgs" role="radiogroup" aria-labelledby="bg-k"></div>
     </div>
@@ -4631,67 +4674,35 @@ html[data-look="a"] .fp-big svg { fill: var(--ink); width: 34px; height: 34px; }
   }
 
 
-  /* ---------- Look A, "Luce": each station in the light of its own hour; colour only for the one you're on ---------- */
-  function lookTone(tz) { // 0 = deep night, 1 = full day, from the hour where the station is
-    let h = 12;
-    try {
-      const p = new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "numeric", minute: "numeric", hourCycle: "h23" }).formatToParts(new Date());
-      h = +p.find((x) => x.type === "hour").value + +p.find((x) => x.type === "minute").value / 60;
-    } catch (e) {}
-    return Math.max(0, Math.min(1, 0.5 + 0.9 * Math.cos((h - 13) / 24 * 2 * Math.PI))); // full day ~9–17, night ~21–5, dawn and dusk between
-  }
-  var LOOK_NIGHT = [38, 39, 43], LOOK_DAY = [242, 241, 236]; // var: the clocks may tick before this line has run
-  function lookTick() {
-    document.querySelectorAll(".tile[data-id], .mini[data-id]").forEach((el) => {
-      const st = byId[el.dataset.id]; if (!st) return;
-      const k = lookTone(st.tz), hex = "#" + LOOK_NIGHT.map((v, i) => Math.round(v + (LOOK_DAY[i] - v) * k).toString(16).padStart(2, "0")).join("");
-      el.style.setProperty("--day", hex);
-      el.style.setProperty("--day-ink", lum(hex) > 0.18 ? "#141413" : "#F2F1EC"); // whichever reads at least 4.5:1
+  /* ---------- Look A, "Indice": the first letter of each group in the margin; the bar in the station's colour ---------- */
+  function aLetters() {
+    let prev = "";
+    tiles.forEach((el) => {
+      if (el.classList.contains("out")) { delete el.dataset.l; return; }
+      const L = el.querySelector(".name").textContent.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().charAt(0).toUpperCase();
+      if (L !== prev) el.dataset.l = L; else delete el.dataset.l;
+      prev = L;
     });
-    lookEdges();
   }
-  function lookEdges() { // where the station you're on stops: under the small top bar, above the tabs
-    const mb = document.querySelector(".minibar"), dock = document.querySelector(".dock");
-    document.documentElement.style.setProperty("--a-top", ((mb && mb.offsetHeight) || 48) + "px");
-    document.documentElement.style.setProperty("--a-dock", ((dock && dock.offsetHeight) || 64) + 8 + "px");
+  function lookTick() { aLetters(); }
+  function lookOnPlayer() { document.documentElement.classList.toggle("has-st", !!current); }
+  // the poster: the colour field at the top (with the close and the station's name), the rest below on the page's ground
+  function lookPoster(st) {
+    const top = fpIn.querySelector(".fp-top"), t = fpIn.querySelector(".fp-ttl");
+    if (t) { t.classList.remove("fp-ttl"); t.classList.add("ai-ttl"); } // set by its own rules, not stretched to fill
+    if (!top) return;
+    const field = document.createElement("section"), big = document.createElement("p");
+    field.className = "ai-field"; big.className = "ai-big"; big.setAttribute("aria-hidden", "true"); big.textContent = st.name;
+    fpIn.insertBefore(field, top); field.append(top, big);
+    // as big as the field is wide (cut by its bottom edge, never by its sides)
+    const room = field.clientWidth - 2 * parseFloat(getComputedStyle(big).left || "16");
+    let lo = 40, hi = Math.max(220, Math.min(520, Math.round(field.clientHeight * 1.1))); // on a computer the field is wider and taller
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; big.style.fontSize = mid + "px"; if (big.scrollWidth <= room) lo = mid; else hi = mid; }
+    big.style.fontSize = lo + "px";
   }
-  // on the station you're on: Stop/Pause next to Info; a tap on the row opens the player instead of stopping
-  tiles.forEach((el) => {
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "a-pp"; b.textContent = "Stop";
-    b.addEventListener("click", (e) => { e.stopPropagation(); pp.click(); });
-    el.appendChild(b);
-  });
-  $("crate").addEventListener("click", (ev) => {
-    const t = ev.target.closest && ev.target.closest(".tile.on .tune");
-    if (!t || ev.detail === 0) return; // the keyboard keeps the usual play/stop
-    if (state === "live" || state === "loading" || (arch && arch.id === current && (arch.playing || arch.loading))) { ev.stopPropagation(); openPlayer(); }
-  }, true);
-  function lookOnPlayer() {
-    const lbl = pp.getAttribute("aria-label") || "Stop";
-    document.querySelectorAll(".a-pp").forEach((b) => { b.textContent = /pause/i.test(lbl) ? "Pause" : /play/i.test(lbl) ? "Play" : "Stop"; });
-    requestAnimationFrame(lookEdges);
-  }
-  // the poster in one sentence: what you're listening to, from where, and what's on
-  function lookPoster(st, A, info, now) {
-    const P = fpIn.querySelector(".fp-poster"); if (!P) return;
-    const star = P.querySelector(".fp-star"), t = hhmm(now, st.tz), name = "<b>" + esc(st.name) + "</b>", city = esc(st.city);
-    let s;
-    if (A) s = name + ', from the archive: <b>' + esc(A.name) + '</b><span class="q">, first aired ' + esc(A.date) + (A.playing ? "." : A.loading ? ", loading…" : ", paused.") + "</span>";
-    else if (state === "error") s = "Can’t reach " + name + '<span class="q"> right now. In ' + city + " it’s " + t + ".</span>";
-    else if (state === "loading") s = "Tuning in to " + name + '<span class="q">, in ' + city + ", where it’s " + t + "…</span>";
-    else if (state !== "live") s = name + '<span class="q"> is paused. In ' + city + " it’s " + t + ".</span>";
-    else if (info && info.title) {
-      const until = isFinite(info.end) ? ", until " + hhmm(info.end, st.tz) : "";
-      s = info.rerun
-        ? name + '<span class="q">, from ' + city + ", where it’s " + t + ", is replaying</span> <b>" + esc(info.title) + '</b><span class="q">' + until + ".</span>"
-        : name + '<span class="q">, live from ' + city + ", where it’s " + t + ". On air:</span> <b>" + esc(info.title) + '</b><span class="q">' + until + ".</span>";
-    } else s = name + '<span class="q">, live from ' + city + ", where it’s " + t + ".</span>";
-    P.innerHTML = '<p class="a-sent" id="fp-title">' + s + "</p>";
-    if (star) { const m = document.createElement("div"); m.className = "fp-meta a-meta"; m.appendChild(star); P.appendChild(m); }
-  }
-  window.addEventListener("resize", lookEdges);
-  lookTick();
+  $("chips").addEventListener("click", () => setTimeout(aLetters, 0));
+  $("q").addEventListener("input", () => setTimeout(aLetters, 0));
+  lookTick(); lookOnPlayer();
 
   /* ---------- the turning "a" ----------
      Once when the app opens, and each time a different station comes on. */

@@ -33,7 +33,7 @@ window.SintoniaTheme = (function () {
   function mode(pref) { return pref === "auto" ? (window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : (pref === "light" ? "light" : "dark"); }
   function rgba(h, a) { var n = parseInt(h.slice(1), 16); return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")"; }
   function apply() {
-    var pref = get("sintonia:theme", "dark"), bg = get("sintonia:bg", "graphite");
+    var pref = get("sintonia:theme", "dark"), bg = "graphite";
     if (!BG[bg]) bg = "graphite";
     var m = mode(pref), c = BG[bg][m], ink = INK[m], root = document.documentElement, st = root.style;
     st.setProperty("--bg", c[0]); st.setProperty("--bg-2", c[1]); st.setProperty("--line", c[2]);
@@ -1116,65 +1116,99 @@ body[data-arch="on"] .pp .i-stop { display: block; }
 }
 
 /* ================= Look B · Campo ================= */
+/* Archivo in its light weights too (the file has 100–900; the shared fonts.css names only 500–900) */
+@font-face { font-family: "Archivo Light"; font-style: normal; font-weight: 100 900; font-stretch: 62% 125%; font-display: swap;
+  src: url("../fonts/archivo-latin-wdth-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Archivo Light"; font-style: normal; font-weight: 100 900; font-stretch: 62% 125%; font-display: swap;
+  src: url("../fonts/archivo-latin-ext-wdth-normal.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2C60-2C7F, U+A720-A7FF; }
+html[data-look="b"] { --f-wide: "Archivo Light", var(--f-display); }
+html[data-look="b"][data-theme="dark"] { --bg: #000000 !important; --bg-2: #0F0F0F !important; --line: #262626 !important; --dock: rgba(0, 0, 0, .92) !important; }
 html[data-look="b"] .aura, html[data-look="b"] .wrap::before { display: none; }
 html[data-look="b"] .dock { --dock-glow: var(--dock); }
-/* on Stations, the page is the colour of the station you're looking at (or listening to); a quiet grey before that */
-html[data-look="b"] { --b-c0: #E6E5E0; --b-t0: #161615; }
-html[data-look="b"][data-theme="dark"] { --b-c0: #1B1B1D; --b-t0: #ECEBE6; }
-/* (important: the theme writes its colours straight onto the page) */
-html[data-look="b"][data-view="stations"] { --bg: var(--b-c, var(--b-c0)) !important; --ink: var(--b-t, var(--b-t0)) !important;
-  --bg-2: color-mix(in srgb, var(--b-t, var(--b-t0)) 8%, var(--b-c, var(--b-c0))) !important; --line: color-mix(in srgb, var(--b-t, var(--b-t0)) 24%, transparent) !important;
-  --muted: color-mix(in srgb, var(--b-t, var(--b-t0)) 76%, var(--b-c, var(--b-c0))) !important; --dock: color-mix(in srgb, var(--b-c, var(--b-c0)) 90%, transparent) !important; }
-html[data-look="b"], html[data-look="b"] body { transition: background-color .3s ease, color .3s ease; }
-html[data-look="b"] h1.logo, html[data-look="b"] .mini-logo { font-stretch: 100%; font-weight: 600; letter-spacing: -.035em; }
-html[data-look="b"] #sec-fav { display: none; } /* pinned stations are marked in the spectrum */
-html[data-look="b"] .search { border-radius: 0; background: none; border: 0; border-bottom: 1.5px solid var(--ink); padding-left: 2px; color: var(--ink); }
-html[data-look="b"] .chip-kinds, html[data-look="b"] .chip-times { display: flex; flex-wrap: wrap; gap: 0 18px; padding: 0; border: 0; border-radius: 0; background: none; }
-html[data-look="b"] .chips { display: flex; flex-wrap: wrap; gap: 2px 18px; }
+html[data-look="b"] h1.logo, html[data-look="b"] .mini-logo, html[data-look="b"] .title { font-family: var(--f-wide); font-stretch: 125%; font-weight: 300; letter-spacing: -.02em; }
+/* filters: words; the chosen one with a dot */
+html[data-look="b"] .search { border-radius: 0; background: none; border: 0; border-bottom: 1px solid var(--line); padding-left: 2px; }
+html[data-look="b"] .chips { display: flex; flex-wrap: wrap; gap: 0 18px; }
+html[data-look="b"] .chip-kinds, html[data-look="b"] .chip-times { display: flex; flex-wrap: wrap; gap: 0 17px; padding: 0; border: 0; border-radius: 0; background: none; }
 html[data-look="b"] .chips .chip { width: auto; border: 0; border-radius: 0; background: none; padding: 8px 0; color: var(--muted);
   font-family: var(--f-body); font-size: 13.5px; font-weight: 500; letter-spacing: 0; text-transform: none; }
-html[data-look="b"] .chips .chip[aria-pressed="true"] { background: none; color: var(--ink); font-weight: 650; }
-html[data-look="b"] .chips .chip[aria-pressed="true"]::before { content: "● "; }
-/* the spectrum: every station a stripe of its colour, edge to edge */
-html[data-look="b"] .crate { display: flex; gap: 0; height: clamp(200px, 34vh, 440px); margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); touch-action: pan-y; }
-html[data-look="b"] .crate .tile, html[data-look="b"] .crate .tile:nth-child(-n+2) { flex: 1 1 0; min-width: 0; min-height: 0; grid-column: auto; border-radius: 0; isolation: auto;
-  background: var(--c) !important; box-shadow: none !important; animation: none !important; transition: flex-grow .28s cubic-bezier(.2, .8, .2, 1); }
+html[data-look="b"] .chips .chip[aria-pressed="true"] { background: none; color: var(--ink); font-weight: 600; }
+html[data-look="b"] .chips .chip[aria-pressed="true"]::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 50%; background: currentColor; vertical-align: .12em; }
+/* the mosaic: colour fields edge to edge, no gaps, no corners */
+html[data-look="b"] .crate { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); }
+@media (min-width: 700px) { html[data-look="b"] .crate { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 900px) { html[data-look="b"] .crate { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; } }
+@media (min-width: 1012px) { html[data-look="b"] .crate { margin: 0; } }
+html[data-look="b"] .crate .tile, html[data-look="b"] .crate .tile:nth-child(-n+2) { grid-column: auto; min-height: 0; aspect-ratio: 1 / .96; }
+html[data-look="b"] .crate .tile { border-radius: 0; isolation: auto; background: var(--c) !important; color: var(--t) !important; box-shadow: none !important; animation: none !important; }
 html[data-look="b"] .crate .tile::before, html[data-look="b"] .crate .tile::after { content: none; }
-html[data-look="b"] .crate .tile .tune { position: absolute; inset: 0; padding: 0; border-radius: 0; }
-html[data-look="b"] .crate .tile .tune > *, html[data-look="b"] .crate .tile .sched, html[data-look="b"] .crate .tile .pin { display: none; }
-html[data-look="b"] .crate .tile .tune:focus-visible { outline: 3px solid var(--t); outline-offset: -7px; }
-html[data-look="b"] .crate .tile.b-sel { flex-grow: 9; box-shadow: inset 1px 0 0 color-mix(in srgb, var(--t) 45%, transparent), inset -1px 0 0 color-mix(in srgb, var(--t) 45%, transparent) !important; }
-html[data-look="b"] .crate .tile.b-sel.b-pin { box-shadow: inset 1px 0 0 color-mix(in srgb, var(--t) 45%, transparent), inset -1px 0 0 color-mix(in srgb, var(--t) 45%, transparent), inset 0 -4px 0 var(--t) !important; }
-@media (min-width: 1012px) { html[data-look="b"] .crate { margin: 0; } } /* where the page has room around it, the spectrum keeps to its edges */
-/* marks, in the station's own ink: live now (a dot at the foot), pinned (a line at the foot), playing (a bar at the top) */
-html[data-look="b"] .crate .tile.b-live::after { content: ""; position: absolute; left: 50%; bottom: 12px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--t); }
-html[data-look="b"] .crate .tile.b-pin { box-shadow: inset 0 -4px 0 var(--t) !important; }
-html[data-look="b"] .crate .tile.on::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 8px; background: var(--t); }
-/* the station you're looking at, under the spectrum */
-html[data-look="b"] .b-detail { display: grid; gap: 6px; padding: 18px 0 4px; min-height: 172px; align-content: start; }
-html[data-look="b"] .b-k { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-html[data-look="b"] .b-n { margin: 0; font-family: var(--f-display); font-stretch: 100%; font-weight: 600; font-size: clamp(32px, 9.4vw, 60px); line-height: .98; letter-spacing: -.035em; color: var(--ink); }
-html[data-look="b"] .b-s { margin: 0; font-size: 15px; font-weight: 500; line-height: 1.35; color: var(--ink); }
-html[data-look="b"] .b-acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-html[data-look="b"] .b-acts button { appearance: none; -webkit-appearance: none; height: 46px; padding: 0 18px; border: 1.5px solid var(--ink); border-radius: 0; background: none; color: var(--ink);
-  font: 600 14.5px var(--f-body); cursor: pointer; }
-html[data-look="b"] .b-acts .b-go { background: var(--ink); color: var(--bg); padding: 0 24px; }
-html[data-look="b"] .b-acts button[hidden] { display: none; }
-html[data-look="b"] .b-acts button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
-/* the bar at the bottom: not on Stations (what you're listening to is the page itself); flat elsewhere */
-html[data-look="b"][data-view="stations"] .player { display: none; }
-html[data-look="b"] body[data-state] .player { background: color-mix(in srgb, var(--bar-c, var(--bg-2)) 22%, var(--dock)); }
-html[data-look="b"] .swatch, html[data-look="b"] .pp { border-radius: 0; box-shadow: none !important; }
-/* the poster: one flat field; a veil crosses it as the show goes on */
+html[data-look="b"] .tile .tune { padding: 11px 10px 10px; gap: 6px; border-radius: 0; justify-content: flex-start; }
+html[data-look="b"] .tile .knob, html[data-look="b"] .tile .now, html[data-look="b"] .tile .sched, html[data-look="b"] .tile .pin { display: none; }
+html[data-look="b"] .tile .label { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; height: 100%; }
+html[data-look="b"] .tile .name { padding-right: 12px; font-family: var(--f-body); font-weight: 600; font-stretch: 100%; font-size: 13.5px; line-height: 1.15; letter-spacing: 0; text-transform: none; color: inherit !important; text-wrap: pretty; }
+html[data-look="b"] .tile .meta { padding-right: 0; font-family: var(--f-body); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .82; }
+html[data-look="b"] .tile .meta .newtag { display: none; }
+/* marks, in the station's own ink: live now (a dot, top right), pinned (a line along the foot), playing (a frame) */
+html[data-look="b"] .crate .tile.b-live::after { content: ""; position: absolute; top: 13px; right: 10px; width: 7px; height: 7px; border-radius: 50%; background: var(--t); }
+html[data-look="b"] .crate .tile.b-pin { box-shadow: inset 0 -3px 0 var(--t) !important; }
+html[data-look="b"] .crate .tile.on { box-shadow: inset 0 0 0 4px var(--bg) !important; }
+html[data-look="b"] .tile.on .meta { font-size: 0; }
+html[data-look="b"] .tile.on .meta::before { content: "Playing"; font-size: 10.5px; }
+html[data-look="b"] .tile.on.loading .meta::before { content: "Tuning in"; }
+/* Your stations and Recently added: the same fields */
+html[data-look="b"] .mini, html[data-look="b"] .favs.stack .mini, html[data-look="b"] .favs.stack .mini .tune, html[data-look="b"] .set-link { border-radius: 0 !important; }
+html[data-look="b"] .mini { border-radius: 0; isolation: auto; background: var(--c) !important; color: var(--t) !important; box-shadow: none !important; animation: none !important; }
+html[data-look="b"] .mini::before, html[data-look="b"] .mini::after { content: none; }
+html[data-look="b"] .mini .tune { border-radius: 0; }
+html[data-look="b"] .mini .knob { display: none; }
+html[data-look="b"] .mini .nm { color: inherit !important; font-family: var(--f-body); font-stretch: 100%; font-weight: 600; font-size: 14px; text-transform: none; line-height: 1.15; }
+html[data-look="b"] .mini.on { box-shadow: inset 0 0 0 4px var(--bg) !important; }
+/* the player bar: always there; the station as a square of its colour, the name, a round pause */
+html[data-look="b"] .player { background: var(--bg) !important; }
+html[data-look="b"] .swatch { width: 40px; height: 40px; border-radius: 0; border: 0; background: var(--pc, var(--bg-2)); }
+html[data-look="b"] .swatch .eq { display: none !important; }
+html[data-look="b"] .player-inner { grid-template-columns: 40px minmax(0, 1fr) 48px; gap: 12px; }
+html[data-look="b"] .np-name { font-family: var(--f-body); font-stretch: 100%; font-weight: 600; font-size: 14px; text-transform: none; letter-spacing: 0; }
+html[data-look="b"] .np-status .dot { box-shadow: none !important; }
+html[data-look="b"] .pp { width: 46px; height: 46px; border-radius: 50%; background: none !important; color: var(--ink) !important; box-shadow: none !important; border: 1.5px solid var(--ink); }
+html[data-look="b"] .pp:disabled { border-color: var(--line); color: var(--muted) !important; }
+html[data-look="b"] .progress i { box-shadow: none; }
+/* the poster: one flat field; the name wide and light at the top; a veil crosses it as the show goes on */
 html[data-look="b"] .fp[data-id]::before, html[data-look="b"] .fp[data-id]::after { content: none; }
 html[data-look="b"] .fp { touch-action: pan-y; -webkit-user-select: none; user-select: none; } /* dragging across it moves through the show, never selects its words */
 html[data-look="b"] .b-veil { position: fixed; left: 0; top: 0; bottom: 0; width: 0; z-index: 0; pointer-events: none;
-  background: color-mix(in srgb, var(--t) 15%, transparent); box-shadow: inset -1px 0 0 color-mix(in srgb, var(--t) 34%, transparent); transition: width .6s linear; }
+  background: color-mix(in srgb, var(--t) 15%, transparent); box-shadow: inset -1px 0 0 color-mix(in srgb, var(--t) 40%, transparent); transition: width .6s linear; }
 html[data-look="b"] .fp.b-drag .b-veil { transition: none; }
 html[data-look="b"] .fp .fp-line { opacity: 0; } /* the veil is the line */
-html[data-look="b"] .fp-ttl { font-stretch: 100%; font-weight: 600; text-transform: none; letter-spacing: -.035em; line-height: .94; }
-html[data-look="b"] .fp-big { background: none; width: 72px; height: 72px; border-radius: 0; }
-html[data-look="b"] .fp-big svg { fill: var(--ink); width: 34px; height: 34px; }
+html[data-look="b"] .fp-pk { display: none; }
+html[data-look="b"] .b-big { margin: 18px 0 0; font-family: var(--f-wide); font-stretch: 125%; font-weight: 300; font-size: clamp(48px, 19vw, 110px); line-height: .95; letter-spacing: -.035em; overflow-wrap: anywhere; }
+html[data-look="b"] .fp-poster { flex: 0 0 auto; margin-top: auto; }
+html[data-look="b"] .b-ttl { margin: 6px 0 0; font-family: var(--f-wide); font-stretch: 112%; font-weight: 400; font-size: clamp(30px, 9.6vw, 44px); line-height: 1.02; letter-spacing: -.02em; text-wrap: balance; }
+html[data-look="b"] .fp-meta { order: -1; }
+html[data-look="b"] .fp-sub { font-size: 11px !important; font-weight: 600 !important; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
+html[data-look="b"] .fp-tag { border: 0 !important; background: none !important; padding: 0 !important; color: var(--ink) !important; }
+html[data-look="b"] .fp-tag.on::before { color: var(--ink); }
+html[data-look="b"] .fp-skip span { display: none; }
+html[data-look="b"] .fp-acts { display: flex; justify-content: center; gap: 30px; }
+html[data-look="b"] .fp[data-id] .fp-act { display: block; padding: 10px 0; font-size: 13.5px; font-weight: 500; color: var(--ink); }
+html[data-look="b"] .fp-act svg { display: none; }
+@media (min-width: 700px) and (min-aspect-ratio: 5/4) {
+  html[data-look="b"] .b-big { grid-column: 1; grid-row: 2; margin: 0; font-size: clamp(60px, 9vw, 150px); }
+  html[data-look="b"] .fp-poster { grid-row: 3 / 8; align-content: end; margin-top: 0; }
+  html[data-look="b"] .b-ttl { font-size: clamp(36px, 3.8vw, 64px); }
+}
+/* Map, This week, Settings: the same type, ground and edges */
+html[data-look="b"] .world, html[data-look="b"] .locate, html[data-look="b"] .set-card, html[data-look="b"] .seg, html[data-look="b"] .seg button,
+html[data-look="b"] .btn, html[data-look="b"] .map-ctl button, html[data-look="b"] .event, html[data-look="b"] .ev-info,
+html[data-look="b"] .hello-card, html[data-look="b"] .hello-row input, html[data-look="b"] .save { border-radius: 0 !important; }
+html[data-look="b"] .locate strong { font-family: var(--f-wide); font-stretch: 125%; font-weight: 300; font-size: 20px; }
+html[data-look="b"] .picks { gap: 0; }
+html[data-look="b"] .pick { border-radius: 0; background: var(--c) !important; color: var(--t); box-shadow: none; }
+html[data-look="b"] .pick .pk, html[data-look="b"] .pick .pw { color: inherit; opacity: .84; }
+html[data-look="b"] .pick .pn { font-family: var(--f-wide); font-stretch: 112%; font-weight: 400; font-size: 18px; line-height: 1.1; }
+html[data-look="b"] .pick .when { border-radius: 0; background: none; color: inherit; box-shadow: inset -1px 0 0 color-mix(in srgb, var(--t) 35%, transparent); }
+html[data-look="b"] .pick .when b { font-family: var(--f-wide); font-stretch: 125%; font-weight: 300; }
+html[data-look="b"] .pick button { border-radius: 0; }
 </style>
 </head>
 <body data-state="idle">
@@ -1444,12 +1478,6 @@ html[data-look="b"] .fp-big svg { fill: var(--ink); width: 34px; height: 34px; }
     </li>
 
   </ol>
-  <div class="b-detail" id="b-detail" aria-live="polite">
-    <p class="b-k" id="b-k"></p>
-    <h3 class="b-n" id="b-n"></h3>
-    <p class="b-s" id="b-s"></p>
-    <div class="b-acts"><button class="b-go" id="b-go" type="button">Listen</button><button id="b-open" type="button" hidden>Open player</button><button id="b-info" type="button">Info</button></div>
-  </div>
   </section>
   </main>
 
@@ -1532,7 +1560,7 @@ html[data-look="b"] .fp-big svg { fill: var(--ink); width: 34px; height: 34px; }
       <p class="set-note">Auto follows your iPhone. The status bar at the top updates the next time you open the app.</p>
     </div>
 
-    <div class="set-card">
+    <div class="set-card" style="display: none">
       <span class="set-k" id="bg-k">Background</span>
       <div class="bgs" id="bgs" role="radiogroup" aria-labelledby="bg-k"></div>
     </div>
@@ -4628,32 +4656,7 @@ html[data-look="b"] .fp-big svg { fill: var(--ink); width: 34px; height: 34px; }
   }
 
 
-  /* ---------- Look B, "Campo": the spectrum; the page takes the colour of the station you're on ---------- */
-  var bSel = null, bDown = null; // var: renderPlayer may run before this line has run
-  function bShown() { return bSel && byId[bSel] && !byId[bSel].el.classList.contains("out") ? bSel : current; }
-  function bPaint() {
-    const id = bShown(), st = id ? byId[id] : null, root = document.documentElement;
-    tiles.forEach((el) => el.classList.toggle("b-sel", !!st && el.dataset.id === id));
-    if (st) { root.style.setProperty("--b-c", st.c); root.style.setProperty("--b-t", st.t); }
-    else { root.style.removeProperty("--b-c"); root.style.removeProperty("--b-t"); }
-    if (view === "stations" && $("fp").hidden) themeTo(st ? st.c : "");
-    const k = $("b-k"), n = $("b-n"), s = $("b-s"), go = $("b-go"), op = $("b-open"), inf = $("b-info");
-    if (!st) {
-      const shown = tiles.filter((el) => !el.classList.contains("out")).length;
-      k.textContent = shown + (shown === 1 ? " station" : " stations");
-      n.textContent = "Slide along the colours";
-      s.textContent = "Each stripe is a station, A to Z. Listen tunes in.";
-      go.hidden = true; op.hidden = true; inf.hidden = true; return;
-    }
-    const info = live[id] || null, now = Date.now(), here = st.city + " " + hhmm(now, st.tz);
-    const on = id === current && (state === "live" || state === "loading" || (arch && arch.id === id && (arch.playing || arch.loading)));
-    const tag = on ? (state === "loading" ? "Tuning in" : "Playing") : info && info.onAir ? "Live now" : info && info.title ? (info.rerun ? (info.tag || "Rerun") : "On now") : "";
-    k.textContent = (tag ? tag + " · " : "") + here;
-    n.textContent = st.name;
-    s.textContent = info && info.title ? info.title + (isFinite(info.end) ? " · until " + hhmm(info.end, st.tz) : "") : st.country;
-    go.hidden = false; inf.hidden = false; op.hidden = !on;
-    go.textContent = on ? (arch && arch.id === id ? "Pause" : "Stop") : "Listen";
-  }
+  /* ---------- Look B, "Campo": marks on the mosaic; the poster's veil ---------- */
   function bMarks() {
     tiles.forEach((el) => {
       const id = el.dataset.id, info = live[id];
@@ -4661,30 +4664,17 @@ html[data-look="b"] .fp-big svg { fill: var(--ink); width: 34px; height: 34px; }
       el.classList.toggle("b-pin", favs.includes(id));
     });
   }
-  function bSelect(id) { if (id && id !== bSel) { bSel = id; bPaint(); } }
-  const bCrate = $("crate");
-  const bAt = (e) => { const el = document.elementFromPoint(e.clientX, e.clientY); const t = el && el.closest && el.closest("#crate .tile"); return t ? t.dataset.id : null; };
-  // touch: slide along to look; a tap on the stripe already shown plays it. Mouse: hovering shows, a click plays.
-  bCrate.addEventListener("pointerdown", (e) => { bDown = bShown(); if (e.pointerType !== "mouse") bSelect(bAt(e)); });
-  bCrate.addEventListener("pointermove", (e) => { if (e.pointerType === "mouse" || e.buttons) bSelect(bAt(e)); });
-  bCrate.addEventListener("click", (e) => {
-    const t = e.target.closest && e.target.closest(".tile");
-    if (!t || e.detail === 0) return; // the keyboard plays straight away
-    if (t.dataset.id !== bDown && e.pointerType !== "mouse") { e.stopPropagation(); bSelect(t.dataset.id); }
-  }, true);
-  bCrate.addEventListener("focusin", (e) => { const t = e.target.closest(".tile"); if (t) bSelect(t.dataset.id); });
-  $("b-go").addEventListener("click", () => {
-    const id = bShown(); if (!id) return;
-    if (id === current && (state === "live" || state === "loading" || (arch && arch.id === id))) pp.click(); else start(id);
-  });
-  $("b-open").addEventListener("click", () => openPlayer());
-  $("b-info").addEventListener("click", () => { const id = bShown(); if (id) openSheet("info", id); });
-  $("chips").addEventListener("click", () => setTimeout(bPaint, 0));
-  $("q").addEventListener("input", () => setTimeout(bPaint, 0));
-  function lookOnPlayer() { if (current && (state === "live" || state === "loading")) bSel = current; bMarks(); bPaint(); }
-  function lookTick() { bMarks(); bPaint(); }
-  function lookPoster() {}
-  // the poster's veil: as wide as the show has gone (the progress line, hidden); in an archive show, drag anywhere to move
+  function lookTick() { bMarks(); }
+  function lookOnPlayer() { bMarks(); }
+  function lookPoster(st) {
+    const t = fpIn.querySelector(".fp-ttl");
+    if (t) { t.classList.remove("fp-ttl"); t.classList.add("b-ttl"); } // set by its own rules, not stretched to fill
+    const top = fpIn.querySelector(".fp-top"); if (!top) return;
+    const big = document.createElement("p");
+    big.className = "b-big"; big.setAttribute("aria-hidden", "true"); big.textContent = st.name;
+    top.after(big);
+  }
+  // the veil: as wide as the show has gone (the progress line, hidden); in an archive show, drag anywhere to move
   const bVeil = document.createElement("div");
   bVeil.className = "b-veil"; bVeil.setAttribute("aria-hidden", "true");
   fp.insertBefore(bVeil, fpIn);
