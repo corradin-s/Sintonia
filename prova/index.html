@@ -2,7 +2,7 @@
 <html lang="en" data-look="a">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Sintonia (test copy)</title>
 <meta name="robots" content="noindex">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -95,8 +95,8 @@ body {
 }
 .wrap { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 button { font: inherit; color: inherit; }
-/* an app, not a web page: a quick second tap never zooms in (the map keeps its own gestures) */
-html, body, * { touch-action: manipulation; }
+/* an app, not a web page: neither a quick second tap nor two fingers zoom the page (the map keeps its own gestures) */
+html, body, * { touch-action: pan-x pan-y; }
 
 /* ---------- Header ---------- */
 .hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
@@ -1168,6 +1168,8 @@ html[data-look="a"] .mini { border-radius: 0; isolation: auto; background: var(-
 html[data-look="a"] .mini.on { box-shadow: inset 6px 0 0 var(--t) !important; }
 html[data-look="a"] .mini::before, html[data-look="a"] .mini::after { content: none; }
 html[data-look="a"] .mini .tune { border-radius: 0; }
+html[data-look="a"] .favs:not(.stack) .mini .tune { justify-content: flex-end; } /* the name at the foot of the card, clear of the star */
+html[data-look="a"] .mini .pin { color: inherit; } /* the star in the card's ink (not in its own colour, where it vanished) */
 html[data-look="a"] .mini .knob { display: none; }
 html[data-look="a"] .mini .nm { color: inherit !important; font-stretch: 62%; font-weight: 800; text-transform: uppercase; }
 /* the player bar: always there; a flat band in the colour of the station you're on; play and stop as bare shapes */
@@ -2476,6 +2478,8 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
   mapBox.addEventListener("pointercancel", endPtr);
   mapBox.addEventListener("wheel", (e) => { e.preventDefault(); idleAt = performance.now(); zoomAt(local(e), Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.002)), 0); }, { passive: false });
   mapBox.addEventListener("gesturestart", (e) => e.preventDefault());
+  // and nowhere else does a pinch zoom the page (Safari's own gesture events; the viewport says so too)
+  ["gesturestart", "gesturechange", "gestureend"].forEach((t) => document.addEventListener(t, (e) => e.preventDefault(), { passive: false }));
   mapBox.addEventListener("dblclick", (e) => e.preventDefault());
   $("z-in").addEventListener("click", () => { idleAt = performance.now(); zoomAt([W / 2, H / 2], 2.5, 300); });
   $("z-out").addEventListener("click", () => { idleAt = performance.now(); zoomAt([W / 2, H / 2], 1 / 2.5, 300); });
