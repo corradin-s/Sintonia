@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-look="a">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -33,7 +33,7 @@ window.SintoniaTheme = (function () {
   function mode(pref) { return pref === "auto" ? (window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : (pref === "light" ? "light" : "dark"); }
   function rgba(h, a) { var n = parseInt(h.slice(1), 16); return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")"; }
   function apply() {
-    var pref = get("sintonia:theme", "dark"), bg = get("sintonia:bg", "graphite");
+    var pref = get("sintonia:theme", "dark"), bg = "graphite"; // one ground: only dark or light
     if (!BG[bg]) bg = "graphite";
     var m = mode(pref), c = BG[bg][m], ink = INK[m], root = document.documentElement, st = root.style;
     st.setProperty("--bg", c[0]); st.setProperty("--bg-2", c[1]); st.setProperty("--line", c[2]);
@@ -1114,6 +1114,169 @@ body[data-arch="on"] .pp .i-stop { display: block; }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
   @keyframes ripple { from { --ph: 0px; } to { --ph: var(--gap); } }
 }
+
+/* ================= Look A · Indice (in colour), second pass ================= */
+html[data-look="a"] { --pg-bg: var(--bg); --pg-ink: var(--ink); --pg-muted: var(--muted); --pg-line: var(--line); }
+html[data-look="a"] .aura, html[data-look="a"] .wrap::before { display: none; }
+html[data-look="a"] .dock { --dock-glow: var(--dock); }
+/* the type: Archivo narrow and heavy for names and titles (the wordmark keeps its own) */
+html[data-look="a"] .title { font-stretch: 62%; font-weight: 800; letter-spacing: -.005em; }
+/* square edges, hairlines */
+html[data-look="a"] .search { border-radius: 0; background: none; border: 0; border-bottom: 1.5px solid var(--ink); padding-left: 2px; }
+html[data-look="a"] .chips { display: flex; flex-wrap: wrap; gap: 0 18px; padding-bottom: 0; border-bottom: 1.5px solid var(--ink); }
+html[data-look="a"] .chip-kinds, html[data-look="a"] .chip-times { display: flex; flex-wrap: wrap; gap: 0 18px; padding: 0; border: 0; border-radius: 0; background: none; }
+html[data-look="a"] .chips .chip { width: auto; border: 0; border-radius: 0; background: none; padding: 10px 0 9px; border-bottom: 3px solid transparent; color: var(--ink);
+  font-family: var(--f-body); font-size: 14px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+html[data-look="a"] .chip-times .chip { color: var(--muted); }
+html[data-look="a"] .chips .chip[aria-pressed="true"] { background: none; color: var(--ink); font-weight: 650; border-bottom-color: var(--ink); }
+/* the index: each row in its station's colour */
+html[data-look="a"] .crate { grid-template-columns: minmax(0, 1fr); gap: 0; }
+html[data-look="a"] .crate .tile, html[data-look="a"] .crate .tile:nth-child(-n+2) { grid-column: auto; min-height: 0; }
+html[data-look="a"] .crate .tile { margin-left: 50px; overflow: visible; isolation: auto; border-radius: 0; background: var(--c) !important; color: var(--t) !important;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .12) !important; animation: none !important; }
+html[data-look="a"] .crate .tile::after { content: none; }
+html[data-look="a"] .crate .tile::before { content: none; }
+html[data-look="a"] .crate .tile[data-l]::before { content: attr(data-l); content: attr(data-l) / ""; position: absolute; inset: auto; left: -50px; top: 9px; z-index: 0; width: 42px; background: none;
+  font-family: var(--f-display); font-stretch: 62%; font-weight: 900; font-size: 42px; line-height: .9; color: color-mix(in srgb, var(--pg-ink) 34%, var(--pg-bg)); animation: none; }
+html[data-look="a"] .tile .tune { flex-direction: row; align-items: center; gap: 0; padding: 13px 118px 13px 14px; border-radius: 0; min-height: 64px; }
+html[data-look="a"] .tile .knob { display: none; }
+html[data-look="a"] .tile .label { display: flex; flex-direction: column; gap: 5px; }
+html[data-look="a"] .tile .name { order: 1; font-family: var(--f-display); font-weight: 800; font-stretch: 62%; font-size: 25px; line-height: .95; letter-spacing: .005em; text-transform: uppercase; color: inherit !important; }
+html[data-look="a"] .tile .meta { order: 2; padding-right: 0; font-family: var(--f-body); font-size: 12.5px; letter-spacing: .01em; text-transform: none; opacity: .84; }
+html[data-look="a"] .tile .now { order: 3; display: flex; gap: 6px; align-items: baseline; padding: 0; border: 0; min-width: 0; }
+html[data-look="a"] .tile .now[hidden] { display: none; }
+html[data-look="a"] .tile .now-k { flex: none; font-family: var(--f-body); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .9; }
+html[data-look="a"] .tile .now-k .rr { border: 0; padding: 0; }
+html[data-look="a"] .tile .now-t { font-size: 13px; font-weight: 500; -webkit-line-clamp: 1; }
+html[data-look="a"] .tile .now-s { display: none; }
+html[data-look="a"] .tile .sched { top: 50%; right: 6px; transform: translateY(-50%); background: none; color: inherit; padding: 12px 10px; border: 0; border-radius: 0;
+  font-family: var(--f-body); font-size: 12.5px; letter-spacing: 0; text-transform: none; text-decoration: underline; text-underline-offset: 3px; }
+html[data-look="a"] .tile .pin { top: 50%; bottom: auto; right: 58px; transform: translateY(-50%); color: inherit; border-radius: 0; }
+/* the station you're on: a bar of its ink on the left, and the word */
+html[data-look="a"] .crate .tile.on { box-shadow: inset 7px 0 0 var(--t) !important; }
+html[data-look="a"] .crate .tile.on .tune { padding-left: 22px; }
+html[data-look="a"] .tile.on .meta::before { content: "Playing ·"; font-weight: 600; }
+html[data-look="a"] .tile.on.loading .meta::before { content: "Tuning in ·"; }
+/* on a computer: the index in two columns, read down the first, then the second */
+@media (min-width: 900px) {
+  html[data-look="a"] .crate { display: block; column-count: 2; column-gap: 34px; }
+  html[data-look="a"] .crate .tile { break-inside: avoid; -webkit-column-break-inside: avoid; }
+}
+/* Your stations and Recently added: the same colours and edges */
+html[data-look="a"] .mini, html[data-look="a"] .favs.stack .mini, html[data-look="a"] .favs.stack .mini .tune, html[data-look="a"] .set-link { border-radius: 0 !important; }
+html[data-look="a"] .mini { border-radius: 0; isolation: auto; background: var(--c) !important; color: var(--t) !important; box-shadow: none !important; animation: none !important; }
+html[data-look="a"] .mini.on { box-shadow: inset 6px 0 0 var(--t) !important; }
+html[data-look="a"] .mini::before, html[data-look="a"] .mini::after { content: none; }
+html[data-look="a"] .mini .tune { border-radius: 0; }
+html[data-look="a"] .mini .knob { display: none; }
+html[data-look="a"] .mini .nm { color: inherit !important; font-stretch: 62%; font-weight: 800; text-transform: uppercase; }
+/* the player bar: always there; a flat band in the colour of the station you're on; play and stop as bare shapes */
+html[data-look="a"] .player { background: var(--dock) !important; }
+html[data-look="a"].has-st .player { background: var(--bar-c) !important; color: var(--bar-t); --ink: var(--bar-t); --muted: color-mix(in srgb, var(--bar-t) 80%, transparent); }
+html[data-look="a"] .swatch { display: none; }
+html[data-look="a"] .player-inner { grid-template-columns: minmax(0, 1fr) auto; }
+html[data-look="a"] .np-name { font-size: 20px; }
+html[data-look="a"] .np-status .dot { box-shadow: none !important; }
+html[data-look="a"] .pp { width: 52px; height: 48px; padding: 0; border-radius: 0; box-shadow: none !important; background: none !important; color: var(--ink) !important; }
+html[data-look="a"].has-st .pp { color: var(--bar-t) !important; }
+html[data-look="a"] .pp:disabled { background: none !important; color: var(--muted) !important; }
+html[data-look="a"] .pp svg { width: 21px; height: 21px; }
+html[data-look="a"] .pp .i-play { width: 19px; height: 22px; margin-left: 4px; }
+html[data-look="a"] .pp .i-stop rect { rx: 0; }
+html[data-look="a"] .progress i { box-shadow: none; background: var(--bar-t); }
+
+/* ---------- the poster ---------- */
+html[data-look="a"] .fp[data-id] { background: var(--pg-bg); color: var(--pg-ink); --ink: var(--pg-ink); --bg: var(--pg-bg); --muted: var(--pg-muted); --line: var(--pg-line); }
+html[data-look="a"] .fp[data-id]::before, html[data-look="a"] .fp[data-id]::after { content: none; }
+html[data-look="a"] .fp[data-id] .fp-in { padding-top: 0; gap: 22px; }
+/* the field: the station's colour from edge to edge (its content keeps to the page's margins) */
+html[data-look="a"] .ai-field { position: relative; z-index: 0; flex: none; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;
+  min-height: clamp(230px, 40vh, 380px); margin: 0 calc(50% - 50vw); padding: calc(env(safe-area-inset-top, 0px) + 8px) calc(50vw - 50%) 0;
+  background: var(--c); color: var(--t); --ink: var(--t); --muted: color-mix(in srgb, var(--t) 80%, transparent);
+  touch-action: pan-y; -webkit-user-select: none; user-select: none; }
+html[data-look="a"] .ai-field.thin { box-shadow: inset 0 -1px 0 var(--pg-line); } /* a station's colour that is almost the page's own */
+html[data-look="a"] .ai-field .fp-top { position: relative; z-index: 2; margin: 0 -12px; grid-template-columns: 44px minmax(0, 1fr) 44px; }
+html[data-look="a"] .ai-field .fp-ib { width: 44px; height: 44px; border-radius: 0; background: none; color: var(--t); }
+html[data-look="a"] .ai-field .fp-k { font-family: var(--f-body); font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--muted); }
+html[data-look="a"] .ai-field .fp-k b { margin-top: 2px; font-size: 12px; font-weight: 650; letter-spacing: .1em; color: var(--t); }
+/* the veil: as far across as the show has gone */
+html[data-look="a"] .ai-veil { position: absolute; left: 0; top: 0; bottom: 0; width: 0; z-index: 0; pointer-events: none;
+  background: color-mix(in srgb, var(--t) 13%, transparent); box-shadow: inset -1.5px 0 0 color-mix(in srgb, var(--t) 42%, transparent); transition: width .6s linear; }
+html[data-look="a"] .fp.ai-drag .ai-veil { transition: none; }
+html[data-look="a"] .ai-field.can-drag { cursor: ew-resize; }
+html[data-look="a"] .ai-field.can-drag .fp-top { cursor: auto; }
+/* the name: on the field's lower edge, in the page's colour; or inside the field, in the station's ink */
+html[data-look="a"] .ai-big { position: relative; z-index: 1; margin: auto 0 0; font-family: var(--f-display); font-stretch: 62%; font-weight: 900; font-size: 120px;
+  line-height: .84; letter-spacing: -.01em; text-transform: uppercase; white-space: nowrap; color: var(--pg-bg); padding-top: 20px; }
+html[data-look="a"] .ai-field.lift .ai-big { color: var(--t); }
+html[data-look="a"] .ai-bl { display: inline-block; width: 0; height: 0; }
+html[data-look="a"] .ai-m { position: absolute; left: 0; top: 0; margin: 0; visibility: hidden; font-size: 100px; }
+/* the show */
+html[data-look="a"] .fp-pk { display: none; }
+html[data-look="a"] .fp-poster { flex: 0 0 auto; gap: 9px; padding-top: 0; }
+html[data-look="a"] .fp-meta { order: -1; }
+html[data-look="a"] .ai-ttl { margin: 2px 0 0; font-family: var(--f-display); font-stretch: 75%; font-weight: 700; font-size: clamp(28px, 8vw, 40px); line-height: 1.02; letter-spacing: -.005em; text-wrap: balance; overflow-wrap: anywhere; }
+html[data-look="a"] .ai-ttl.ai-plays { font-weight: 600; font-size: clamp(24px, 6.4vw, 31px); line-height: 1.08; }
+html[data-look="a"] .fp-sub { font-size: 11px !important; font-weight: 600 !important; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+html[data-look="a"] .fp-tag { border: 0 !important; background: none !important; padding: 0 !important; color: var(--live) !important; letter-spacing: .14em; }
+html[data-look="a"] .fp-tag.on::before { color: var(--live); }
+html[data-look="a"] .fp[data-id] .fp-star { color: var(--pg-ink); font-size: 23px; padding: 0 0 0 10px; }
+html[data-look="a"] .fp[data-id] .fp-track { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 14px; margin-top: 8px; padding: 0; border: 0; border-radius: 0; background: none; }
+html[data-look="a"] .fp[data-id] .fp-tk { font-family: var(--f-body); font-size: 10.5px; font-weight: 600; letter-spacing: .14em; color: var(--muted); }
+html[data-look="a"] .fp-track b { margin-top: 4px; font-size: 16px; font-weight: 650; }
+html[data-look="a"] .fp[data-id] .fp-copy { border: 0; border-radius: 0; padding: 6px 0; font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 4px; color: var(--ink); }
+html[data-look="a"] .fp[data-id] .fp-nosong { margin-top: 2px; text-align: left; font-size: 13.5px; }
+/* the controls */
+html[data-look="a"] .ai-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+html[data-look="a"] .fp[data-id] .fp-times { font-family: var(--f-body); font-size: 12px; font-weight: 500; letter-spacing: .04em; color: var(--muted); }
+html[data-look="a"] .fp-times.one { justify-content: flex-start; }
+html[data-look="a"] .fp-bar.ai-live .fp-line { display: none; } /* the veil is the line */
+html[data-look="a"] .fp-line { height: 2px; border-radius: 0; background: var(--line); }
+html[data-look="a"] .fp-line i { border-radius: 0; background: var(--ink); }
+html[data-look="a"] .fp-line i::after { border-radius: 0; width: 3px; right: -1.5px; top: -6px; height: 14px; }
+html[data-look="a"] .fp-ctrl { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 0; align-items: center; padding: 0; border: 0; }
+html[data-look="a"] .fp[data-id] .fp-skip { display: flex; align-items: center; height: 64px; font-family: var(--f-display); font-stretch: 62%; font-weight: 800; font-size: 19px; letter-spacing: .01em; text-transform: uppercase; color: var(--ink); }
+html[data-look="a"] .fp-skip svg { display: none; }
+html[data-look="a"] .fp-skip span { font: inherit !important; letter-spacing: inherit !important; color: inherit; }
+html[data-look="a"] .fp-skip[data-fp="prev"] span::before { content: "← "; }
+html[data-look="a"] .fp-skip[data-fp="next"] { justify-content: flex-end; }
+html[data-look="a"] .fp-skip[data-fp="next"] span::after { content: " →"; }
+html[data-look="a"] .fp[data-id] .fp-big { width: 84px; height: 72px; border-radius: 0; background: none; box-shadow: none; display: grid; place-items: center; }
+html[data-look="a"] .fp[data-id] .fp-big svg { display: block; fill: var(--ink); }
+html[data-look="a"] .fp[data-id] .fp-big .g-play { width: 27px; height: 31px; margin-left: 5px; }
+html[data-look="a"] .fp[data-id] .fp-big .g-stop { width: 27px; height: 27px; }
+html[data-look="a"] .fp[data-id] .fp-big .g-pause { width: 25px; height: 29px; }
+html[data-look="a"] .fp[data-id] .fp-big:focus-visible { outline: 2px solid var(--ink); outline-offset: -6px; }
+html[data-look="a"] .fp-acts { display: flex; gap: 24px; justify-content: flex-start; margin-top: 0; padding-top: 0; border: 0; }
+html[data-look="a"] .fp[data-id] .fp-act { display: block; padding: 10px 0; font-size: 14px; font-weight: 500; color: var(--ink); }
+html[data-look="a"] .fp-act svg { display: none; }
+html[data-look="a"] .fp-act span { text-decoration: underline; text-underline-offset: 4px; }
+html[data-look="a"] .fp-act.on span { font-weight: 700; }
+html[data-look="a"] .fp-arch { margin-top: 2px; align-self: stretch; }
+html[data-look="a"] .fp-poster > .fp-track, html[data-look="a"] .fp-poster > .fp-nosong { grid-column: 1; grid-row: auto; }
+html[data-look="a"] .fp[data-id] .fp-alive { border-radius: 0; background: none; color: var(--ink); padding: 8px 0; text-decoration: underline; text-underline-offset: 4px; }
+/* on a computer: the field across the top; under it the show on the left, the controls on the right */
+@media (min-width: 700px) and (min-aspect-ratio: 5/4) {
+  html[data-look="a"] .fp[data-id] .fp-in { grid-template-columns: minmax(0, 7fr) minmax(300px, 5fr); grid-template-rows: auto auto 1fr; row-gap: 0; column-gap: clamp(36px, 5vw, 96px); padding-top: 0; padding-bottom: 44px; }
+  html[data-look="a"] .ai-field { grid-column: 1 / -1; grid-row: 1; min-height: clamp(150px, 50vh, 580px); margin-bottom: clamp(22px, 4.4vh, 46px); padding-top: 14px; }
+  html[data-look="a"] .fp-poster { grid-column: 1; grid-row: 2; align-content: start; padding: 0; gap: 11px; }
+  html[data-look="a"] .ai-side { grid-column: 2; grid-row: 2; gap: 10px; }
+  html[data-look="a"] .ai-ttl { font-size: clamp(32px, 3.3vw, 56px); }
+  html[data-look="a"] .ai-ttl.ai-plays { font-size: clamp(26px, 2.5vw, 40px); }
+  html[data-look="a"] .fp-sub { font-size: 11.5px !important; }
+  html[data-look="a"] .ai-big { padding-top: 28px; }
+}
+/* Map, This week, Settings: the same type, colours and edges */
+html[data-look="a"] .world, html[data-look="a"] .locate, html[data-look="a"] .set-card, html[data-look="a"] .seg, html[data-look="a"] .seg button,
+html[data-look="a"] .btn, html[data-look="a"] .map-ctl button, html[data-look="a"] .react-b button, html[data-look="a"] .event, html[data-look="a"] .ev-info,
+html[data-look="a"] .hello-card, html[data-look="a"] .hello-row input, html[data-look="a"] .save { border-radius: 0 !important; }
+html[data-look="a"] .locate strong { font-stretch: 62%; font-weight: 800; font-size: 22px; text-transform: uppercase; }
+html[data-look="a"] .pick { border-radius: 0; background: var(--c) !important; color: var(--t); box-shadow: none; }
+html[data-look="a"] .pick .pk, html[data-look="a"] .pick .pw { color: inherit; opacity: .84; }
+html[data-look="a"] .pick .pn { font-family: var(--f-display); font-stretch: 62%; font-weight: 800; font-size: 21px; line-height: 1; text-transform: uppercase; }
+html[data-look="a"] .pick .when { border-radius: 0; background: var(--t); color: var(--c); }
+html[data-look="a"] .pick button { border-radius: 0; }
+html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bottom: 8px; }
 </style>
 </head>
 <body data-state="idle">
@@ -1465,7 +1628,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
       <p class="set-note">Auto follows your iPhone. The status bar at the top updates the next time you open the app.</p>
     </div>
 
-    <div class="set-card">
+    <div class="set-card" style="display: none">
       <span class="set-k" id="bg-k">Background</span>
       <div class="bgs" id="bgs" role="radiogroup" aria-labelledby="bg-k"></div>
     </div>
@@ -3794,6 +3957,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     const y = fp.scrollTop;
     fpIn.style.minHeight = fpIn.offsetHeight + "px";
     fpIn.innerHTML = h;
+    lookPoster(st, A, info, now);
     fitCover();
     fpIn.style.minHeight = "";
     if (fp.scrollTop !== y) fp.scrollTop = y;
@@ -4266,6 +4430,7 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     }
     document.body.dataset.arch = AR ? (AR.playing || AR.loading ? "on" : "off") : "";
     compSync();
+    if (typeof lookOnPlayer === "function") lookOnPlayer();
     npStatus.textContent = text;
     pp.setAttribute("aria-label", (AR ? AR.playing || AR.loading : state === "live" || state === "loading") ? "Pause" : "Play");
     updateProgress();
@@ -4555,7 +4720,150 @@ body[data-arch="on"] .pp .i-stop { display: block; }
     renderGreeting();
     if (view === "map") renderMap();
     if (!$("fp").hidden) renderFP();
+    lookTick();
   }
+
+
+  /* ---------- Look A, "Indice": the letters in the margin; the bar in the station's colour; the poster ---------- */
+  var aCols = window.matchMedia("(min-width: 900px)");
+  function aLetters() { // the first row of each letter, and on a computer the first row of the second column too
+    let prev = "", y = -Infinity;
+    tiles.forEach((el) => {
+      if (el.classList.contains("out")) { delete el.dataset.l; return; }
+      const L = el.querySelector(".name").textContent.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().charAt(0).toUpperCase();
+      const top = aCols.matches ? el.getBoundingClientRect().top : 0;
+      if (L !== prev || top < y - 1) el.dataset.l = L; else delete el.dataset.l;
+      prev = L; y = top;
+    });
+  }
+  function lookTick() { aLetters(); }
+  function lookOnPlayer() { document.documentElement.classList.toggle("has-st", !!current); }
+  var aContrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  function aSplits(words) { // every way of setting the words on one to four lines, in order; fewer lines first
+    const out = [];
+    const go = (i, lines) => {
+      if (i === words.length) { out.push(lines); return; }
+      if (lines.length < 4) for (let j = i + 1; j <= words.length; j++) go(j, lines.concat([words.slice(i, j).join(" ")]));
+    };
+    go(0, []);
+    return out.sort((a, b) => a.length - b.length);
+  }
+  var aFit = {}, A_CAP = 0.72, A_LH = 0.84; // Archivo's capitals stand at about 0.72 of the size; the lines are 0.84 apart
+  var aDrag = null;
+  function aName(field, big, st) { // as large as the width allows, and no taller than the field leaves room for
+    const wide = fpWide.matches, W = big.clientWidth;
+    const top = field.querySelector(".fp-top"), topH = top ? top.offsetTop + top.offsetHeight : 60;
+    const minH = parseFloat(getComputedStyle(field).minHeight) || 240;
+    const maxH = wide ? minH : Math.max(minH, Math.min(window.innerHeight * 0.52, 470));
+    const room = Math.max(60, maxH - topH - (wide ? 30 : 22));
+    const hMax = wide ? room * 0.72 : room; // on a computer, colour stands above the name
+    const key = [st.id, W, Math.round(hMax)].join("|");
+    let F = aFit[key];
+    if (!F) {
+      const m = document.createElement("span"); m.className = "ai-big ai-m"; field.appendChild(m);
+      const width = (s) => { m.textContent = s; return m.getBoundingClientRect().width || 1; };
+      let best = null;
+      for (const lines of aSplits(st.name.trim().split(/\s+/))) {
+        if (lines.length > 1 && lines.some((l) => l.length < 3)) continue; // never a line of one or two characters ("NTS / 1")
+        // accents need room between the lines: one under a letter (Hà Nội) on any line but the last, or over one on any but the first
+        const D = lines.map((l) => l.normalize("NFD")), lh = D.some((l, j) => (j < D.length - 1 && /[\u0323-\u0333]/.test(l)) || (j > 0 && /[\u0300-\u0315]/.test(l))) ? 1.02 : A_LH;
+        const n = lines.length, s = Math.min(100 * W / Math.max(...lines.map(width)), hMax / (A_CAP + (n - 1) * lh), wide ? 760 : 240);
+        if (!best || s > best.s * (n > best.n ? 1.14 : 1)) best = { s, n, lines, lh };
+      }
+      m.remove();
+      F = { s: Math.max(28, Math.floor(best.s)), lines: best.lines, lh: best.lh };
+      if (!document.fonts || document.fonts.status === "loaded") aFit[key] = F;
+    }
+    big.innerHTML = F.lines.map(esc).join("<br>") + '<i class="ai-bl"></i>';
+    big.style.fontSize = F.s + "px"; big.style.lineHeight = F.lh;
+    // standing on the edge in the page's own colour, if that reads on the station's; otherwise inside the field, in its ink
+    const page = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#0C0D11";
+    const k = aContrast(readableGround(st.c, st.t), page), knock = k >= 2.2;
+    field.classList.toggle("lift", !knock);
+    field.classList.toggle("thin", k < 1.35);
+    const bl = big.querySelector(".ai-bl"), below = big.offsetHeight - bl.offsetTop; // from the baseline to the foot of the block (the mark is measured from the name's own box)
+    big.style.marginBottom = (knock ? -(below + 2) : -below + (wide ? 34 : 22)) + "px";
+  }
+  function aVeil(w) { const v = fpIn.querySelector(".ai-veil"); if (v) v.style.width = w; }
+  // the poster: the field of colour at the top (the close, where it's from, the station's name), the show, the controls
+  function lookPoster(st, A, info) {
+    const top = fpIn.querySelector(".fp-top"); if (!top) return;
+    const field = document.createElement("section"), veil = document.createElement("div"), big = document.createElement("p");
+    field.className = "ai-field" + (A && A.dur ? " can-drag" : ""); veil.className = "ai-veil"; big.className = "ai-big"; big.setAttribute("aria-hidden", "true");
+    veil.setAttribute("aria-hidden", "true");
+    fpIn.insertBefore(field, top); field.append(veil, top, big);
+    aName(field, big, st);
+    // the show: its title (or, with no show listed, what the station plays), and the song under it
+    const hasShow = !!(A || (info && info.title));
+    const t = fpIn.querySelector(".fp-ttl"), poster = fpIn.querySelector(".fp-poster");
+    if (t) { t.classList.remove("fp-ttl"); t.classList.add("ai-ttl"); } // set by its own rules, not stretched to fill
+    if (t && !hasShow && INFO[st.id] && INFO[st.id].plays) {
+      t.textContent = INFO[st.id].plays; t.classList.add("ai-plays"); t.classList.remove("keepcase");
+      const sb = fpIn.querySelector(".fp-sub"); if (sb) sb.textContent = "What it plays";
+    }
+    const song = fpIn.querySelector(":scope > .fp-track, :scope > .fp-nosong");
+    if (song && song.classList.contains("fp-nosong") && !hasShow) song.remove(); // no show and no song: what it plays is enough
+    else if (poster && song) poster.appendChild(song);
+    // a live show's times on one line, start to end and the time there; the veil is its progress
+    const bar = fpIn.querySelector(".fp-bar:not(.arch)");
+    if (bar) {
+      const s = bar.querySelectorAll(".fp-times span");
+      if (s.length === 3) { bar.querySelector(".fp-times").innerHTML = `<span>${esc(s[0].textContent)} – ${esc(s[2].textContent)}</span><span>${esc(s[1].textContent)}</span>`; bar.classList.add("ai-live"); }
+    }
+    // play, stop and pause as bare shapes
+    const tg = fpIn.querySelector(".fp-big");
+    if (tg) {
+      const l = tg.getAttribute("aria-label");
+      tg.innerHTML = l === "Play" ? '<svg class="g-play" viewBox="0 0 27 31" aria-hidden="true"><path d="M0 0 27 15.5 0 31z"/></svg>' :
+        l === "Pause" ? '<svg class="g-pause" viewBox="0 0 25 29" aria-hidden="true"><rect width="8.5" height="29"/><rect x="16.5" width="8.5" height="29"/></svg>' :
+        '<svg class="g-stop" viewBox="0 0 27 27" aria-hidden="true"><rect width="27" height="27"/></svg>';
+    }
+    // the controls in one column (on a computer, the right one)
+    const parts = [...fpIn.querySelectorAll(":scope > .fp-bar, :scope > .fp-times, :scope > .fp-ctrl, :scope > .fp-acts, :scope > .fp-arch")];
+    if (parts.length) { const side = document.createElement("div"); side.className = "ai-side"; parts[0].before(side); side.append(...parts); }
+    const i = fpIn.querySelector(".fp-bar .fp-line i");
+    veil.style.transition = "none";
+    veil.style.width = aDrag && aDrag.on ? (aDrag.k * 100).toFixed(2) + "%" : i ? i.style.width || "0%" : "0%";
+    void veil.offsetWidth; veil.style.transition = "";
+  }
+  // the veil follows the show between redraws (an archive show moves every moment)
+  setInterval(() => { if (fp.hidden || (aDrag && aDrag.on)) return; const i = fpIn.querySelector(".fp-bar .fp-line i"); aVeil(i ? i.style.width || "0%" : "0%"); }, 400);
+  // in an archive show, drag across the field to move through it
+  fp.addEventListener("pointerdown", (e) => {
+    if (!e.target.closest(".ai-field") || e.target.closest("button, a, [data-fp]") || e.button > 0) return;
+    if (!arch || arch.id !== current || !arch.dur) return;
+    aDrag = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, k: NaN };
+  });
+  fp.addEventListener("pointermove", (e) => {
+    if (!aDrag || e.pointerId !== aDrag.id) return;
+    const dx = e.clientX - aDrag.x, dy = e.clientY - aDrag.y;
+    if (!aDrag.on) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { aDrag = null; return; }
+      if (Math.abs(dx) < 8) return;
+      aDrag.on = true; fp.classList.add("ai-drag"); try { fp.setPointerCapture(e.pointerId); } catch (x) {}
+      seekDrag = { el: fp, id: -1, t: NaN }; // the show's own bar holds still meanwhile
+    }
+    const f = fpIn.querySelector(".ai-field"); if (!f || !arch || !arch.dur) return;
+    const r = f.getBoundingClientRect(); aDrag.k = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    aVeil((aDrag.k * 100).toFixed(2) + "%");
+    const p = fpIn.querySelector(".fp-bar.arch .a-pos"), i = fpIn.querySelector(".fp-bar.arch .fp-line i");
+    if (p) p.textContent = mmss(aDrag.k * arch.dur);
+    if (i) i.style.width = (aDrag.k * 100).toFixed(2) + "%";
+  });
+  var aEnd = (ok) => (e) => {
+    if (!aDrag || e.pointerId !== aDrag.id) return;
+    const d = aDrag; aDrag = null; fp.classList.remove("ai-drag");
+    if (!d.on) return;
+    if (seekDrag && seekDrag.id === -1) seekDrag = null;
+    if (ok && isFinite(d.k) && arch && arch.dur) seekTo(d.k * arch.dur); else archBar();
+  };
+  fp.addEventListener("pointerup", aEnd(true));
+  fp.addEventListener("pointercancel", aEnd(false));
+  window.addEventListener("resize", () => { aLetters(); if (!fp.hidden) renderFP(); });
+  $("chips").addEventListener("click", () => setTimeout(aLetters, 0));
+  $("q").addEventListener("input", () => setTimeout(aLetters, 0));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { aLetters(); if (!fp.hidden) renderFP(); });
+  lookTick(); lookOnPlayer();
 
   /* ---------- the turning "a" ----------
      Once when the app opens, and each time a different station comes on. */
