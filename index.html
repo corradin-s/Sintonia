@@ -638,6 +638,7 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .story { justify-items: center; text-align: center; gap: 14px; padding-top: 4px; }
 .story-h { margin: 0; padding: 0 46px; font-family: var(--f-display); font-weight: 850; font-stretch: 62%; font-size: 30px; line-height: .9; text-transform: uppercase; overflow-wrap: anywhere; }
 .story-h.keepcase { text-transform: none; }
+.story-plays { margin: -4px 0 2px; padding: 0 30px; font-size: 14px; line-height: 1.4; color: var(--muted); } /* what the station plays */
 .story-prev {
   position: relative; margin: 0; height: min(50vh, 520px); aspect-ratio: 9 / 16; border-radius: 16px; overflow: hidden;
   background: var(--bg-2); border: 1px solid var(--line); box-shadow: 0 18px 50px -18px rgba(0, 0, 0, .7);
@@ -1130,7 +1131,7 @@ html[data-look="a"] .chips .chip { width: auto; border: 0; border-radius: 0; bac
 html[data-look="a"] .chips .chip[aria-pressed="true"] { background: none; color: var(--ink); font-weight: 600; }
 html[data-look="a"] .chips .chip[aria-pressed="true"]::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 50%; background: currentColor; vertical-align: .12em; }
 /* the stations: a mosaic of rectangles, each in its station's colour, edge to edge, no gaps and no corners; A to Z */
-html[data-look="a"] .crate { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); }
+html[data-look="a"] .crate { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); } /* a thin line of the page between them */
 @media (min-width: 700px) { html[data-look="a"] .crate { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 900px) { html[data-look="a"] .crate { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (min-width: 1012px) { html[data-look="a"] .crate { margin: 0; } }
@@ -1154,15 +1155,16 @@ html[data-look="a"] .tile .meta .newtag { display: none; }
 html[data-look="a"] .tile .pin { right: 3px; bottom: 3px; border-radius: 0; color: inherit; }
 /* on air now: a dot in the corner; the station you're on: a frame of the page and the word */
 html[data-look="a"] .crate .tile.b-live:not(.on)::after { content: ""; position: absolute; z-index: 1; inset: auto; top: 15px; right: 12px; opacity: 1; width: 7px; height: 7px; border-radius: 50%; background: var(--t); }
-html[data-look="a"] .crate .tile.on { box-shadow: inset 0 0 0 4px var(--bg) !important; isolation: isolate; }
+html[data-look="a"] { --on-frame: #FFFFFF; --on-word: #D4009B; }
+html[data-look="a"][data-theme="light"] { --on-frame: #000000; --on-word: #FF2BC2; }
+html[data-look="a"] .crate .tile.on { box-shadow: inset 0 0 0 4px var(--on-frame) !important; isolation: isolate; } /* the line turns white round the one you're on */
 /* and in it, as on the first Sintonia, the rough little drawing: rings spreading from a corner (they move while it plays), and print grain */
 html[data-look="a"] .crate .tile.on::before { content: ""; inset: 4px; }
 html[data-look="a"] .crate .tile.on::after { content: ""; inset: 4px; opacity: .26; }
 html[data-look="a"] .tile.on .meta { visibility: hidden; }
 /* "Playing" as a tab of the frame, in the festival's dotted face, fuchsia */
-html[data-look="a"] .tile.on .tune::after { content: "Playing"; visibility: visible; position: absolute; left: 0; bottom: 0; z-index: 1; padding: 8px 12px 7px 12px; background: var(--bg);
-  font-family: "Doto", ui-monospace, Menlo, monospace; font-weight: 800; font-variation-settings: "ROND" 100; font-size: 17px; line-height: 1; letter-spacing: .02em; color: #FF2BC2; }
-html[data-look="a"][data-theme="light"] .tile.on .tune::after { color: #C4008A; }
+html[data-look="a"] .tile.on .tune::after { content: "Playing"; visibility: visible; position: absolute; left: 0; bottom: 0; z-index: 1; padding: 8px 12px 7px 12px; background: var(--on-frame);
+  font-family: "Doto", ui-monospace, Menlo, monospace; font-weight: 800; font-variation-settings: "ROND" 100; font-size: 17px; line-height: 1; letter-spacing: .02em; color: var(--on-word); }
 html[data-look="a"] .tile.on.loading .tune::after { content: "Tuning in"; }
 /* Your stations and Recently added: the same colours and edges */
 html[data-look="a"] .mini, html[data-look="a"] .favs.stack .mini, html[data-look="a"] .favs.stack .mini .tune, html[data-look="a"] .set-link { border-radius: 0 !important; }
@@ -1233,7 +1235,9 @@ html[data-look="a"] .fp[data-id] .fp-nosong { margin-top: 2px; text-align: left;
 /* the controls */
 html[data-look="a"] .ai-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 html[data-look="a"] .fp[data-id] .fp-times { font-family: var(--f-body); font-size: 12px; font-weight: 500; letter-spacing: .04em; color: var(--muted); }
-html[data-look="a"] .fp-times.one { justify-content: flex-start; }
+html[data-look="a"] .fp-times.one { justify-content: flex-start; align-items: center; min-height: 34px; }
+html[data-look="a"] .fp-times.one .fp-star { margin-left: auto; }
+html[data-look="a"] .fp-poster:empty { display: none; }
 html[data-look="a"] .fp-bar.ai-live .fp-line { display: none; } /* the veil is the line */
 html[data-look="a"] .fp-line { height: 2px; border-radius: 0; background: var(--line); }
 html[data-look="a"] .fp-line i { border-radius: 0; background: var(--ink); }
@@ -3503,6 +3507,7 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
       const files = canShareFiles();
       sheetBody.innerHTML = `<div class="sheet-in story" style="--sc:${esc(st.c)};--st:${esc(st.t)}">` +
         `<h2 class="story-h${keep}" id="sheet-title">Share ${esc(st.name)}</h2>` +
+        (INFO[id] && INFO[id].plays ? `<p class="story-plays">${esc(INFO[id].plays)}</p>` : "") +
         '<div class="seg story-mode" role="radiogroup" aria-label="Story colours">' +
         ["dark", "light"].map((m) => `<button type="button" role="radio" data-act="smode" data-mode="${m}" aria-checked="false">${m === "dark" ? "Dark" : "Light"}</button>`).join("") + "</div>" +
         '<figure class="story-prev"><img id="story-img" alt=""><span class="story-wait">Drawing your story…</span></figure>' +
@@ -4850,12 +4855,14 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
     const hasShow = !!(A || (info && info.title));
     const t = fpIn.querySelector(".fp-ttl"), poster = fpIn.querySelector(".fp-poster");
     if (t) { t.classList.remove("fp-ttl"); t.classList.add("ai-ttl"); } // set by its own rules, not stretched to fill
-    if (t && !hasShow && INFO[st.id] && INFO[st.id].plays) {
-      t.textContent = INFO[st.id].plays; t.classList.add("ai-plays"); t.classList.remove("keepcase");
-      const sb = fpIn.querySelector(".fp-sub"); if (sb) sb.textContent = "What it plays";
+    if (t && !hasShow) { // no show listed: nothing about the station here (that's in Info, and when you share it); the star goes on the line with the time
+      t.remove();
+      const meta = fpIn.querySelector(".fp-meta"), star = fpIn.querySelector(".fp-star"), one = fpIn.querySelector(".fp-times.one");
+      if (star && one) one.appendChild(star);
+      if (meta) meta.remove();
     }
     const song = fpIn.querySelector(":scope > .fp-track, :scope > .fp-nosong");
-    if (song && song.classList.contains("fp-nosong") && !hasShow) song.remove(); // no show and no song: what it plays is enough
+    if (song && song.classList.contains("fp-nosong")) song.remove(); // no song named: say nothing
     else if (poster && song) poster.appendChild(song);
     // a live show's times on one line, start to end and the time there; the veil is its progress
     const bar = fpIn.querySelector(".fp-bar:not(.arch)");
