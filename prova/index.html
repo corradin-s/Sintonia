@@ -3175,6 +3175,8 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
   const storyMode = () => readKey("sintonia:story") || (document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
   const fName = (px) => "850 extra-condensed " + px + 'px "Sintonia Narrow", Archivo, "Arial Narrow", sans-serif';
   const fWord = (px) => "900 expanded " + px + 'px "Sintonia Wide", Archivo, "Helvetica Neue", sans-serif';
+  const fBig = (px) => "900 extra-condensed " + px + 'px "Sintonia Narrow", Archivo, "Arial Narrow", sans-serif';
+  const fMid = (w, px) => w + " semi-condensed " + px + 'px "Sintonia Mid", Archivo, "Arial Narrow", sans-serif';
   const fBody = (w, px) => w + " " + px + 'px "Instrument Sans", "Helvetica Neue", Arial, sans-serif';
   const fLabel = (px) => "500 " + px + 'px "Instrument Sans", "Helvetica Neue", Arial, sans-serif';
   const rgbOf = (c) => { const m = /^#?([0-9a-f]{6})$/i.exec(String(c).trim()); const n = m ? parseInt(m[1], 16) : 0x9B9BA8; return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
@@ -3213,6 +3215,9 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
       chip: !info.title ? "" : info.rerun ? (info.tag || "Rerun") : "On air",
       live: !!(info.title && !info.rerun),
       mode: storyMode() === "light" ? "light" : "dark",
+      start: isFinite(info.start) ? info.start : NaN, end: isFinite(info.end) ? info.end : NaN,
+      plays: (INFO[id] && INFO[id].plays) || "",
+      words: st.name.trim().split(/\s+/).map((w) => keep ? w : w.toUpperCase()),
     };
   }
   const storyKey = (id) => { const d = storyData(id); return [id, d.mode, d.kicker, d.show, d.song, d.chip].join("|"); };
@@ -3331,68 +3336,142 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
     c.drawImage(off, x, y);
   }
 
+  // the dot map of where the station is, drawn into the field in the station's own ink
+  function storyFieldMap(c, st, x, y, w, h, ink) {
+    if (w < 60 || h < 220) return; // too little room: no map
+    const off = document.createElement("canvas"); off.width = w; off.height = h;
+    const o = off.getContext("2d");
+    const [cx, cy] = proj(st.lat, st.lon);
+    const k = w / (40 * RAD), S = 18, r = 4.6;
+    const at = (lat, lon) => { const [px, py] = proj(lat, lon); return [w / 2 + ((px - cx + Math.PI) % TAU + TAU) % TAU * k - Math.PI * k, h / 2 + (py - cy) * k]; };
+    if (landPath) {
+      const gw = Math.ceil(w / S), gh = Math.ceil(h / S);
+      const g = document.createElement("canvas"); g.width = gw; g.height = gh;
+      const gc = g.getContext("2d", { willReadFrequently: true });
+      gc.fillStyle = "#000";
+      const sc = k / S / LAND_Q, ox = w / 2 - cx * k, oy = h / 2 - cy * k;
+      for (let m = -1; m <= 1; m++) { gc.setTransform(sc, 0, 0, sc, (ox + m * TAU * k) / S, oy / S); gc.fill(landPath, "evenodd"); }
+      const px = gc.getImageData(0, 0, gw, gh).data;
+      for (let j = 0; j < gh; j++) {
+        for (let i = 0; i < gw; i++) {
+          if (px[(j * gw + i) * 4 + 3] <= 72) continue;
+          const qx = (i + 0.5) * S, qy = (j + 0.5) * S;
+          const t = Math.max(0, 1 - Math.hypot(qx - w / 2, qy - h / 2) / (w * 0.55));
+          o.fillStyle = rgba(ink, 0.1 + 0.26 * t);
+          o.beginPath(); o.arc(qx, qy, r, 0, TAU); o.fill();
+        }
+      }
+    }
+    // the other cities on Sintonia, small and quiet; this one a solid square, with its code
+    o.textBaseline = "middle";
+    const [hx, hy] = at(st.lat, st.lon), boxes = [];
+    o.font = fLabel(30);
+    boxes.push({ x0: hx - 22, x1: hx + 34 + spacedW(o, st.code, 3), y0: hy - 24, y1: hy + 24 });
+    o.font = fLabel(24);
+    cities.filter((ct) => ct.code !== st.code).forEach((ct) => {
+      const [px, py] = at(ct.lat, ct.lon);
+      if (px < 30 || px > w - 30 || py < 30 || py > h - 30) return;
+      const sq = { x0: px - 9, x1: px + 9, y0: py - 9, y1: py + 9 };
+      if (boxes.some((q) => sq.x0 < q.x1 && sq.x1 > q.x0 && sq.y0 < q.y1 && sq.y1 > q.y0)) return; // too close to one already there
+      o.fillStyle = rgba(ink, 0.5); o.fillRect(px - 7, py - 7, 14, 14); boxes.push(sq);
+      const lb = { x0: px + 12, x1: px + 18 + spacedW(o, ct.code, 2), y0: py - 15, y1: py + 15 };
+      if (lb.x1 < w - 20 && !boxes.some((q) => lb.x0 < q.x1 && lb.x1 > q.x0 && lb.y0 < q.y1 && lb.y1 > q.y0)) { o.fillStyle = rgba(ink, 0.6); spaced(o, ct.code, px + 16, py + 1, 2); boxes.push(lb); }
+    });
+    o.fillStyle = ink; o.fillRect(hx - 15, hy - 15, 30, 30);
+    o.font = fLabel(30); o.fillStyle = ink; spaced(o, st.code, hx + 28, hy + 1, 3);
+    // soft edges, no frame
+    o.globalCompositeOperation = "destination-in";
+    let fd = o.createLinearGradient(0, 0, w, 0);
+    fd.addColorStop(0, "rgba(0,0,0,0)"); fd.addColorStop(0.12, "#000"); fd.addColorStop(0.88, "#000"); fd.addColorStop(1, "rgba(0,0,0,0)");
+    o.fillStyle = fd; o.fillRect(0, 0, w, h);
+    fd = o.createLinearGradient(0, 0, 0, h);
+    fd.addColorStop(0, "rgba(0,0,0,0)"); fd.addColorStop(0.16, "#000"); fd.addColorStop(0.84, "#000"); fd.addColorStop(1, "rgba(0,0,0,0)");
+    o.fillStyle = fd; o.fillRect(0, 0, w, h);
+    c.drawImage(off, x, y);
+  }
+  // the name as large as the width allows, on one to four lines (never a line of one or two characters)
+  function storyName(c, words, maxW, maxH) {
+    const splits = [];
+    const go = (i, lines) => {
+      if (i === words.length) { splits.push(lines); return; }
+      if (lines.length < 4) for (let j = i + 1; j <= words.length; j++) go(j, lines.concat([words.slice(i, j).join(" ")]));
+    };
+    go(0, []); splits.sort((p, q) => p.length - q.length);
+    c.font = fBig(100);
+    let best = null;
+    for (const lines of splits) {
+      if (lines.length > 1 && lines.some((l) => l.length < 3)) continue;
+      const D = lines.map((l) => l.normalize("NFD")), lh = D.some((l, j) => (j < D.length - 1 && /[̣-̳]/.test(l)) || (j > 0 && /[̀-̕]/.test(l))) ? 1.02 : 0.84;
+      const n = lines.length, px = Math.min(100 * maxW / Math.max(...lines.map((l) => c.measureText(l).width)), maxH / (0.72 + (n - 1) * lh), 480);
+      if (!best || px > best.px * (n > best.n ? 1.14 : 1)) best = { px, n, lines, lh };
+    }
+    best.px = Math.floor(best.px);
+    return best;
+  }
   function drawStory(d) {
     const st = d.st, cv = document.createElement("canvas");
     cv.width = S_W; cv.height = S_H;
-    const c = cv.getContext("2d"), M = 84, light = d.mode === "light";
-    // dark: the bright station dot; light: the deeper station colour, as on the tiles
-    SP = Object.assign({}, S_PAL[d.mode], light ? { col: st.c, mark: deepen(st.c, 0.3), hue: deepen(st.c, 0.1) } : { col: st.dot, mark: st.dot, hue: st.dot });
-    c.fillStyle = SP.bg; c.fillRect(0, 0, S_W, S_H);
-    let g = c.createRadialGradient(S_W / 2, 860, 0, S_W / 2, 860, 1000);
-    g.addColorStop(0, rgba(SP.col, SP.glow)); g.addColorStop(1, rgba(SP.col, 0));
-    c.fillStyle = g; c.fillRect(0, 0, S_W, S_H);
+    const c = cv.getContext("2d"), M = 76, W = S_W - 2 * M, light = d.mode === "light";
+    const page = S_PAL[d.mode].bg, ink = S_PAL[d.mode].ink;
+    const field = readableGround(st.c, st.t), fInk = st.t;
+    const ratio = (p, q) => { const x = lum(p), y = lum(q); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const knock = ratio(field, page) >= 2.2; // the name in the page's colour, standing on the field's edge
+    SP = Object.assign({}, S_PAL[d.mode]);
+    c.fillStyle = page; c.fillRect(0, 0, S_W, S_H);
 
-    // top: the wordmark (below the bar Instagram draws over a story)
-    const LY = 262, LH = 96;
-    c.font = fWord(62); c.fillStyle = SP.ink; c.textBaseline = "middle";
-    spaced(c, "Sintonìa", M, LY + LH / 2 + 4, -2.5);
+    // measure first: the name, then how deep the field is
+    const nm = storyName(c, d.words, W, 470);
+    const nameH = nm.px * (0.72 + (nm.n - 1) * nm.lh);
+    const FB = Math.round(Math.max(1020, Math.min(1240, 470 + 60 + nameH))); // the field's lower edge
+    const lift = knock ? 0 : 56; // inside the field, its baseline a little above the edge
 
-    // the card, measured before it is drawn
-    const CX = M, CW = S_W - 2 * M, P = 56, IW = CW - 2 * P, TOP = 414, ROOM = 1180;
-    c.font = fLabel(28); const kick = clip1(c, d.kicker.toUpperCase(), IW);
-    const nm = fitName(c, d.name, IW, 420);
-    c.font = fLabel(28); const place = clip1(c, d.place.toUpperCase() + " · " + hhmm(Date.now(), st.tz), IW);
-    c.font = fBody(600, 46); const show = d.show ? wrap(c, d.show, IW, 2) : [];
-    c.font = fBody(400, 38); const song = d.song ? wrap(c, "♪ " + d.song, IW, 2) : [];
-    const acc = /[^\x00-\x7F]/.test(d.name) ? nm.px * 0.14 : 0;
-    const rest = 30 + 34 + 22 + acc + nm.lines.length * nm.px * 0.9 + 24 + 34 + (show.length ? 40 + show.length * 56 : 0) + (song.length ? 16 + song.length * 48 : 0) + P;
-    const mapH = Math.round(Math.min(560, Math.max(250, ROOM - rest)));
-    const CH = Math.round(mapH + rest), CY = Math.round(TOP + Math.max(0, (ROOM - CH) / 2));
-
-    rrect(c, CX, CY, CW, CH, 44);
-    c.save(); c.clip();
-    c.fillStyle = mixC(SP.bg2, SP.col, SP.tint); c.fillRect(CX, CY, CW, CH);
-    const cs = getComputedStyle(st.el), pc = (v, dflt) => { const n = parseFloat(v); return isFinite(n) ? n / 100 : dflt; };
-    const gx = CX + CW * pc(cs.getPropertyValue("--ox"), 1), gy = CY + CH * pc(cs.getPropertyValue("--oy"), 0);
-    g = c.createRadialGradient(gx, gy, 0, gx, gy, CW * 1.2);
-    g.addColorStop(0, rgba(SP.col, SP.wash)); g.addColorStop(0.7, rgba(SP.col, 0));
-    c.fillStyle = g; c.fillRect(CX, CY, CW, CH);
-    const gap = (parseFloat(cs.getPropertyValue("--gap")) || 13) * 3;
-    c.strokeStyle = SP.ring; c.lineWidth = 3;
-    for (let r = gap; r < 2600; r += gap) { c.beginPath(); c.arc(gx, gy, r, 0, TAU); c.stroke(); }
-    storyMap(c, st, CX, CY, CW, mapH);
-    c.restore();
-    rrect(c, CX + 1.5, CY + 1.5, CW - 3, CH - 3, 42.5);
-    c.lineWidth = 3; c.strokeStyle = rgba(SP.col, SP.edge); c.stroke();
-    if (d.chip) storyChip(c, CX + 36, CY + 36, d.chip, d.live);
-
-    let y = CY + mapH + 30;
-    c.textBaseline = "alphabetic";
-    c.font = fLabel(28); c.fillStyle = rgba(SP.ink, 0.72);
-    spaced(c, kick, CX + P, y + 26, 3.4); y += 34 + 22 + acc;
-    c.font = fName(nm.px); c.fillStyle = SP.hue; c.textAlign = "left";
-    nm.lines.forEach((l) => { c.fillText(l, CX + P, y + nm.px * 0.76); y += nm.px * 0.9; });
-    y += 24;
-    c.font = fLabel(28); c.fillStyle = rgba(SP.ink, 0.72);
-    spaced(c, place, CX + P, y + 26, 3.4); y += 34;
-    if (show.length) {
-      y += 40; c.font = fBody(600, 46); c.fillStyle = SP.ink;
-      show.forEach((l) => { c.fillText(l, CX + P, y + 42); y += 56; });
+    // the field, the veil, the map
+    c.fillStyle = field; c.fillRect(0, 0, S_W, FB);
+    if (!knock && ratio(field, page) < 1.35) { c.fillStyle = rgba(ink, 0.18); c.fillRect(0, FB - 2, S_W, 2); }
+    const now = Date.now(), dur = d.end - d.start;
+    if (isFinite(dur) && dur > 0) {
+      const k = Math.max(0, Math.min(1, (now - d.start) / dur)), vx = Math.round(S_W * k);
+      c.fillStyle = rgba(fInk, 0.13); c.fillRect(0, 0, vx, FB);
+      c.fillStyle = rgba(fInk, 0.45); c.fillRect(vx - 2, 0, 3, FB);
     }
-    if (song.length) {
-      y += 16; c.font = fBody(400, 38); c.fillStyle = rgba(SP.ink, 0.75);
-      song.forEach((l) => { c.fillText(l, CX + P, y + 36); y += 48; });
+    // above: what this is, and where from (below the bar Instagram draws over a story)
+    c.textBaseline = "alphabetic"; c.font = fLabel(30); c.fillStyle = rgba(fInk, 0.8);
+    spaced(c, clip1(c, d.kicker.toUpperCase(), W), M, 318, 4);
+    c.font = fBody(600, 34); c.fillStyle = fInk;
+    spaced(c, clip1(c, d.place.toUpperCase() + " · " + hhmm(now, st.tz), W), M, 368, 3);
+    const mapTop = 410, mapBottom = FB - lift - nameH - 46;
+    storyFieldMap(c, st, 0, mapTop, S_W, Math.round(mapBottom - mapTop), fInk);
+    // the name: from its last line's baseline (on the edge, or a little above it) upwards
+    c.font = fBig(nm.px); c.fillStyle = knock ? page : fInk; c.textAlign = "left";
+    let by = FB - lift + (knock ? 3 : 0);
+    for (let j = nm.lines.length - 1; j >= 0; j--) { c.fillText(nm.lines[j], M - nm.px * 0.02, by); by -= nm.px * nm.lh; }
+
+    // below, on the page: on air (and until when), the show or what the station plays, the song
+    let y = FB + 104;
+    if (d.chip) {
+      c.font = fBody(600, 30);
+      const label = d.chip.toUpperCase(), until = isFinite(d.end) ? "UNTIL " + hhmm(d.end, st.tz) : "";
+      c.fillStyle = d.live ? S_PAL[d.mode].live : rgba(ink, 0.72); spaced(c, label, M, y, 4);
+      if (until) { const lw = spacedW(c, label, 4); c.fillStyle = rgba(ink, 0.72); spaced(c, until, M + lw + 30, y, 4); }
+      y += 34;
+    } else {
+      c.font = fBody(600, 30); c.fillStyle = rgba(ink, 0.72); spaced(c, d.show ? "" : "WHAT IT PLAYS", M, y, 4); y += 34;
     }
+    const title = d.show || d.plays;
+    if (title) {
+      const big = !!d.show, px = big ? 92 : 70;
+      c.font = fMid(big ? 700 : 600, px); c.fillStyle = ink;
+      const lines = wrap(c, title, W, 3);
+      y += 26;
+      lines.forEach((l) => { y += px * 1.02; c.fillText(l, M, y - px * 0.18); });
+    }
+    if (d.song) {
+      c.font = fBody(500, 38); c.fillStyle = rgba(ink, 0.72);
+      wrap(c, "♪ " + d.song, W, 2).forEach((l) => { y += 52; c.fillText(l, M, y); });
+    }
+    // at the foot (above where Instagram puts its reply bar): the wordmark
+    c.font = fWord(58); c.fillStyle = ink; c.textBaseline = "alphabetic";
+    spaced(c, "Sintonìa", M, 1640, -2.5);
     return cv;
   }
 
@@ -3409,6 +3488,7 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
             const d = ur ? { unicodeRange: ur[1].trim() } : {};
             document.fonts.add(new FontFace("Sintonia Narrow", src[1], Object.assign({ weight: "500 900", stretch: "62.5%" }, d)));
             document.fonts.add(new FontFace("Sintonia Wide", src[1], Object.assign({ weight: "500 900", stretch: "125%" }, d)));
+            document.fonts.add(new FontFace("Sintonia Mid", src[1], Object.assign({ weight: "500 900", stretch: "75%" }, d)));
           }
         }).catch(() => {});
     }
@@ -3416,8 +3496,8 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
   }
   function storyFonts(d) {
     if (!document.fonts || !document.fonts.load) return Promise.resolve();
-    const text = d.name + d.kicker.toUpperCase() + d.place.toUpperCase() + d.show + d.song + "Sintonìa ONAIRERUN0123456789:·♪–";
-    return storyFaces().then(() => Promise.all([fName(100), fWord(62), fBody(600, 46), fBody(400, 38), fLabel(28)].map((f) => document.fonts.load(f, text).catch(() => {}))));
+    const text = d.name + d.kicker.toUpperCase() + d.place.toUpperCase() + d.show + d.song + d.plays + "Sintonìa ONAIRERUNTL0123456789:·♪–";
+    return storyFaces().then(() => Promise.all([fName(100), fBig(100), fMid(700, 80), fWord(62), fBody(600, 46), fBody(400, 38), fLabel(28)].map((f) => document.fonts.load(f, text).catch(() => {}))));
   }
   function landReady() { return landPath ? Promise.resolve() : new Promise((res) => { landWait.push(res); loadLand(); }); }
 
