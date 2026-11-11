@@ -466,6 +466,9 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 [data-id="bcr"]      { --c:#3F4697; --t:#F4EBE0; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:10%;  --oy:115%; --gap:13px; --dot:#7C84E0; }
 [data-id="rbl"]      { --c:#FF8B6B; --t:#2A0D06; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.14);       --ox:90%;  --oy:105%; --gap:11px; --dot:#FF8B6B; }
 [data-id="relativa"] { --c:#E83FD0; --t:#22041C; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:70%;  --oy:-15%; --gap:12px; }
+[data-id="verslibre"] { --c:#E2231A; --t:#FFF1EC; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:80%;  --oy:-15%; --gap:12px; }
+[data-id="tirkultura"] { --c:#4B2E22; --t:#F3D9C4; --ring:rgba(243,217,196,.13); --pill:rgba(243,217,196,.2);  --ox:15%;  --oy:110%; --gap:13px; }
+[data-id="ehfm"]     { --c:#5F6B73; --t:#F1F3F4; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:-10%; --oy:50%;  --gap:11px; }
 [data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
 .name.keepcase { text-transform: none; }
 
@@ -1491,6 +1494,27 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Relativa</span><span class="meta"><span>P19 · Madrid</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://radiorelativa.eu/">Info</button>
+    </li>
+    <li class="tile" data-id="verslibre" data-added="2026-11-11" data-country="Norway" data-code="BGO" data-lat="60.392" data-lon="5.324" data-region="Europe" data-city="Bergen" data-tz="Europe/Oslo" data-src="https://vers-libre.radiocult.fm/stream">
+      <button class="tune" type="button" aria-label="Listen to Vers Libre">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Vers Libre</span><span class="meta"><span>P1 · Bergen</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://verslib.re/">Info</button>
+    </li>
+    <li class="tile" data-id="tirkultura" data-added="2026-11-11" data-country="Latvia" data-code="RIX" data-lat="56.949" data-lon="24.105" data-region="Europe" data-city="Riga" data-tz="Europe/Riga" data-src="https://s3.radio.co/s216811754/listen">
+      <button class="tune" type="button" aria-label="Listen to Tīrkultūra">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Tīrkultūra</span><span class="meta"><span>P1 · Riga</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://tirkultura.lv/">Info</button>
+    </li>
+    <li class="tile" data-id="ehfm" data-added="2026-11-11" data-country="United Kingdom" data-code="EDI" data-lat="55.975" data-lon="-3.17" data-region="Europe" data-city="Edinburgh" data-tz="Europe/London" data-src="https://ehfm.out.airtime.pro/ehfm_a">
+      <button class="tune" type="button" aria-label="Listen to EHFM">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">EHFM</span><span class="meta"><span>P1 · Edinburgh</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://www.ehfm.live/">Info</button>
     </li>
     <li class="tile" data-id="refuge" data-country="Germany" data-code="BER" data-lat="52.52" data-lon="13.4" data-region="Europe" data-city="Berlin" data-tz="Europe/Berlin" data-src="https://streaming.radio.co/s3699c5e49/listen">
       <button class="tune" type="button" aria-label="Listen to Refuge Worldwide">
@@ -2821,7 +2845,10 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
     { url: "https://api.radiocult.fm/api/station/sonicradio/schedule/live", parse: (j) => ({ sonic: fromRadioCult(j) }) },
     { url: "https://api.radiocult.fm/api/station/rblmedia-a4a44e62/schedule/live", parse: (j) => ({ rbl: fromRadioCult(j) }) },
     { url: "https://a9.asurahosting.com/api/nowplaying/satellite_radio", parse: (j) => ({ satellite: fromAzuraTracks(j, "satellite radio") }) },
-    { url: "https://public.radio.co/stations/sd6131729c/status", parse: (j) => ({ relativa: fromRelativa(j) }) }
+    { url: "https://public.radio.co/stations/sd6131729c/status", parse: (j) => ({ relativa: fromRelativa(j) }) },
+    { url: "https://api.radiocult.fm/api/station/vers-libre/schedule/live", parse: (j) => ({ verslibre: fromRadioCult(j) }) },
+    { url: "https://public.radio.co/stations/s216811754/status", parse: (j) => ({ tirkultura: fromRadioCo(j, "track") }) },
+    { url: "https://ehfm.airtime.pro/api/live-info-v2", parse: (j) => ({ ehfm: fromAirtime(j) }) }
   ];
 
   function getJSON(url) {
@@ -3150,6 +3177,9 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
     satellite: { desc: "Independent radio from Lisbon, live around the clock: rhythms from across continents and sounds still to be discovered, with live sets and talks with artists.", plays: "World, jazz, dub, Afrobeat, electronica and experimental", lang: "English, Portuguese", by: "Satellite Radio, Lisbon" },
     bcr: { desc: "Community-led, independent radio from Bangkok, launched by a collective to connect the city’s cultural communities.", since: "2021", plays: "Ambient, techno, molam, Balearic, disco, funk and soul", lang: "Thai, English", by: "Bangkok Community Radio collective", shop: "https://store.bangkokcommunityradio.com/" },
     rbl: { desc: "Ad-free community radio born in Turin in 2011: its first broadcast, in 2012, came live from the terrace of Imbarchino in Parco del Valentino. Run by volunteers, it now broadcasts from Turin, Berlin and Barcelona.", since: "2011", plays: "Electronic, bass, jazz, funk, afrobeat, rock and experimental, with guest mixes", lang: "Italian, English", by: "Radio Banda Larga community, Turin", support: "https://www.paypal.me/rblmedia" },
+    verslibre: { desc: "Community-run, non-profit radio from Bergen since 2018: local DJs, musicians and anyone who wants to try radio, with a studio open to its members and workshops. On air every day from 10 to 23.", plays: "Ambient, jazz, drum & bass, afrobeat and club music", lang: "Norwegian, English", by: "Vers Libre community, Bergen", support: "https://verslib.re/support" },
+    tirkultura: { desc: "Non-commercial, listener-supported radio from Riga, working mainly through sound: born in 2015 as a weekly show, on air around the clock since 2020, with no ads or sponsored content.", plays: "Sound collages, mixtapes, field recordings, live sets and poetry", lang: "Latvian, English", by: "Rolands Pēterkops, Reinis Semēvics and Jānis Šipkēvics" },
+    ehfm: { desc: "Community radio from Edinburgh since 2018, started by local DJs and run by volunteers, with a café and studio in Leith. More than 90 shows by bands, DJs, venues and labels.", plays: "Electronic, hip-hop, folk, jazz and everything in between; some talk", lang: "English", by: "EHFM volunteers, Edinburgh" },
     relativa: { desc: "Community, independent and experimental radio from Madrid, run as a non-profit association since 2018, for artists and projects working outside the mainstream: around 250 of them a year, live from its studio in the city and from satellites in Amsterdam and London.", since: "2018", plays: "Electronic, ambient, jazz, experimental and club, with interviews", lang: "Spanish, English", by: "Radio Relativa association, Madrid", support: "https://radiorelativa.eu/support" },
     setagaya: { desc: "Community FM for Tokyo’s Setagaya ward, on air at 83.4 FM.", plays: "Local programmes, music and community news", lang: "Japanese", by: "FM Setagaya, Tokyo" },
   };
