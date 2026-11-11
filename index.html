@@ -1155,6 +1155,7 @@ html[data-look="a"] .tile .now[hidden] { display: none; }
 html[data-look="a"] .tile .now-k { font-family: var(--f-body); font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .78; }
 html[data-look="a"] .tile .now-k.live::before { content: none; }
 html[data-look="a"] .tile .now-k .rr { border: 0; padding: 0; }
+html[data-look="a"] .tile .now-k .now-h { font-variant-numeric: tabular-nums; letter-spacing: .06em; }
 html[data-look="a"] .tile .now-t { font-size: 12.5px; font-weight: 500; line-height: 1.22; opacity: .9; }
 html[data-look="a"] .tile .now-s { display: none; }
 html[data-look="a"] .tile .meta { order: 3; margin-top: auto; padding-right: 30px; font-family: var(--f-body); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .82; }
@@ -2840,6 +2841,14 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
     )).then(() => { refreshing = false; renderLive(); });
   }
 
+  // when the show runs, short: 8–11, 8:30–11, 22–24
+  function hShort(ms, tz) { var t = hhmm(ms, tz); if (!t) return ""; var p = t.split(":"); return p[1] === "00" ? String(+p[0]) : +p[0] + ":" + p[1]; }
+  function showSpan(info, tz) {
+    var a = isFinite(info.start) ? hShort(info.start, tz) : "", b = isFinite(info.end) ? hShort(info.end, tz) : "";
+    if (b === "0") b = "24";
+    if (a && b && info.end > info.start) return a + "\u2013" + b;
+    return b ? "until " + b : "";
+  }
   function renderLive() {
     stations.forEach((st) => {
       const info = live[st.id];
@@ -2849,6 +2858,8 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
       k.textContent = info.onAir ? "Live now" : "On now";
       k.classList.toggle("live", !!info.onAir);
       if (info.rerun) { const rr = document.createElement("span"); rr.className = "rr"; rr.textContent = info.tag || "Rerun"; k.appendChild(rr); }
+      const span = showSpan(info, st.tz);
+      if (span) { const hs = document.createElement("span"); hs.className = "now-h"; hs.textContent = span; k.appendChild(hs); }
       box.querySelector(".now-t").textContent = info.title;
       const parts = [];
       if (info.sub) parts.push(info.sub);
