@@ -505,28 +505,8 @@ html[data-view="stations"] .wrap::before { opacity: 0; }
 }
 html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before { opacity: 1; }
 .dock { background: var(--dock-glow, var(--dock)); }
-.tile:not(.on), .mini:not(.on) {
-  background:
-    radial-gradient(130% 95% at var(--ox) var(--oy), color-mix(in srgb, var(--dot) 34%, transparent), transparent 70%),
-    color-mix(in srgb, var(--dot) 12%, var(--bg-2));
-  color: var(--ink);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dot) 40%, transparent);
-  --ring: color-mix(in srgb, var(--dot) 15%, transparent);
-  --pill: color-mix(in srgb, var(--dot) 20%, transparent);
-  --hue: var(--dot);
-}
-:root[data-theme="light"] .tile:not(.on), :root[data-theme="light"] .mini:not(.on) {
-  background:
-    radial-gradient(130% 95% at var(--ox) var(--oy), color-mix(in srgb, var(--c) 42%, transparent), transparent 70%),
-    color-mix(in srgb, var(--c) 14%, var(--bg-2));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent);
-  --ring: color-mix(in srgb, var(--c) 22%, transparent);
-  --pill: color-mix(in srgb, var(--c) 24%, transparent);
-  --hue: color-mix(in srgb, var(--c) 66%, #000);
-}
-.tile:not(.on) .name, .mini:not(.on) .nm, .tile:not(.on) .pin, .mini:not(.on) .pin { color: var(--hue); }
-.tile:not(.on) .sched { color: var(--ink); }
-.tile:not(.on)::after { opacity: .1; }
+/* (the tinted glass of before is off: the cards keep their stations' full colours) */
+.tile, .mini { --hue: var(--t); }
 .tile.out { display: none !important; }
 
 /* ---------- Where it's… (local time of day at each station) ---------- */
@@ -1121,88 +1101,41 @@ body[data-arch="on"] .pp .i-stop { display: block; }
 
 /* ================= Look A · Indice (in colour), second pass ================= */
 html[data-look="a"] { --pg-bg: var(--bg); --pg-ink: var(--ink); --pg-muted: var(--muted); --pg-line: var(--line); }
-html[data-look="a"] .aura, html[data-look="a"] .wrap::before { display: none; }
-html[data-look="a"] .dock { --dock-glow: var(--dock); }
-/* the ground: black in the dark theme, so the colours stand out (as in the B proposal) */
-html[data-look="a"][data-theme="dark"] { --bg: #000000 !important; --bg-2: #0F0F0F !important; --line: #262626 !important; --dock: rgba(0, 0, 0, .92) !important; }
-/* the type: Archivo narrow and heavy for section titles (the wordmark keeps its own) */
-html[data-look="a"] .title { font-stretch: 62%; font-weight: 800; letter-spacing: -.005em; }
-/* search and filters: a hairline, and words; the chosen one with a dot */
-html[data-look="a"] { --fuchsia: #FF2BC2; }
-html[data-look="a"][data-theme="light"] { --fuchsia: #C8008E; }
-html[data-look="a"] .search { height: 54px; gap: 11px; padding: 0 6px 0 15px; border-radius: 0; background: none; border: 2px solid var(--ink); color: var(--ink); }
-html[data-look="a"] .search:focus-within { border-color: var(--fuchsia); color: var(--ink); }
-html[data-look="a"] .search svg { width: 21px; height: 21px; stroke-width: 2.2; color: var(--fuchsia); }
-html[data-look="a"] .search input { font-family: "Doto", ui-monospace, Menlo, monospace; font-weight: 900; font-variation-settings: "ROND" 100; font-size: 16px; letter-spacing: 0; caret-color: var(--fuchsia); }
-html[data-look="a"] .search input::placeholder { color: var(--ink); opacity: .78; }
-html[data-look="a"] .search button { border-radius: 0; color: var(--ink); }
-html[data-look="a"] .chips { display: flex; flex-wrap: wrap; gap: 0 18px; }
-html[data-look="a"] .chip-kinds, html[data-look="a"] .chip-times { display: flex; flex-wrap: wrap; gap: 0 17px; padding: 0; border: 0; border-radius: 0; background: none; }
-html[data-look="a"] .chips .chip { width: auto; border: 0; border-radius: 0; background: none; padding: 8px 0; color: var(--muted);
-  font-family: var(--f-body); font-size: 13.5px; font-weight: 500; letter-spacing: 0; text-transform: none; }
-html[data-look="a"] .chips .chip[aria-pressed="true"] { background: none; color: var(--ink); font-weight: 600; }
-html[data-look="a"] .chips .chip[aria-pressed="true"]::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 50%; background: currentColor; vertical-align: .12em; }
-/* the stations: a mosaic of rectangles, each in its station's colour, edge to edge, no gaps and no corners; A to Z */
-html[data-look="a"] .crate { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); } /* a thin line of the page between them */
-@media (min-width: 700px) { html[data-look="a"] .crate { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 900px) { html[data-look="a"] .crate { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-@media (min-width: 1012px) { html[data-look="a"] .crate { margin: 0; } }
-html[data-look="a"] .crate .tile, html[data-look="a"] .crate .tile:nth-child(-n+2) { grid-column: auto; min-height: 0; aspect-ratio: 1.3 / 1; }
-html[data-look="a"] .crate .tile { border-radius: 0; isolation: auto; background: var(--c) !important; color: var(--t) !important; box-shadow: none !important; animation: none !important; }
-html[data-look="a"] .crate .tile::before, html[data-look="a"] .crate .tile::after { content: none; }
-html[data-look="a"] .tile .tune { padding: 12px 12px 12px; gap: 0; border-radius: 0; justify-content: flex-start; }
-html[data-look="a"] .tile .knob, html[data-look="a"] .tile .sched { display: none; }
-html[data-look="a"] .tile .label { display: flex; flex-direction: column; gap: 6px; height: 100%; }
-html[data-look="a"] .tile .name { order: 1; padding-right: 16px; font-family: var(--f-body); font-weight: 600; font-stretch: 100%; font-size: 17px; line-height: 1.14; letter-spacing: -.005em;
-  text-transform: none; color: inherit !important; text-wrap: pretty; }
-html[data-look="a"] .tile .now { order: 2; display: grid; gap: 2px; padding: 0; border: 0; min-width: 0; }
-html[data-look="a"] .tile .now[hidden] { display: none; }
-html[data-look="a"] .tile .now-k { font-family: var(--f-body); font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .78; }
-html[data-look="a"] .tile .now-k.live::before { content: none; }
-html[data-look="a"] .tile .now-k .rr { border: 0; padding: 0; }
-html[data-look="a"] .tile .now-k .now-h { font-variant-numeric: tabular-nums; letter-spacing: .06em; }
-html[data-look="a"] .tile .now-t { font-size: 12.5px; font-weight: 500; line-height: 1.22; opacity: .9; }
-html[data-look="a"] .tile .now-s { display: none; }
-html[data-look="a"] .tile .meta { order: 3; margin-top: auto; padding-right: 30px; font-family: var(--f-body); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .82; }
-html[data-look="a"] .tile .meta .newtag { display: none; }
-html[data-look="a"] .tile .pin { right: 3px; bottom: 3px; border-radius: 0; color: inherit; }
-/* on air now: a dot in the corner; the station you're on: a frame of the page and the word */
-html[data-look="a"] .crate .tile.b-live:not(.on)::after { content: ""; position: absolute; z-index: 1; inset: auto; top: 15px; right: 12px; opacity: 1; width: 7px; height: 7px; border-radius: 50%; background: var(--t); }
-html[data-look="a"] { --on-frame: #FFFFFF; --on-word: #D4009B; }
-html[data-look="a"][data-theme="light"] { --on-frame: #000000; --on-word: #FF2BC2; }
-html[data-look="a"] .crate .tile.on { box-shadow: inset 0 0 0 4px var(--on-frame) !important; isolation: isolate; } /* the line turns white round the one you're on */
-/* and in it, as on the first Sintonia, the rough little drawing: rings spreading from a corner (they move while it plays), and print grain */
-html[data-look="a"] .crate .tile.on::before { content: ""; inset: 4px; }
-html[data-look="a"] .crate .tile.on::after { content: ""; inset: 4px; opacity: .26; }
-html[data-look="a"] .tile.on .meta { visibility: hidden; }
-/* "Playing" as a tab of the frame, in the festival's dotted face, fuchsia */
-html[data-look="a"] .tile.on .tune::after { content: "Playing"; visibility: visible; position: absolute; left: 0; bottom: 0; z-index: 1; padding: 8px 12px 7px 12px; background: var(--on-frame);
-  font-family: "Doto", ui-monospace, Menlo, monospace; font-weight: 800; font-variation-settings: "ROND" 100; font-size: 17px; line-height: 1; letter-spacing: .02em; color: var(--on-word); }
-html[data-look="a"] .tile.on.loading .tune::after { content: "Tuning in"; }
-/* Your stations and Recently added: the same colours and edges */
-html[data-look="a"] .mini, html[data-look="a"] .favs.stack .mini, html[data-look="a"] .favs.stack .mini .tune, html[data-look="a"] .set-link { border-radius: 0 !important; }
-html[data-look="a"] .mini { border-radius: 0; isolation: auto; background: var(--c) !important; color: var(--t) !important; box-shadow: none !important; animation: none !important; }
-html[data-look="a"] .mini.on { box-shadow: inset 6px 0 0 var(--t) !important; }
-html[data-look="a"] .mini::before, html[data-look="a"] .mini::after { content: none; }
+/* ---- Look E: the glass of before (tinted cards, coloured names, the glow), in the new order; the one you play lights up ---- */
+/* the cards: no play button or Info pill on each (a tap plays it; Info is in the poster); the name on top, the show under it, place and time at the foot */
+html[data-look="a"] .crate .tile, html[data-look="a"] .crate .tile:nth-child(-n+2) { grid-column: auto; min-height: 188px; }
+@media (min-width: 900px) { html[data-look="a"] .crate .tile, html[data-look="a"] .crate .tile:nth-child(-n+2) { min-height: 214px; } }
+html[data-look="a"] .tile .knob, html[data-look="a"] .tile .sched, html[data-look="a"] .mini .knob { display: none; }
 html[data-look="a"] .mini .tune { border-radius: 0; }
 html[data-look="a"] .favs:not(.stack) .mini .tune { justify-content: flex-end; } /* the name at the foot of the card, clear of the star */
 html[data-look="a"] .mini .pin { color: inherit; } /* the star in the card's ink (not in its own colour, where it vanished) */
-html[data-look="a"] .mini .knob { display: none; }
-html[data-look="a"] .mini .nm { color: inherit !important; font-stretch: 62%; font-weight: 800; text-transform: uppercase; }
-/* the player bar: always there; a flat band in the colour of the station you're on; play and stop as bare shapes */
-html[data-look="a"] .player { background: var(--dock) !important; }
-html[data-look="a"].has-st .player { background: var(--bar-c) !important; color: var(--bar-t); --ink: var(--bar-t); --muted: color-mix(in srgb, var(--bar-t) 80%, transparent); }
-html[data-look="a"] .swatch { display: none; }
-html[data-look="a"] .player-inner { grid-template-columns: minmax(0, 1fr) auto; }
-html[data-look="a"] .np-name { font-size: 20px; }
-html[data-look="a"] .np-status .dot { box-shadow: none !important; }
-html[data-look="a"] .pp { width: 52px; height: 48px; padding: 0; border-radius: 0; box-shadow: none !important; background: none !important; color: var(--ink) !important; }
-html[data-look="a"].has-st .pp { color: var(--bar-t) !important; }
-html[data-look="a"] .pp:disabled { background: none !important; color: var(--muted) !important; }
-html[data-look="a"] .pp svg { width: 21px; height: 21px; }
-html[data-look="a"] .pp .i-play { width: 19px; height: 22px; margin-left: 4px; }
-html[data-look="a"] .pp .i-stop rect { rx: 0; }
-html[data-look="a"] .progress i { box-shadow: none; background: var(--bar-t); }
+html[data-look="a"] .tile .tune { justify-content: flex-start; padding: 14px 14px 12px; }
+html[data-look="a"] .tile .label { display: flex; flex-direction: column; gap: 10px; height: 100%; }
+html[data-look="a"] .tile .name { order: 1; padding-right: 14px; font-size: clamp(22px, 6.3vw, 33px); }
+html[data-look="a"] .tile .now { order: 2; }
+html[data-look="a"] .tile .now[hidden] { display: none; }
+html[data-look="a"] .tile .now-s { display: none; }
+html[data-look="a"] .tile .now-k .rr { border: 0; padding: 0; }
+html[data-look="a"] .tile .now-k .now-h { font-variant-numeric: tabular-nums; letter-spacing: .06em; }
+html[data-look="a"] .tile .meta { order: 3; margin-top: auto; }
+/* on air now: a small light in the corner, in the station's colour */
+html[data-look="a"] .crate .tile.b-live:not(.on) .tune::before { content: ""; position: absolute; top: 18px; right: 16px; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--t); }
+/* the rough drawing only on the one you're on: rings spreading from a corner (they move while it plays); the print grain on all */
+html[data-look="a"] .crate .tile:not(.on)::before { content: none; }
+html[data-look="a"] .crate .tile { box-shadow: none; }
+html[data-look="a"] .crate .tile.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4.5px var(--ink), 0 18px 50px -18px var(--c); }
+html[data-look="a"] .mini.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink); }
+/* the one you're on: framed in the page's ink, and the word in place of where and when */
+html[data-look="a"] .tile.on .meta { visibility: hidden; }
+html[data-look="a"] .tile.on .tune::after { content: "Playing"; position: absolute; left: 12px; bottom: 12px; z-index: 2; padding: 6px 10px 5px; border-radius: 999px;
+  background: var(--t); color: var(--c); font-family: var(--f-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+html[data-look="a"] .tile.on.loading .tune::after { content: "Starting"; }
+/* search: easier to find, a clearer frame and a bigger lens, in the same rounded glass */
+html[data-look="a"] .search { height: 50px; border: 1.5px solid color-mix(in srgb, var(--ink) 34%, transparent); color: var(--ink); }
+html[data-look="a"] .search:focus-within { border-color: var(--ink); }
+html[data-look="a"] .search svg { width: 20px; height: 20px; stroke-width: 2; }
+html[data-look="a"] .search input::placeholder { color: var(--ink); opacity: .66; }
 
 /* ---------- the poster ---------- */
 html[data-look="a"] .fp[data-id] { background: var(--pg-bg); color: var(--pg-ink); --ink: var(--pg-ink); --bg: var(--pg-bg); --muted: var(--pg-muted); --line: var(--pg-line); }
@@ -1287,17 +1220,6 @@ html[data-look="a"] .fp[data-id] .fp-alive { border-radius: 0; background: none;
   html[data-look="a"] .fp-sub { font-size: 11.5px !important; }
   html[data-look="a"] .ai-big { padding-top: 28px; }
 }
-/* Map, This week, Settings: the same type, colours and edges */
-html[data-look="a"] .world, html[data-look="a"] .locate, html[data-look="a"] .set-card, html[data-look="a"] .seg, html[data-look="a"] .seg button,
-html[data-look="a"] .btn, html[data-look="a"] .map-ctl button, html[data-look="a"] .react-b button, html[data-look="a"] .event, html[data-look="a"] .ev-info,
-html[data-look="a"] .hello-card, html[data-look="a"] .hello-row input, html[data-look="a"] .save { border-radius: 0 !important; }
-html[data-look="a"] .locate strong { font-stretch: 62%; font-weight: 800; font-size: 22px; text-transform: uppercase; }
-html[data-look="a"] .pick { border-radius: 0; background: var(--c) !important; color: var(--t); box-shadow: none; }
-html[data-look="a"] .pick .pk, html[data-look="a"] .pick .pw { color: inherit; opacity: .84; }
-html[data-look="a"] .pick .pn { font-family: var(--f-display); font-stretch: 62%; font-weight: 800; font-size: 21px; line-height: 1; text-transform: uppercase; }
-html[data-look="a"] .pick .when { border-radius: 0; background: var(--t); color: var(--c); }
-html[data-look="a"] .pick button { border-radius: 0; }
-html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bottom: 8px; }
 </style>
 </head>
 <body data-state="idle">
@@ -1340,7 +1262,7 @@ html[data-look="a"] .sec-h { border-bottom: 1.5px solid var(--ink); padding-bott
   </section>
 
   <section class="sec" id="sec-when" aria-label="Find a station">
-    <label class="search" for="q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="q" type="search" placeholder="Station, city or country" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search stations"><button type="button" id="q-x" aria-label="Clear the search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></label>
+    <label class="search" for="q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search a station, city or country" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search stations"><button type="button" id="q-x" aria-label="Clear the search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button></label>
     <div class="chips" id="chips" role="group" aria-label="Show only">
       <div class="chip-kinds">
         <button type="button" class="chip" data-f="live" aria-pressed="false">Live now</button>
