@@ -1218,6 +1218,15 @@ html[data-look="a"] .fp[data-id] .fp-alive { border-radius: 0; background: none;
   html[data-look="a"] .fp-sub { font-size: 11.5px !important; }
   html[data-look="a"] .ai-big { padding-top: 28px; }
 }
+/* how alternative it is: a small mark after the name, like the chillies on a menu (1 easy way in, 2 adventurous, 3 way out there) */
+html[data-look="a"] .tile .name::after { content: ""; display: inline-block; height: .5em; width: calc(.5em * var(--aw, 1)); margin-left: .22em; vertical-align: .26em;
+  background: currentColor; -webkit-mask: var(--am) no-repeat left center / contain; mask: var(--am) no-repeat left center / contain; }
+html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
+.sh-facts .alt-ic { display: inline-block; height: 15px; width: calc(15px * var(--aw, 1)); margin-right: 8px; vertical-align: -2px;
+  background: currentColor; -webkit-mask: var(--am) no-repeat left center / contain; mask: var(--am) no-repeat left center / contain; }
+[data-alt="1"] { --am: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 13.5 11'%3E%3Cpolyline points='1.5%2C8 5%2C2 8.5%2C9 12%2C3' fill='none' stroke='black' stroke-width='2.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E"); --aw: 1.227; }
+[data-alt="2"] { --am: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 29.5 11'%3E%3Cpolyline points='1.5%2C8 5%2C2 8.5%2C9 12%2C3' fill='none' stroke='black' stroke-width='2.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpolyline points='17.5%2C8 21%2C2 24.5%2C9 28%2C3' fill='none' stroke='black' stroke-width='2.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E"); --aw: 2.682; }
+[data-alt="3"] { --am: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 45.5 11'%3E%3Cpolyline points='1.5%2C8 5%2C2 8.5%2C9 12%2C3' fill='none' stroke='black' stroke-width='2.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpolyline points='17.5%2C8 21%2C2 24.5%2C9 28%2C3' fill='none' stroke='black' stroke-width='2.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpolyline points='33.5%2C8 37%2C2 40.5%2C9 44%2C3' fill='none' stroke='black' stroke-width='2.3' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E"); --aw: 4.136; }
 </style>
 </head>
 <body data-state="idle">
@@ -3588,8 +3597,8 @@ html[data-look="a"] .fp[data-id] .fp-alive { border-radius: 0; background: none;
       `<button class="sh-btn ghost" type="button" data-act="share" data-id="${id}">Share</button>`);
     const info = live[id];
     const facts = [["On now", info && info.title ? info.title + (info.rerun ? " (" + (info.tag || "rerun").toLowerCase() + ")" : "") : ""], ["Local time", hhmm(Date.now(), st.tz)],
-      ["Since", I.since], ["Plays", I.plays], ["Languages", I.lang], ["Run by", I.by]].filter((f) => f[1]);
-    h += '<dl class="sh-facts">' + facts.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("") + "</dl>";
+      ["Since", I.since], ["Plays", I.plays], ["How alternative", ALT[id] ? ALT_W[ALT[id] - 1] : ""], ["Languages", I.lang], ["Run by", I.by]].filter((f) => f[1]);
+    h += '<dl class="sh-facts">' + facts.map(([k, v]) => `<dt>${k}</dt><dd>${k === "How alternative" ? `<i class="alt-ic" data-alt="${ALT[id]}" aria-hidden="true"></i>` : ""}${esc(v)}</dd>`).join("") + "</dl>";
     h += '<div class="sh-links">' + `<a href="${esc(st.site)}" target="_blank" rel="noopener">Website and schedule <span>↗</span></a>` +
       // the station's own way to support it, where it has one: membership, donations, or its shop
       (I.support ? `<a href="${esc(I.support)}" target="_blank" rel="noopener">Support the station <span>↗</span></a>`
@@ -4893,6 +4902,8 @@ html[data-look="a"] .fp[data-id] .fp-alive { border-radius: 0; background: none;
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!fp.hidden) renderFP(); });
   lookTick(); lookOnPlayer();
 
+  var ALT = { batuta: 1, setagaya: 1, wwfm: 1, super45: 1, rinse: 1, deepspace: 1, newtown: 1, bcr: 2, hanoi: 2, ida: 2, kiosk: 2, lithium: 2, noods: 2, nts1: 2, nts2: 2, alhara: 2, rbl: 2, nopal: 2, raheem: 2, relativa: 2, refuge: 2, rotation: 2, satellite: 2, sonic: 2, verslibre: 2, ehfm: 2, cashmere: 3, lake: 3, tirkultura: 3, pass: 3, stegi: 3, retreat: 3 }, ALT_W = ["Easy way in", "Adventurous", "Way out there"];
+  tiles.forEach((el) => { const n = ALT[el.dataset.id]; if (n) el.dataset.alt = n; });
   /* ---------- the turning "a" ----------
      Once when the app opens, and each time a different station comes on. */
   var spinOn = true; // renderPlayer may run before this point
