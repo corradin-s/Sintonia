@@ -4531,8 +4531,42 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   var netAt = 0, waitingNet = false;
   const conn = navigator.connection;
   if (conn && conn.addEventListener) conn.addEventListener("change", () => { netAt = Date.now(); }); // Wi-Fi to mobile, or back (Chrome, Android)
+  /* (bridge.py) Phone locked, connection lost. With the screen locked an iPhone puts the app to sleep as soon as no sound
+     plays, so the tries never happened and the radio stayed off until the app was opened. Now, while a station that was
+     playing reconnects, the same player plays silence on a loop (made here, so it needs no network): the app stays awake
+     and keeps the lock screen, knocks on the station's server in the background, and goes back to the station when it answers. */
+  var bridging = false, silenceUrl = null, probeCtl = null, probeN = 0, selfAt = 0;
+  function silence() {
+    if (silenceUrl) return silenceUrl;
+    const rate = 8000, n = rate * 10, buf = new ArrayBuffer(44 + n), v = new DataView(buf); // ten seconds, mono, 8-bit (80 kB)
+    const w = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    w(0, "RIFF"); v.setUint32(4, 36 + n, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, "data"); v.setUint32(40, n, true);
+    for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+    silenceUrl = URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+    return silenceUrl;
+  }
+  function bridgeOn() {
+    if (bridging) return;
+    try {
+      bridging = true; dropHls(); selfAt = Date.now();
+      audio.loop = true; audio.src = silence();
+      const p = audio.play(); if (p && p.catch) p.catch((err) => { if (!err || err.name !== "AbortError") bridgeOff(); });
+    } catch (e) { bridgeOff(); }
+  }
+  function bridgeOff() {
+    bridging = false; audio.loop = false;
+    if (probeCtl) { try { probeCtl.abort(); } catch (e) {} probeCtl = null; }
+  }
+  function knock(src) { // does the station's server answer? (its first answer is enough; the rest is dropped)
+    if (probeCtl) { try { probeCtl.abort(); } catch (e) {} }
+    const ctl = probeCtl = new AbortController(), t = setTimeout(() => ctl.abort(), 10000);
+    return fetch(src, { mode: "no-cors", cache: "no-store", signal: ctl.signal })
+      .then(() => { clearTimeout(t); ctl.abort(); return true; }, () => { clearTimeout(t); return false; });
+  }
   function scheduleRetry() {
     if (!wanted || !current || retryPending) return; // the error event and the failed play() report the same failure once
+    if (hadPlayed) bridgeOn();
     if (navigator.onLine === false) {
       if (!giveUpAt) giveUpAt = Date.now() + 10 * 60000;
       if (Date.now() > giveUpAt) { wanted = false; retrying = false; waitingNet = false; stopStream(); setState("error"); return; }
@@ -4556,7 +4590,23 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   function reconnect() {
     retryPending = false; waitingNet = false;
     if (!wanted || !current) return;
+    const st = byId[current], id = current;
+    if (bridging) {
+      if (state !== "loading") setState("loading"); else renderPlayer();
+      const my = ++probeN; // only the latest knock counts
+      knock(fresh(st.src)).then((ok) => {
+        if (my !== probeN || !wanted || current !== id || !bridging) return;
+        if (!ok) { scheduleRetry(); return; }
+        clearTimeout(retryTimer); retryPending = false;
+        bridgeOff(); toStation();
+      });
+      return;
+    }
+    toStation();
+  }
+  function toStation() {
     const st = byId[current];
+    selfAt = Date.now();
     lastMove = Date.now(); lastT = -1;
     dropHls();
     if (isHls(st.src) && (triedHls || !appleHls) && canMse()) { playWithHlsJs(current); return; }
@@ -4564,11 +4614,11 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     const p = audio.play();
     if (p && typeof p.catch === "function") p.catch((err) => playFailed(current, err));
   }
-  function stopStream() { dropHls(); audio.pause(); audio.removeAttribute("src"); audio.load(); }
+  function stopStream() { bridgeOff(); dropHls(); audio.pause(); audio.removeAttribute("src"); audio.load(); }
   function dropHls() { if (hls) { try { hls.destroy(); } catch (e) {} hls = null; } }
   function playFailed(id, err) {
     if (current !== id || (err && err.name === "AbortError")) return;
-    if (err && err.name === "NotAllowedError") { wanted = false; retrying = false; setState("paused"); return; }
+    if (err && err.name === "NotAllowedError") { bridgeOff(); wanted = false; retrying = false; setState("paused"); return; }
     if (wanted) { scheduleRetry(); return; }
     setState("error");
   }
@@ -4597,6 +4647,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     try { localStorage.setItem(KEY, id); } catch (e) {}
     clearTimeout(retryTimer); retryPending = false;
     wanted = true; retrying = false; hadPlayed = false; retryN = 0; giveUpAt = 0; lastT = -1; lastMove = Date.now();
+    bridgeOff(); selfAt = Date.now();
     dropHls();
     triedHls = false;
     audio.disableRemotePlayback = false;
@@ -4614,6 +4665,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   function stop() {
     // a live stream is unloaded on stop, so pressing play again returns to the live edge
     wanted = false; retrying = false; waitingNet = false; clearTimeout(retryTimer); retryPending = false;
+    bridgeOff();
     dropHls();
     audio.pause();
     audio.removeAttribute("src");
@@ -4654,12 +4706,14 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     else start(current);
   });
 
-  audio.addEventListener("playing", () => { hadPlayed = true; retrying = false; waitingNet = false; retryN = 0; giveUpAt = 0; lastMove = Date.now(); setState("live"); });
-  audio.addEventListener("waiting", () => { if (state === "live") setState("loading"); });
+  audio.addEventListener("playing", () => { if (bridging) return; hadPlayed = true; retrying = false; waitingNet = false; retryN = 0; giveUpAt = 0; lastMove = Date.now(); setState("live"); });
+  audio.addEventListener("waiting", () => { if (!bridging && state === "live") setState("loading"); });
   audio.addEventListener("pause", () => {
     // the system paused us (a call, another app): reflect it in the bar, and don't fight it.
     // (A live stream that "ends" also fires pause first: that's a lost connection, handled by "ended" below.)
     if (audio.ended) return;
+    if (Date.now() - selfAt < 1500) return; // the app changing what the player plays, not the system
+    if (bridging) { wanted = false; retrying = false; waitingNet = false; clearTimeout(retryTimer); retryPending = false; bridgeOff(); setState("paused"); return; }
     if (state === "live" && audio.getAttribute("src")) { wanted = false; retrying = false; clearTimeout(retryTimer); retryPending = false; setState("paused"); }
   });
   // a live stream that ends has lost its connection: open it again
