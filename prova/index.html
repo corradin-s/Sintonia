@@ -1675,6 +1675,67 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 </div>
 
 <audio id="audio" preload="none" playsinline></audio>
+<style>
+.testtag { cursor: pointer; }
+#diag { position: fixed; inset: 0; z-index: 2147483000; background: #0E0E0E; color: #EDEDED; display: flex; flex-direction: column; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+#diag[hidden] { display: none; }
+#diag .dg-bar { display: flex; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #333; font: 600 14px/1.2 system-ui, sans-serif; }
+#diag .dg-bar b { margin-right: auto; }
+#diag button { font: 600 13px/1 system-ui, sans-serif; padding: 9px 12px; border-radius: 8px; border: 0; background: #FFD84D; color: #1A1400; }
+#diag pre { flex: 1; overflow: auto; margin: 0; padding: 12px 16px 24px; font: 11px/1.5 ui-monospace, Menlo, monospace; white-space: pre-wrap; word-break: break-word; -webkit-user-select: text; user-select: text; }
+</style>
+<script>
+/* (diag.py, test copy only) A diary of what the player does, kept on the phone: tap "Test copy" to read it. */
+var DIAG_KEY = "sintonia:diag", diagLines = [], diagTick = 0, diagFrom = "", diagLastTick = Date.now();
+try { diagLines = JSON.parse(localStorage.getItem(DIAG_KEY) || "[]") || []; } catch (e) { diagLines = []; }
+function diagNow() { return new Date().toTimeString().slice(0, 8); }
+function diagSave() { if (diagLines.length > 400) diagLines = diagLines.slice(-400); try { localStorage.setItem(DIAG_KEY, JSON.stringify(diagLines)); } catch (e) {} }
+function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(); }
+(function () {
+  const ios = (navigator.userAgent.match(/OS (\d+)_(\d+)/) || []).slice(1).join(".");
+  dlog("=== app opened" + (ios ? ", iOS " + ios : "") + (navigator.standalone ? ", from the home screen" : "") + " ===");
+  const a = document.getElementById("audio");
+  const how = () => " [ready " + a.readyState + ", net " + a.networkState + (a.paused ? ", paused" : "") + (document.hidden ? ", hidden" : "") + "]";
+  const what = () => { const u = a.currentSrc || a.getAttribute("src") || ""; return u.indexOf("blob:") === 0 ? "silence" : u ? u.replace(/^https?:\/\//, "").split("/")[0] : "-"; };
+  ["loadstart", "playing", "waiting", "stalled", "pause", "ended", "emptied"].forEach((k) => a.addEventListener(k, () => dlog("audio " + k + " · " + what() + how())));
+  a.addEventListener("error", () => dlog("audio ERROR " + (a.error ? a.error.code + " " + (a.error.message || "") : "") + " · " + what() + how()));
+  window.addEventListener("online", () => dlog("network: online"));
+  window.addEventListener("offline", () => dlog("network: offline"));
+  document.addEventListener("visibilitychange", () => dlog(document.hidden ? "screen: hidden (locked, or another app)" : "screen: back"));
+  window.addEventListener("pageshow", (e) => { if (e.persisted) dlog("page back from memory"); });
+  setInterval(() => {
+    const now = Date.now(), gap = now - diagLastTick; diagLastTick = now;
+    if (gap > 6000) dlog("... app asleep about " + Math.round(gap / 1000) + " s ...");
+    if (!document.hidden) return;
+    const t = diagNow(), net = navigator.onLine ? "on" : "off"; // while hidden: one line saying the app is awake, stretched as time goes on
+    if (diagTick) diagLines[diagLines.length - 1] = diagFrom + "  . awake in the background until " + t + " (network " + net + ")";
+    else { diagFrom = t; diagLines.push(t + "  . awake in the background (network " + net + ")"); diagTick = 1; }
+    diagSave();
+  }, 2000);
+  function show() {
+    let p = document.getElementById("diag");
+    if (!p) {
+      p = document.createElement("div"); p.id = "diag";
+      p.innerHTML = '<div class="dg-bar"><b>Player diary</b><button type="button" data-k="copy">Copy</button><button type="button" data-k="clear">Clear</button><button type="button" data-k="x">Close</button></div><pre></pre>';
+      document.body.appendChild(p);
+      p.addEventListener("click", (e) => {
+        const b = e.target.closest && e.target.closest("button"), k = b && b.dataset.k;
+        if (k === "x") p.hidden = true;
+        else if (k === "clear") { diagLines = []; diagSave(); fill(); }
+        else if (k === "copy") {
+          const done = () => { b.textContent = "Copied"; setTimeout(() => { b.textContent = "Copy"; }, 1500); };
+          const pick = () => { const r = document.createRange(); r.selectNodeContents(p.querySelector("pre")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); try { if (document.execCommand("copy")) done(); } catch (err) {} };
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(diagLines.join("\n")).then(done, pick); else pick();
+        }
+      });
+    }
+    function fill() { const pre = p.querySelector("pre"); pre.textContent = diagLines.join("\n") || "(empty)"; pre.scrollTop = pre.scrollHeight; }
+    fill(); p.hidden = false;
+  }
+  const tag = document.querySelector(".testtag");
+  if (tag) { tag.setAttribute("role", "button"); tag.addEventListener("click", show); }
+})();
+</script>
 
 <script>
 (() => {
@@ -4413,7 +4474,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     const dur = (1.1 + rnd() * 1.3).toFixed(2) + "s";
     document.querySelectorAll(".onair .sig-live").forEach((p) => { p.setAttribute("d", d); p.style.setProperty("--sig-dur", dur); });
   }
-  function setState(s) { state = s; document.body.dataset.state = s; document.documentElement.dataset.state = s; tally(); renderPlayer(); }
+  function setState(s) { if (s !== state) dlog("bar: " + state + " -> " + s); state = s; document.body.dataset.state = s; document.documentElement.dataset.state = s; tally(); renderPlayer(); }
 
   function renderPlayer() {
     const st = current ? byId[current] : null;
@@ -4535,7 +4596,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
      plays, so the tries never happened and the radio stayed off until the app was opened. Now, while a station that was
      playing reconnects, the same player plays silence on a loop (made here, so it needs no network): the app stays awake
      and keeps the lock screen, knocks on the station's server in the background, and goes back to the station when it answers. */
-  var bridging = false, silenceUrl = null, probeCtl = null, probeN = 0, selfAt = 0;
+  var bridging = false, silenceUrl = null, probeCtl = null, probeN = 0, selfAt = 0, flowing = false; // flowing: the station's sound is coming through
   function silence() {
     if (silenceUrl) return silenceUrl;
     const rate = 8000, n = rate * 10, buf = new ArrayBuffer(44 + n), v = new DataView(buf); // ten seconds, mono, 8-bit (80 kB)
@@ -4548,25 +4609,38 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   }
   function bridgeOn() {
     if (bridging) return;
+    dlog("silence ON");
     try {
-      bridging = true; dropHls(); selfAt = Date.now();
+      bridging = true; flowing = false; dropHls(); selfAt = Date.now();
       audio.loop = true; audio.src = silence();
-      const p = audio.play(); if (p && p.catch) p.catch((err) => { if (!err || err.name !== "AbortError") bridgeOff(); });
+      const p = audio.play(); if (p && p.catch) p.catch((err) => { dlog("silence play() refused: " + (err && err.name)); if (!err || err.name !== "AbortError") bridgeOff(); });
     } catch (e) { bridgeOff(); }
   }
   function bridgeOff() {
+    if (bridging) dlog("silence off");
     bridging = false; audio.loop = false;
     if (probeCtl) { try { probeCtl.abort(); } catch (e) {} probeCtl = null; }
   }
   function knock(src) { // does the station's server answer? (its first answer is enough; the rest is dropped)
     if (probeCtl) { try { probeCtl.abort(); } catch (e) {} }
-    const ctl = probeCtl = new AbortController(), t = setTimeout(() => ctl.abort(), 10000);
+    const ctl = probeCtl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
     return fetch(src, { mode: "no-cors", cache: "no-store", signal: ctl.signal })
       .then(() => { clearTimeout(t); ctl.abort(); return true; }, () => { clearTimeout(t); return false; });
   }
   function scheduleRetry() {
+    dlog("retry? network " + (navigator.onLine ? "on" : "off") + ", try " + retryN + (bridging ? ", behind the silence" : "") + (retryPending ? ", one already waiting" : ""));
     if (!wanted || !current || retryPending) return; // the error event and the failed play() report the same failure once
+    const justOn = hadPlayed && !bridging;
     if (hadPlayed) bridgeOn();
+    if (bridging) { // behind the silence: knock every 3 seconds, network or not (in the background an iPhone may not say it's back)
+      if (!giveUpAt) giveUpAt = Date.now() + 10 * 60000;
+      if (Date.now() > giveUpAt) { wanted = false; retrying = false; waitingNet = false; stopStream(); setState("error"); return; }
+      retrying = true; waitingNet = navigator.onLine === false;
+      if (state !== "loading") setState("loading"); else renderPlayer();
+      retryPending = true;
+      retryTimer = setTimeout(reconnect, justOn ? 300 : 3000);
+      return;
+    }
     if (navigator.onLine === false) {
       if (!giveUpAt) giveUpAt = Date.now() + 10 * 60000;
       if (Date.now() > giveUpAt) { wanted = false; retrying = false; waitingNet = false; stopStream(); setState("error"); return; }
@@ -4593,8 +4667,10 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     const st = byId[current], id = current;
     if (bridging) {
       if (state !== "loading") setState("loading"); else renderPlayer();
-      const my = ++probeN; // only the latest knock counts
+      const my = ++probeN, k0 = Date.now(); // only the latest knock counts
+      dlog("knock on " + id + "'s server");
       knock(fresh(st.src)).then((ok) => {
+        dlog("knock: " + (ok ? "ANSWERED" : "no answer") + " in " + (Date.now() - k0) + " ms");
         if (my !== probeN || !wanted || current !== id || !bridging) return;
         if (!ok) { scheduleRetry(); return; }
         clearTimeout(retryTimer); retryPending = false;
@@ -4605,8 +4681,9 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     toStation();
   }
   function toStation() {
+    dlog("back to the station " + current);
     const st = byId[current];
-    selfAt = Date.now();
+    selfAt = Date.now(); flowing = false;
     lastMove = Date.now(); lastT = -1;
     dropHls();
     if (isHls(st.src) && (triedHls || !appleHls) && canMse()) { playWithHlsJs(current); return; }
@@ -4617,6 +4694,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   function stopStream() { bridgeOff(); dropHls(); audio.pause(); audio.removeAttribute("src"); audio.load(); }
   function dropHls() { if (hls) { try { hls.destroy(); } catch (e) {} hls = null; } }
   function playFailed(id, err) {
+    dlog("play() refused: " + (err && err.name) + " " + ((err && err.message) || ""));
     if (current !== id || (err && err.name === "AbortError")) return;
     if (err && err.name === "NotAllowedError") { bridgeOff(); wanted = false; retrying = false; setState("paused"); return; }
     if (wanted) { scheduleRetry(); return; }
@@ -4639,6 +4717,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   }
 
   function start(id) {
+    dlog("start " + id);
     const st = byId[id];
     if (!st) return;
     if (arch) archStop();
@@ -4647,7 +4726,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     try { localStorage.setItem(KEY, id); } catch (e) {}
     clearTimeout(retryTimer); retryPending = false;
     wanted = true; retrying = false; hadPlayed = false; retryN = 0; giveUpAt = 0; lastT = -1; lastMove = Date.now();
-    bridgeOff(); selfAt = Date.now();
+    bridgeOff(); selfAt = Date.now(); flowing = false;
     dropHls();
     triedHls = false;
     audio.disableRemotePlayback = false;
@@ -4663,6 +4742,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   }
 
   function stop() {
+    dlog("stop");
     // a live stream is unloaded on stop, so pressing play again returns to the live edge
     wanted = false; retrying = false; waitingNet = false; clearTimeout(retryTimer); retryPending = false;
     bridgeOff();
@@ -4708,12 +4788,18 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
   audio.addEventListener("playing", () => { if (bridging) return; hadPlayed = true; retrying = false; waitingNet = false; retryN = 0; giveUpAt = 0; lastMove = Date.now(); setState("live"); });
   audio.addEventListener("waiting", () => { if (!bridging && state === "live") setState("loading"); });
+  audio.addEventListener("playing", () => { if (!bridging) flowing = true; });
+  audio.addEventListener("waiting", () => { // (bridge2.py) screen locked and the sound ran dry: the silence at once, before the iPhone puts the app to sleep
+    if (!flowing || bridging || !document.hidden || !wanted || !hadPlayed || retryPending) return;
+    dlog("locked and the sound ran dry"); flowing = false; lastMove = Date.now(); scheduleRetry();
+  });
   audio.addEventListener("pause", () => {
     // the system paused us (a call, another app): reflect it in the bar, and don't fight it.
     // (A live stream that "ends" also fires pause first: that's a lost connection, handled by "ended" below.)
     if (audio.ended) return;
     if (Date.now() - selfAt < 1500) return; // the app changing what the player plays, not the system
     if (bridging) { wanted = false; retrying = false; waitingNet = false; clearTimeout(retryTimer); retryPending = false; bridgeOff(); setState("paused"); return; }
+    if (state === "live" && audio.getAttribute("src") && wanted && hadPlayed && audio.readyState < 3) { dlog("paused with an empty buffer: a lost connection"); flowing = false; lastMove = Date.now(); scheduleRetry(); return; } // the sound ran dry: a lost connection, not a pause
     if (state === "live" && audio.getAttribute("src")) { wanted = false; retrying = false; clearTimeout(retryTimer); retryPending = false; setState("paused"); }
   });
   // a live stream that ends has lost its connection: open it again
@@ -4724,7 +4810,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     if (!audio.getAttribute("src") && !hls) return;
     const t = audio.currentTime;
     if (t !== lastT && !audio.paused) { lastT = t; lastMove = Date.now(); return; }
-    if (Date.now() - lastMove > (Date.now() - netAt < 15000 ? 4000 : 8000)) { lastMove = Date.now(); scheduleRetry(); }
+    if (Date.now() - lastMove > (Date.now() - netAt < 15000 ? 4000 : 8000)) { dlog("stuck: the sound stopped moving"); lastMove = Date.now(); scheduleRetry(); }
   }, 3000);
   // the network is back, or the app is back in front: try at once instead of waiting
   window.addEventListener("online", () => { if (wanted && state !== "live") { clearTimeout(retryTimer); retryPending = false; reconnect(); } });
@@ -4770,7 +4856,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       previoustrack: () => step(-1)
     };
     Object.keys(handlers).forEach((k) => {
-      try { navigator.mediaSession.setActionHandler(k, handlers[k]); } catch (e) {}
+      try { navigator.mediaSession.setActionHandler(k, (d) => { dlog("lock screen: " + k); handlers[k](d); }); } catch (e) {}
     });
   }
 
