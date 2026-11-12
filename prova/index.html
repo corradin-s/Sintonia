@@ -4457,7 +4457,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
     let text = "Tap a station to listen";
     if (st) {
-      if (state === "loading") text = retrying ? "Reconnecting…" : "Tuning in…";
+      if (state === "loading") text = waitingNet ? "Waiting for a connection…" : retrying ? "Reconnecting…" : "Tuning in…";
       else if (state === "live") text = "Live from " + st.city;
       else if (state === "error") text = "Can’t reach this station. Try again";
       else text = "Paused · " + st.city;
@@ -4524,8 +4524,25 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
      a stream that ends, fails or stops moving is opened again by itself, at once, then after 2, 4 and 8 seconds,
      then every 15 seconds, for up to 10 minutes. A station that never started gets two tries, then says so. */
   var wanted = false, retrying = false, hadPlayed = false, retryPending = false, retryN = 0, retryTimer = 0, giveUpAt = 0, lastT = -1, lastMove = 0;
+  /* (connect.py) A fresh connection on every new try: the address gets a throwaway mark, so nothing on the way (the
+     browser, a proxy, the station's server) hands back the dead connection. With no network at all the tries aren't
+     spent: the bar says so, and the radio starts again when the network is back (or after a look every 5 seconds). */
+  const fresh = (src) => src + (src.indexOf("?") < 0 ? "?" : "&") + "_s=" + Date.now().toString(36);
+  var netAt = 0, waitingNet = false;
+  const conn = navigator.connection;
+  if (conn && conn.addEventListener) conn.addEventListener("change", () => { netAt = Date.now(); }); // Wi-Fi to mobile, or back (Chrome, Android)
   function scheduleRetry() {
     if (!wanted || !current || retryPending) return; // the error event and the failed play() report the same failure once
+    if (navigator.onLine === false) {
+      if (!giveUpAt) giveUpAt = Date.now() + 10 * 60000;
+      if (Date.now() > giveUpAt) { wanted = false; retrying = false; waitingNet = false; stopStream(); setState("error"); return; }
+      retrying = true; waitingNet = true;
+      if (state !== "loading") setState("loading"); else renderPlayer();
+      retryPending = true;
+      retryTimer = setTimeout(() => { retryPending = false; if (navigator.onLine === false) scheduleRetry(); else reconnect(); }, 5000);
+      return;
+    }
+    waitingNet = false;
     if (!hadPlayed && retryN >= 2) { wanted = false; retrying = false; stopStream(); setState("error"); return; }
     if (!giveUpAt) giveUpAt = Date.now() + 10 * 60000;
     if (Date.now() > giveUpAt) { wanted = false; retrying = false; stopStream(); setState("error"); return; }
@@ -4537,13 +4554,13 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     retryTimer = setTimeout(reconnect, delay === undefined ? 15000 : delay);
   }
   function reconnect() {
-    retryPending = false;
+    retryPending = false; waitingNet = false;
     if (!wanted || !current) return;
     const st = byId[current];
     lastMove = Date.now(); lastT = -1;
     dropHls();
     if (isHls(st.src) && (triedHls || !appleHls) && canMse()) { playWithHlsJs(current); return; }
-    audio.src = st.src;
+    audio.src = isHls(st.src) ? st.src : fresh(st.src);
     const p = audio.play();
     if (p && typeof p.catch === "function") p.catch((err) => playFailed(current, err));
   }
@@ -4596,7 +4613,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
   function stop() {
     // a live stream is unloaded on stop, so pressing play again returns to the live edge
-    wanted = false; retrying = false; clearTimeout(retryTimer); retryPending = false;
+    wanted = false; retrying = false; waitingNet = false; clearTimeout(retryTimer); retryPending = false;
     dropHls();
     audio.pause();
     audio.removeAttribute("src");
@@ -4621,6 +4638,13 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     else start(id);
   };
   $("view-stations").addEventListener("click", onStationTap);
+  const warmed = {};
+  function warm(id) {
+    const st = byId[id]; if (!st) return;
+    try { const o = new URL(st.src).origin; if (warmed[o]) return; warmed[o] = 1; const l = document.createElement("link"); l.rel = "preconnect"; l.href = o; document.head.appendChild(l); } catch (e) {}
+  }
+  ["view-stations", "view-week"].forEach((v) => $(v).addEventListener("pointerdown", (ev) => { const b = ev.target.closest && ev.target.closest(".tune"); if (b && b.parentNode.dataset.id) warm(b.parentNode.dataset.id); }, { passive: true }));
+  try { const last = localStorage.getItem(KEY); if (last) setTimeout(() => warm(last), 1500); } catch (e) {}
   $("view-week").addEventListener("click", onStationTap);
 
   pp.addEventListener("click", () => {
@@ -4630,7 +4654,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     else start(current);
   });
 
-  audio.addEventListener("playing", () => { hadPlayed = true; retrying = false; retryN = 0; giveUpAt = 0; lastMove = Date.now(); setState("live"); });
+  audio.addEventListener("playing", () => { hadPlayed = true; retrying = false; waitingNet = false; retryN = 0; giveUpAt = 0; lastMove = Date.now(); setState("live"); });
   audio.addEventListener("waiting", () => { if (state === "live") setState("loading"); });
   audio.addEventListener("pause", () => {
     // the system paused us (a call, another app): reflect it in the bar, and don't fight it.
@@ -4646,7 +4670,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     if (!audio.getAttribute("src") && !hls) return;
     const t = audio.currentTime;
     if (t !== lastT && !audio.paused) { lastT = t; lastMove = Date.now(); return; }
-    if (Date.now() - lastMove > 12000) { lastMove = Date.now(); scheduleRetry(); }
+    if (Date.now() - lastMove > (Date.now() - netAt < 15000 ? 4000 : 8000)) { lastMove = Date.now(); scheduleRetry(); }
   }, 3000);
   // the network is back, or the app is back in front: try at once instead of waiting
   window.addEventListener("online", () => { if (wanted && state !== "live") { clearTimeout(retryTimer); retryPending = false; reconnect(); } });
