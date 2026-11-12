@@ -3906,12 +3906,21 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     if (!(arch && arch.playing) && !wasOn) setTimeout(() => { if (!(arch && arch.playing) && !c.paused) c.pause(); }, 0); // only while a show plays
   }
   document.addEventListener("pointerup", () => { if (arch && arch.playing) compTouch(); }, true);
+  var seekHandler = null, seekShown = false;
+  function lockSync() { // (lockbar.py) the lock screen: a station is live, with no length, so no progress bar; an archive show keeps its bar
+    if (!("mediaSession" in navigator)) return;
+    if (!arch && navigator.mediaSession.setPositionState) {
+      try { if (wanted) navigator.mediaSession.setPositionState({ duration: Infinity, playbackRate: 1, position: 0 }); else navigator.mediaSession.setPositionState(); } catch (e) {}
+    }
+    const seek = !!(arch && arch.dur); // the bar can be dragged only while an archive show plays
+    if (seek !== seekShown && seekHandler) { seekShown = seek; try { navigator.mediaSession.setActionHandler("seekto", seek ? seekHandler : null); } catch (e) {} }
+  }
   function compSync() {
+    lockSync();
     if (compOff || !comp) return;
     const on = !!(arch && arch.playing);
     if (on && comp.paused) { compAt = Date.now(); const p = comp.play(); if (p && p.catch) p.catch(() => {}); }
     else if (!on && !comp.paused) comp.pause();
-    if (!arch && "mediaSession" in navigator && navigator.mediaSession.setPositionState) { try { navigator.mediaSession.setPositionState(); } catch (e) {} }
   }
 
   // the poster's scroll, on purpose: a show that starts is shown from the top; a list that opens or grows comes into view
@@ -4454,7 +4463,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
     let text = "Tap a station to listen";
     if (st) {
-      if (state === "loading") text = retrying ? "Reconnecting…" : "Tuning in…";
+      if (state === "loading") text = waitingNet ? "Waiting for a connection…" : retrying ? "Reconnecting…" : "Tuning in…";
       else if (state === "live") text = "Live from " + st.city;
       else if (state === "error") text = "Can’t reach this station. Try again";
       else text = "Paused · " + st.city;
@@ -4521,8 +4530,69 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
      a stream that ends, fails or stops moving is opened again by itself, at once, then after 2, 4 and 8 seconds,
      then every 15 seconds, for up to 10 minutes. A station that never started gets two tries, then says so. */
   var wanted = false, retrying = false, hadPlayed = false, retryPending = false, retryN = 0, retryTimer = 0, giveUpAt = 0, lastT = -1, lastMove = 0;
+  /* (connect.py) A fresh connection on every new try: the address gets a throwaway mark, so nothing on the way (the
+     browser, a proxy, the station's server) hands back the dead connection. With no network at all the tries aren't
+     spent: the bar says so, and the radio starts again when the network is back (or after a look every 5 seconds). */
+  const fresh = (src) => src + (src.indexOf("?") < 0 ? "?" : "&") + "_s=" + Date.now().toString(36);
+  var netAt = 0, waitingNet = false;
+  const conn = navigator.connection;
+  if (conn && conn.addEventListener) conn.addEventListener("change", () => { netAt = Date.now(); }); // Wi-Fi to mobile, or back (Chrome, Android)
+  /* (bridge.py) Phone locked, connection lost. With the screen locked an iPhone puts the app to sleep as soon as no sound
+     plays, so the tries never happened and the radio stayed off until the app was opened. Now, while a station that was
+     playing reconnects, the same player plays silence on a loop (made here, so it needs no network): the app stays awake
+     and keeps the lock screen, knocks on the station's server in the background, and goes back to the station when it answers. */
+  var bridging = false, silenceUrl = null, probeCtl = null, probeN = 0, selfAt = 0, flowing = false; // flowing: the station's sound is coming through
+  function silence() {
+    if (silenceUrl) return silenceUrl;
+    const rate = 8000, n = rate * 10, buf = new ArrayBuffer(44 + n), v = new DataView(buf); // ten seconds, mono, 8-bit (80 kB)
+    const w = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    w(0, "RIFF"); v.setUint32(4, 36 + n, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, "data"); v.setUint32(40, n, true);
+    for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+    silenceUrl = URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+    return silenceUrl;
+  }
+  function bridgeOn() {
+    if (bridging) return;
+    try {
+      bridging = true; flowing = false; dropHls(); selfAt = Date.now();
+      audio.loop = true; audio.src = silence();
+      const p = audio.play(); if (p && p.catch) p.catch((err) => { if (!err || err.name !== "AbortError") bridgeOff(); });
+    } catch (e) { bridgeOff(); }
+  }
+  function bridgeOff() {
+    bridging = false; audio.loop = false;
+    if (probeCtl) { try { probeCtl.abort(); } catch (e) {} probeCtl = null; }
+  }
+  function knock(src) { // does the station's server answer? (its first answer is enough; the rest is dropped)
+    if (probeCtl) { try { probeCtl.abort(); } catch (e) {} }
+    const ctl = probeCtl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
+    return fetch(src, { mode: "no-cors", cache: "no-store", signal: ctl.signal })
+      .then(() => { clearTimeout(t); ctl.abort(); return true; }, () => { clearTimeout(t); return false; });
+  }
   function scheduleRetry() {
     if (!wanted || !current || retryPending) return; // the error event and the failed play() report the same failure once
+    const justOn = hadPlayed && !bridging;
+    if (hadPlayed) bridgeOn();
+    if (bridging) { // behind the silence: knock every 3 seconds, network or not (in the background an iPhone may not say it's back)
+      if (!giveUpAt) giveUpAt = Date.now() + 10 * 60000;
+      if (Date.now() > giveUpAt) { wanted = false; retrying = false; waitingNet = false; stopStream(); setState("error"); return; }
+      retrying = true; waitingNet = navigator.onLine === false;
+      if (state !== "loading") setState("loading"); else renderPlayer();
+      retryPending = true;
+      retryTimer = setTimeout(reconnect, justOn ? 300 : 3000);
+      return;
+    }
+    if (navigator.onLine === false) {
+      if (!giveUpAt) giveUpAt = Date.now() + 10 * 60000;
+      if (Date.now() > giveUpAt) { wanted = false; retrying = false; waitingNet = false; stopStream(); setState("error"); return; }
+      retrying = true; waitingNet = true;
+      if (state !== "loading") setState("loading"); else renderPlayer();
+      retryPending = true;
+      retryTimer = setTimeout(() => { retryPending = false; if (navigator.onLine === false) scheduleRetry(); else reconnect(); }, 5000);
+      return;
+    }
+    waitingNet = false;
     if (!hadPlayed && retryN >= 2) { wanted = false; retrying = false; stopStream(); setState("error"); return; }
     if (!giveUpAt) giveUpAt = Date.now() + 10 * 60000;
     if (Date.now() > giveUpAt) { wanted = false; retrying = false; stopStream(); setState("error"); return; }
@@ -4534,21 +4604,37 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     retryTimer = setTimeout(reconnect, delay === undefined ? 15000 : delay);
   }
   function reconnect() {
-    retryPending = false;
+    retryPending = false; waitingNet = false;
     if (!wanted || !current) return;
+    const st = byId[current], id = current;
+    if (bridging) {
+      if (state !== "loading") setState("loading"); else renderPlayer();
+      const my = ++probeN; // only the latest knock counts
+      knock(fresh(st.src)).then((ok) => {
+        if (my !== probeN || !wanted || current !== id || !bridging) return;
+        if (!ok) { scheduleRetry(); return; }
+        clearTimeout(retryTimer); retryPending = false;
+        bridgeOff(); toStation();
+      });
+      return;
+    }
+    toStation();
+  }
+  function toStation() {
     const st = byId[current];
+    selfAt = Date.now(); flowing = false;
     lastMove = Date.now(); lastT = -1;
     dropHls();
     if (isHls(st.src) && (triedHls || !appleHls) && canMse()) { playWithHlsJs(current); return; }
-    audio.src = st.src;
+    audio.src = isHls(st.src) ? st.src : fresh(st.src);
     const p = audio.play();
     if (p && typeof p.catch === "function") p.catch((err) => playFailed(current, err));
   }
-  function stopStream() { dropHls(); audio.pause(); audio.removeAttribute("src"); audio.load(); }
+  function stopStream() { bridgeOff(); dropHls(); audio.pause(); audio.removeAttribute("src"); audio.load(); }
   function dropHls() { if (hls) { try { hls.destroy(); } catch (e) {} hls = null; } }
   function playFailed(id, err) {
     if (current !== id || (err && err.name === "AbortError")) return;
-    if (err && err.name === "NotAllowedError") { wanted = false; retrying = false; setState("paused"); return; }
+    if (err && err.name === "NotAllowedError") { bridgeOff(); wanted = false; retrying = false; setState("paused"); return; }
     if (wanted) { scheduleRetry(); return; }
     setState("error");
   }
@@ -4577,6 +4663,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     try { localStorage.setItem(KEY, id); } catch (e) {}
     clearTimeout(retryTimer); retryPending = false;
     wanted = true; retrying = false; hadPlayed = false; retryN = 0; giveUpAt = 0; lastT = -1; lastMove = Date.now();
+    bridgeOff(); selfAt = Date.now(); flowing = false;
     dropHls();
     triedHls = false;
     audio.disableRemotePlayback = false;
@@ -4593,7 +4680,8 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
   function stop() {
     // a live stream is unloaded on stop, so pressing play again returns to the live edge
-    wanted = false; retrying = false; clearTimeout(retryTimer); retryPending = false;
+    wanted = false; retrying = false; waitingNet = false; clearTimeout(retryTimer); retryPending = false;
+    bridgeOff();
     dropHls();
     audio.pause();
     audio.removeAttribute("src");
@@ -4618,6 +4706,13 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     else start(id);
   };
   $("view-stations").addEventListener("click", onStationTap);
+  const warmed = {};
+  function warm(id) {
+    const st = byId[id]; if (!st) return;
+    try { const o = new URL(st.src).origin; if (warmed[o]) return; warmed[o] = 1; const l = document.createElement("link"); l.rel = "preconnect"; l.href = o; document.head.appendChild(l); } catch (e) {}
+  }
+  ["view-stations", "view-week"].forEach((v) => $(v).addEventListener("pointerdown", (ev) => { const b = ev.target.closest && ev.target.closest(".tune"); if (b && b.parentNode.dataset.id) warm(b.parentNode.dataset.id); }, { passive: true }));
+  try { const last = localStorage.getItem(KEY); if (last) setTimeout(() => warm(last), 1500); } catch (e) {}
   $("view-week").addEventListener("click", onStationTap);
 
   pp.addEventListener("click", () => {
@@ -4627,12 +4722,20 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     else start(current);
   });
 
-  audio.addEventListener("playing", () => { hadPlayed = true; retrying = false; retryN = 0; giveUpAt = 0; lastMove = Date.now(); setState("live"); });
-  audio.addEventListener("waiting", () => { if (state === "live") setState("loading"); });
+  audio.addEventListener("playing", () => { if (bridging) return; hadPlayed = true; retrying = false; waitingNet = false; retryN = 0; giveUpAt = 0; lastMove = Date.now(); setState("live"); });
+  audio.addEventListener("waiting", () => { if (!bridging && state === "live") setState("loading"); });
+  audio.addEventListener("playing", () => { if (!bridging) flowing = true; });
+  audio.addEventListener("waiting", () => { // (bridge2.py) screen locked and the sound ran dry: the silence at once, before the iPhone puts the app to sleep
+    if (!flowing || bridging || !document.hidden || !wanted || !hadPlayed || retryPending) return;
+    flowing = false; lastMove = Date.now(); scheduleRetry();
+  });
   audio.addEventListener("pause", () => {
     // the system paused us (a call, another app): reflect it in the bar, and don't fight it.
     // (A live stream that "ends" also fires pause first: that's a lost connection, handled by "ended" below.)
     if (audio.ended) return;
+    if (Date.now() - selfAt < 1500) return; // the app changing what the player plays, not the system
+    if (bridging) { wanted = false; retrying = false; waitingNet = false; clearTimeout(retryTimer); retryPending = false; bridgeOff(); setState("paused"); return; }
+    if (state === "live" && audio.getAttribute("src") && wanted && hadPlayed && audio.readyState < 3) { flowing = false; lastMove = Date.now(); scheduleRetry(); return; } // the sound ran dry: a lost connection, not a pause
     if (state === "live" && audio.getAttribute("src")) { wanted = false; retrying = false; clearTimeout(retryTimer); retryPending = false; setState("paused"); }
   });
   // a live stream that ends has lost its connection: open it again
@@ -4643,7 +4746,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     if (!audio.getAttribute("src") && !hls) return;
     const t = audio.currentTime;
     if (t !== lastT && !audio.paused) { lastT = t; lastMove = Date.now(); return; }
-    if (Date.now() - lastMove > 12000) { lastMove = Date.now(); scheduleRetry(); }
+    if (Date.now() - lastMove > (Date.now() - netAt < 15000 ? 4000 : 8000)) { lastMove = Date.now(); scheduleRetry(); }
   }, 3000);
   // the network is back, or the app is back in front: try at once instead of waiting
   window.addEventListener("online", () => { if (wanted && state !== "live") { clearTimeout(retryTimer); retryPending = false; reconnect(); } });
@@ -4684,10 +4787,10 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       play: () => { if (arch && arch.id === current) archResume(); else if (current) start(current); },
       pause: () => { if (arch && arch.id === current) archPause(); else stop(); },
       stop: () => { if (arch && arch.id === current) archPause(); else stop(); },
-      seekto: (d) => { if (arch && arch.dur && d && isFinite(d.seekTime) && mcWidget && typeof mcWidget.seek === "function") { arch.pos = Math.max(0, Math.min(arch.dur, d.seekTime)); archBar(); try { mcWidget.seek(arch.pos); } catch (e) {} } },
       nexttrack: () => step(1),
       previoustrack: () => step(-1)
     };
+    seekHandler = (d) => { if (arch && arch.dur && d && isFinite(d.seekTime) && mcWidget && typeof mcWidget.seek === "function") { arch.pos = Math.max(0, Math.min(arch.dur, d.seekTime)); archBar(); try { mcWidget.seek(arch.pos); } catch (e) {} } };
     Object.keys(handlers).forEach((k) => {
       try { navigator.mediaSession.setActionHandler(k, handlers[k]); } catch (e) {}
     });
