@@ -3970,12 +3970,21 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     if (!(arch && arch.playing) && !wasOn) setTimeout(() => { if (!(arch && arch.playing) && !c.paused) c.pause(); }, 0); // only while a show plays
   }
   document.addEventListener("pointerup", () => { if (arch && arch.playing) compTouch(); }, true);
+  var seekHandler = null, seekShown = false;
+  function lockSync() { // (lockbar.py) the lock screen: a station is live, with no length, so no progress bar; an archive show keeps its bar
+    if (!("mediaSession" in navigator)) return;
+    if (!arch && navigator.mediaSession.setPositionState) {
+      try { if (wanted) navigator.mediaSession.setPositionState({ duration: Infinity, playbackRate: 1, position: 0 }); else navigator.mediaSession.setPositionState(); } catch (e) {}
+    }
+    const seek = !!(arch && arch.dur); // the bar can be dragged only while an archive show plays
+    if (seek !== seekShown && seekHandler) { seekShown = seek; try { navigator.mediaSession.setActionHandler("seekto", seek ? seekHandler : null); } catch (e) {} }
+  }
   function compSync() {
+    lockSync();
     if (compOff || !comp) return;
     const on = !!(arch && arch.playing);
     if (on && comp.paused) { compAt = Date.now(); const p = comp.play(); if (p && p.catch) p.catch(() => {}); }
     else if (!on && !comp.paused) comp.pause();
-    if (!arch && "mediaSession" in navigator && navigator.mediaSession.setPositionState) { try { navigator.mediaSession.setPositionState(); } catch (e) {} }
   }
 
   // the poster's scroll, on purpose: a show that starts is shown from the top; a list that opens or grows comes into view
@@ -4851,10 +4860,10 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       play: () => { if (arch && arch.id === current) archResume(); else if (current) start(current); },
       pause: () => { if (arch && arch.id === current) archPause(); else stop(); },
       stop: () => { if (arch && arch.id === current) archPause(); else stop(); },
-      seekto: (d) => { if (arch && arch.dur && d && isFinite(d.seekTime) && mcWidget && typeof mcWidget.seek === "function") { arch.pos = Math.max(0, Math.min(arch.dur, d.seekTime)); archBar(); try { mcWidget.seek(arch.pos); } catch (e) {} } },
       nexttrack: () => step(1),
       previoustrack: () => step(-1)
     };
+    seekHandler = (d) => { if (arch && arch.dur && d && isFinite(d.seekTime) && mcWidget && typeof mcWidget.seek === "function") { arch.pos = Math.max(0, Math.min(arch.dur, d.seekTime)); archBar(); try { mcWidget.seek(arch.pos); } catch (e) {} } };
     Object.keys(handlers).forEach((k) => {
       try { navigator.mediaSession.setActionHandler(k, (d) => { dlog("lock screen: " + k); handlers[k](d); }); } catch (e) {}
     });
