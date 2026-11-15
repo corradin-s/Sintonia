@@ -2,12 +2,11 @@
  "note": "Events shown in This week while they last. Times in UTC; the app shows them in the listener's own time.",
  "events": [
   {
-   "title": "EFG London Jazz Festival, London",
-   "dates": "13 Nov – 22 Nov",
-   "url": "https://efglondonjazzfestival.org.uk/",
-   "until": "2026-11-22T23:59:00Z",
-   "note": "Ten days of jazz across more than 70 London venues, from the Barbican and Royal Festival Hall to small clubs. The opening weekend includes Emma-Jean Thackray's Dear Miles, a Coltrane centenary concert and Goldie's Dare to Dream.",
-   "stations": ["nts1", "nts2", "rinse", "wwfm"],
+   "title": "Corona Capital, Mexico City",
+   "dates": "20 Nov – 22 Nov",
+   "until": "2026-11-23T06:00:00Z",
+   "note": "Three days of rock, pop and electronic music at the Autódromo Hermanos Rodríguez, in its 16th edition. Gorillaz, Twenty One Pilots and The Strokes headline, with The xx, Underworld, James Blake, Tricky, Peaches and Santigold.",
+   "stations": ["nopal"],
    "live": [],
    "shows": []
   }
