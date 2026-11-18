@@ -1182,8 +1182,11 @@ html[data-look="a"] .ai-screen { display: flex; flex-direction: column; gap: 22p
   height: calc(100vh - env(safe-area-inset-bottom, 0px) - 22px); height: calc(100dvh - env(safe-area-inset-bottom, 0px) - 22px); }
 html[data-look="a"] .ai-screen .fp-poster { flex: 1 1 auto; min-height: 0; overflow: hidden; }
 html[data-look="a"] .ai-screen .ai-side { margin-top: 0 !important; flex: none; }
-html[data-look="a"] .ai-screen .ai-ttl { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+html[data-look="a"] .ai-screen .ai-ttl.clamped { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
 html[data-look="a"] .ai-screen .fp-poster .fp-alt { padding-top: 8px; }
+/* (fitshow.py) the song's Copy, when the show's title is the song */
+html[data-look="a"] .fp-meta.has-copy { grid-template-columns: minmax(0, 1fr) auto auto; }
+html[data-look="a"] .fp[data-id] .fp-meta .fp-copy { align-self: center; }
 html[data-pc][data-look="a"] .fp[data-id] .ai-side { margin-top: auto; }
 .ai-edge { display: none; }
 html[data-pc] .ai-edge { display: block; position: relative; flex: none; height: 5px; margin: -22px calc(50% - 50vw) 0; }
@@ -5332,6 +5335,15 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     // the controls in one column (on a computer, the right one)
     const parts = [...fpIn.querySelectorAll(":scope > .fp-bar, :scope > .fp-times, :scope > .fp-ctrl, :scope > .fp-alt, :scope > .fp-acts, :scope > .fp-arch")];
     if (parts.length) { const side = document.createElement("div"); side.className = "ai-side"; parts[0].before(side); side.append(...parts); }
+    { // (fitshow.py) the title is the song: say it once (the Copy goes next to the star)
+      const ttl = fpIn.querySelector(".ai-ttl"), trk = fpIn.querySelector(".fp-poster .fp-track"), sb = trk && trk.querySelector("b");
+      const songT = sb ? sb.textContent.trim().toLowerCase() : "";
+      if (ttl && trk && songT && ttl.textContent.toLowerCase().includes(songT)) {
+        const cp = trk.querySelector(".fp-copy"), meta = fpIn.querySelector(".fp-poster .fp-meta"), star = meta && meta.querySelector(".fp-star");
+        if (cp && meta) { meta.classList.add("has-copy"); if (star) star.before(cp); else meta.appendChild(cp); }
+        trk.remove();
+      }
+    }
     if (document.documentElement.hasAttribute("data-pc") && !fpWide.matches) { // (fixctrl.py) on a phone: one screen, the controls at a fixed height
       const scrn = document.createElement("div"); scrn.className = "ai-screen";
       const side = fpIn.querySelector(":scope > .ai-side"), posterEl = fpIn.querySelector(":scope > .fp-poster");
@@ -5341,6 +5353,21 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       const ar = side && side.querySelector(".fp-arch");
       if (side) scrn.appendChild(side);
       if (ar) scrn.after(ar);
+      // (fitshow.py) all of the show in the room it has: a smaller title, and if need be the song card and the suggestion give way
+      if (posterEl) {
+        const t = posterEl.querySelector(".ai-ttl"), over = () => posterEl.scrollHeight > posterEl.clientHeight + 1;
+        for (let n = 0; t && over() && n < 16; n++) {
+          const fs = parseFloat(getComputedStyle(t).fontSize);
+          if (fs <= 20) break;
+          t.style.fontSize = Math.max(20, Math.floor(fs * 0.92)) + "px";
+        }
+        [".fp-track", ".fp-alt"].forEach((q) => { const el = posterEl.querySelector(q); if (el && over()) el.remove(); });
+        if (t && over()) { // the very last resort: as many whole lines as fit, ending in "…"
+          const lh = parseFloat(getComputedStyle(t).lineHeight) || parseFloat(getComputedStyle(t).fontSize) * 1.05;
+          const room = t.clientHeight - (posterEl.scrollHeight - posterEl.clientHeight);
+          t.classList.add("clamped"); t.style.webkitLineClamp = String(Math.max(1, Math.floor(room / lh)));
+        }
+      }
     }
     const i = fpIn.querySelector(".fp-bar .fp-line i");
     veil.style.transition = "none";
