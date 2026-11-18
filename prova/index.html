@@ -1172,6 +1172,9 @@ html[data-pc][data-look="a"] .fp[data-id] .ai-side { margin-top: auto; }
 .ai-edge { display: none; }
 html[data-pc] .ai-edge { display: block; position: relative; flex: none; height: 5px; margin: -22px calc(50% - 50vw) 0; }
 html[data-pc] .ai-edge i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--c); transition: width .6s linear; }
+@media (min-width: 700px) and (min-aspect-ratio: 5/4) { /* on a computer the poster is a grid: the line goes in the colour's own row, under its edge */
+  html[data-pc][data-look="a"] .ai-edge { grid-column: 1 / -1; grid-row: 1; align-self: end; margin: 0 calc(50% - 50vw) calc(clamp(22px, 4.4vh, 46px) - 5px); }
+}
 html[data-pc] .ai-edge i::after { content: ""; position: absolute; right: -1px; top: 0; width: 2px; height: 15px; background: var(--c); }
 html[data-pc] .ai-edge i[style*="width: 0%"]::after, html[data-pc] .ai-edge i:not([style])::after { content: none; }
 html[data-look="a"] .fp[data-id] { background: var(--pg-bg); color: var(--pg-ink); --ink: var(--pg-ink); --bg: var(--pg-bg); --muted: var(--pg-muted); --line: var(--pg-line); }
