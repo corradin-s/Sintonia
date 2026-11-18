@@ -1158,7 +1158,6 @@ html[data-look="a"] .search input::placeholder { color: var(--ink); opacity: .66
 
 /* ---------- the poster ---------- */
 /* (posterabc.py) A: the horizon carries the movement, so not the poster's own rise */
-html[data-pa] .fp:not([hidden]) { animation: none; }
 .hz-ghost { pointer-events: none; overflow: hidden; }
 .hz-line { position: fixed; left: 0; right: 0; height: 2px; z-index: 40; pointer-events: none; }
 html[data-look="a"] .fp.hz-opening[data-id] { background: transparent; }
@@ -3909,7 +3908,6 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     fpLastKey = "";
     renderFP();
     fp.scrollTop = 0;
-    if (hzOn()) hzOpen();
   }
   // while the poster is open, the browser's bar takes the station's colour; back to the page's when it closes
   let tcWas = "";
@@ -3933,7 +3931,6 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   }
   function closePlayer() {
     if (hzClosing) return;
-    if (hzOn() && !fp.hidden) { fpOpen = false; hzClose(); return; }
     closeNow();
   }
   function closeNow() {
