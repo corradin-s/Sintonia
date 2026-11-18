@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-look="a">
+<html lang="en" data-look="a" data-pa data-pb data-pc>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -1157,6 +1157,22 @@ html[data-look="a"] .search svg { width: 20px; height: 20px; stroke-width: 2; }
 html[data-look="a"] .search input::placeholder { color: var(--ink); opacity: .66; }
 
 /* ---------- the poster ---------- */
+/* (posterabc.py) A: the horizon carries the movement, so not the poster's own rise */
+html[data-pa] .fp:not([hidden]) { animation: none; }
+.hz-ghost { pointer-events: none; overflow: hidden; }
+.hz-line { position: fixed; left: 0; right: 0; height: 2px; z-index: 40; pointer-events: none; }
+/* C: time on the edge, a taller colour, the controls at the bottom */
+html[data-pc] .ai-veil { display: none; }
+/* B: at dawn and dusk a warm light rises from the line */
+html[data-pb][data-look="a"] .ai-field::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(to top, rgba(255, 128, 48, calc(.36 * var(--warm, 0))) 0%, rgba(255, 150, 70, calc(.14 * var(--warm, 0))) 38%, rgba(255, 150, 70, 0) 72%); }
+html[data-pc][data-look="a"] .ai-field { min-height: clamp(260px, 52vh, 540px); }
+html[data-pc][data-look="a"] .fp[data-id] .ai-side { margin-top: auto; }
+.ai-edge { display: none; }
+html[data-pc] .ai-edge { display: block; position: relative; flex: none; height: 5px; margin: -22px calc(50% - 50vw) 0; }
+html[data-pc] .ai-edge i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--c); transition: width .6s linear; }
+html[data-pc] .ai-edge i::after { content: ""; position: absolute; right: -1px; top: 0; width: 2px; height: 15px; background: var(--c); }
+html[data-pc] .ai-edge i[style*="width: 0%"]::after, html[data-pc] .ai-edge i:not([style])::after { content: none; }
 html[data-look="a"] .fp[data-id] { background: var(--pg-bg); color: var(--pg-ink); --ink: var(--pg-ink); --bg: var(--pg-bg); --muted: var(--pg-muted); --line: var(--pg-line); }
 html[data-look="a"] .fp[data-id]::before, html[data-look="a"] .fp[data-id]::after { content: none; }
 html[data-look="a"] .fp[data-id] .fp-in { padding-top: 0; gap: 22px; }
@@ -1651,7 +1667,42 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   <div id="sheet-body"></div>
 </section>
 
-<section class="fp" id="fp" role="dialog" aria-modal="true" aria-labelledby="fp-title" hidden><div class="fp-in" id="fp-in"></div></section>
+<section class="fp" id="fp" role="dialog" aria-modal="true" aria-labelledby="fp-title" hidden><div class="fp-in" id="fp-in"></div>
+<div class="abc" id="abc"><button type="button" data-k="pa">A orizzonte</button><button type="button" data-k="pb">B luce</button><button type="button" data-k="pc">C bordo</button><button type="button" data-k="hour">Ora: vera</button></div></section>
+<style>
+.abc { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); z-index: 35; display: flex; gap: 4px; align-items: center;
+  padding: 5px; border-radius: 999px; background: rgba(12, 13, 17, .86); color: #F3EFE6; font: 600 11px/1 system-ui, -apple-system, sans-serif;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 6px 20px rgba(0, 0, 0, .35); white-space: nowrap; }
+.abc button { appearance: none; -webkit-appearance: none; border: 1px solid rgba(243, 239, 230, .35); background: none; color: inherit; font: inherit; padding: 8px 10px; border-radius: 999px; cursor: pointer; }
+.abc button[aria-pressed="true"] { background: #FFD84D; border-color: #FFD84D; color: #1A1400; }
+html.fp-on .fp .fp-in { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 76px) !important; }
+</style>
+<script>
+/* (abcswitch.py, test copy only) the poster ideas on and off, and the hours of the day for B */
+(function () {
+  var R = document.documentElement, KEY = "sintonia:abc", HOURS = [[null, "vera"], [6.6, "alba"], [12.5, "mezzogiorno"], [18.7, "tramonto"], [2, "notte"]], hi = 0, saved = null;
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+  if (saved) ["pa", "pb", "pc"].forEach(function (k) { if (saved[k]) R.setAttribute("data-" + k, ""); else R.removeAttribute("data-" + k); });
+  var bar = document.getElementById("abc");
+  function show() {
+    bar.querySelectorAll("button").forEach(function (b) {
+      var k = b.dataset.k;
+      if (k === "hour") { b.textContent = "Ora: " + HOURS[hi][1]; b.setAttribute("aria-pressed", hi ? "true" : "false"); }
+      else b.setAttribute("aria-pressed", R.hasAttribute("data-" + k) ? "true" : "false");
+    });
+  }
+  bar.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    var k = b.dataset.k;
+    if (k === "hour") { hi = (hi + 1) % HOURS.length; window.__simHour = HOURS[hi][0] == null ? undefined : HOURS[hi][0]; }
+    else { if (R.hasAttribute("data-" + k)) R.removeAttribute("data-" + k); else R.setAttribute("data-" + k, ""); }
+    try { localStorage.setItem(KEY, JSON.stringify({ pa: R.hasAttribute("data-pa"), pb: R.hasAttribute("data-pb"), pc: R.hasAttribute("data-pc") })); } catch (x) {}
+    show();
+    window.dispatchEvent(new Event("resize")); // the poster redraws itself
+  });
+  show();
+})();
+</script>
 <div id="mcx" aria-label="Mixcloud player"></div>
 <section class="cp" id="cp" role="dialog" aria-modal="true" aria-labelledby="cp-title" hidden><div class="cp-in" id="cp-in"></div></section>
 
@@ -3754,13 +3805,80 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   };
   const fpIcon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true">${FPI[k]}</svg>`;
 
+  /* (posterabc.py) A: the horizon. Every movement happens on the line between the colour and the page. */
+  var hzBusy = false, hzQueued = false, hzClosing = false, hzSwap = null, hzTimer = 0;
+  const hzOn = () => document.documentElement.hasAttribute("data-pa") && typeof fp.animate === "function" &&
+    !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  function hzSeam() { const f = fpIn.querySelector(".ai-field"); return f ? Math.round(f.getBoundingClientRect().bottom) : Math.round(innerHeight * 0.45); }
+  // two bands: one from t to a (the colour), one from b to e (the page)
+  const hzClip = (t, a, b, e) => `polygon(0 ${t}px, 100% ${t}px, 100% ${a}px, 0 ${a}px, 0 ${b}px, 100% ${b}px, 100% ${e}px, 0 ${e}px)`;
+  function hzDone(ms) { clearTimeout(hzTimer); hzTimer = setTimeout(() => { hzBusy = false; if (hzQueued) { hzQueued = false; renderFP(); } }, ms); }
+  function hzOpen() {
+    const sm = hzSeam(), H = fp.clientHeight || innerHeight;
+    hzBusy = true;
+    fp.animate([{ clipPath: hzClip(0, 0, H, H) }, { clipPath: hzClip(0, sm, sm, H) }], { duration: 560, easing: "cubic-bezier(.72, 0, .18, 1)" });
+    const big = fpIn.querySelector(".ai-big");
+    if (big) big.animate([{ transform: "translateY(108%)" }, { transform: "none" }], { duration: 560, delay: 400, easing: "cubic-bezier(.16, .84, .24, 1)", fill: "backwards" });
+    [...fpIn.children].filter((el) => !el.classList.contains("ai-field") && !el.classList.contains("ai-edge")).forEach((el, i) =>
+      el.animate([{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "none" }], { duration: 360, delay: 470 + i * 60, easing: "ease-out", fill: "backwards" }));
+    hzDone(1000);
+  }
+  function hzClose() {
+    hzClosing = true; hzBusy = true; clearTimeout(hzTimer);
+    const sm = hzSeam(), H = fp.clientHeight || innerHeight, st = current ? byId[current] : null;
+    const big = fpIn.querySelector(".ai-big");
+    if (big) big.animate([{ transform: "none" }, { transform: "translateY(108%)" }], { duration: 230, easing: "cubic-bezier(.55, 0, .9, .45)", fill: "forwards" });
+    const shut = fp.animate([{ clipPath: hzClip(0, sm, sm, H) }, { clipPath: hzClip(sm, sm, sm, sm) }], { duration: 380, delay: 150, easing: "cubic-bezier(.7, 0, .3, 1)", fill: "forwards" });
+    shut.onfinish = () => {
+      // the line that's left drops to the player bar
+      const dock = document.querySelector(".dock"), to = dock ? Math.round(dock.getBoundingClientRect().top) : innerHeight;
+      const line = document.createElement("div"); line.className = "hz-line"; line.style.top = sm + "px";
+      line.style.background = st ? st.dot : "var(--ink)"; document.body.appendChild(line);
+      hzShut();
+      const m = line.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(" + (to - sm) + "px)", opacity: 0.9, offset: 0.85 }, { transform: "translateY(" + (to - sm) + "px)", opacity: 0 }], { duration: 360, easing: "cubic-bezier(.5, 0, .2, 1)" });
+      m.onfinish = m.oncancel = () => line.remove();
+    };
+  }
+  function hzShut() { // the end of the closing: hidden, and nothing of it left on the poster
+    hzClosing = false; hzBusy = false; hzQueued = false;
+    closeNow();
+    fp.getAnimations().forEach((a) => a.cancel());
+    fpIn.querySelectorAll(".ai-big").forEach((el) => el.getAnimations().forEach((a) => a.cancel()));
+  }
+  function hzPrep(dir) { // forward or back: a still copy of the colour as it is, to go under the new one
+    const f = fpIn.querySelector(".ai-field"); if (!f || hzClosing) return;
+    const r = f.getBoundingClientRect(), cs = getComputedStyle(f), g = f.cloneNode(true);
+    g.classList.add("hz-ghost");
+    Object.assign(g.style, { position: "fixed", left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px", minHeight: "0", margin: "0", zIndex: "0",
+      boxSizing: "border-box", padding: [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft].join(" "), background: cs.backgroundColor, color: cs.color });
+    const gb = g.querySelector(".ai-big"); if (gb) gb.style.color = getComputedStyle(f.querySelector(".ai-big")).color;
+    hzSwap = { dir, g, at: Date.now() };
+  }
+  function hzRunSwap() {
+    const sw = hzSwap; hzSwap = null;
+    const f = fpIn.querySelector(".ai-field");
+    if (!f || Date.now() - sw.at > 1500) return;
+    hzBusy = true;
+    fp.appendChild(sw.g);
+    const gb = sw.g.querySelector(".ai-big");
+    if (gb) gb.animate([{ transform: "none" }, { transform: "translateY(108%)" }], { duration: 300, easing: "cubic-bezier(.55, 0, .9, .45)", fill: "forwards" });
+    const hh = f.offsetHeight, band = Math.max(0, hh - 4), from = sw.dir > 0 ? `inset(${band}px 0 0 100%)` : `inset(${band}px 100% 0 0)`;
+    f.animate([{ clipPath: from }, { clipPath: `inset(${band}px 0 0 0)`, offset: 0.42 }, { clipPath: "inset(0 0 0 0)" }], { duration: 680, easing: "cubic-bezier(.6, 0, .3, 1)" });
+    const big = f.querySelector(".ai-big");
+    if (big) big.animate([{ transform: "translateY(108%)" }, { transform: "none" }], { duration: 480, delay: 470, easing: "cubic-bezier(.16, .84, .24, 1)", fill: "backwards" });
+    setTimeout(() => sw.g.remove(), 720);
+    hzDone(980);
+  }
   function openPlayer() {
+    if (hzClosing) hzShut();
     if (!current) return;
     fpOpen = true;
     document.documentElement.classList.add("fp-on"); // the page behind doesn't scroll (and shows no scrollbar of its own)
     fp.hidden = false; // visible first, so the name can be measured
+    fpLastKey = "";
     renderFP();
     fp.scrollTop = 0;
+    if (hzOn()) hzOpen();
   }
   // while the poster is open, the browser's bar takes the station's colour; back to the page's when it closes
   let tcWas = "";
@@ -3783,7 +3901,12 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     else if (tcWas) { tc.setAttribute("content", tcWas); tcWas = ""; }
   }
   function closePlayer() {
-    fpOpen = false;
+    if (hzClosing) return;
+    if (hzOn() && !fp.hidden) { fpOpen = false; hzClose(); return; }
+    closeNow();
+  }
+  function closeNow() {
+    fpOpen = false; fpLastKey = "";
     document.documentElement.classList.remove("fp-on");
     fp.hidden = true;
     themeTo("");
@@ -4020,6 +4143,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     if (by > 2) fp.scrollBy({ top: by, behavior: fpCalm() ? "auto" : "smooth" });
   }
   function renderFP() {
+    if (hzBusy) { hzQueued = true; return; } // (posterabc.py) once the horizon has moved
     const st = current ? byId[current] : null;
     if (!st) { closePlayer(); return; }
     const A = arch && arch.id === st.id ? arch : null;
@@ -4079,9 +4203,14 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     h += archHTML(st, A, onAir);
     fp.style.setProperty("--fc", st.dot);
     fp.dataset.id = st.id; // its colours and rings
-    const ground = readableGround(st.c, st.t);
+    const ground = placeLight(readableGround(st.c, st.t), st.t, st.tz);
     if (ground !== st.c) fp.style.setProperty("--c", ground); else fp.style.removeProperty("--c");
     themeTo(ground);
+    const warmth = placeWarm(st.tz).toFixed(2); fp.style.setProperty("--warm", warmth);
+    // (posterabc.py) nothing on it changed: the poster stays as it is, with no redraw and no jump
+    const R = document.documentElement, fpKey = [h, ground, warmth, innerWidth, innerHeight, document.fonts ? document.fonts.status : "", R.hasAttribute("data-pa"), R.hasAttribute("data-pc")].join("|");
+    if (fpKey === fpLastKey && fpIn.firstChild) return;
+    fpLastKey = fpKey;
     // redrawn without losing your place: the poster can't get shorter while its new title is measured
     const y = fp.scrollTop;
     fpIn.style.minHeight = fpIn.offsetHeight + "px";
@@ -4090,6 +4219,39 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     fitCover();
     fpIn.style.minHeight = "";
     if (fp.scrollTop !== y) fp.scrollTop = y;
+    if (hzSwap) hzRunSwap();
+  }
+  /* (posterabc.py) B: the light of the place. The hour in the station's city sets the poster's colour: full at midday, deeper at
+     night, a little warmer at dawn and dusk. Always the station's own colour, and its text keeps reading on it. */
+  var fpLastKey = "";
+  function placeHour(tz) {
+    if (typeof window.__simHour === "number") return window.__simHour;
+    const t = hhmm(Date.now(), tz); if (!t) return 12;
+    const p = t.split(":"); return +p[0] + (+p[1]) / 60;
+  }
+  function placeWarm(tz) { // dawn and dusk: a warm light rising from the horizon line
+    if (!document.documentElement.hasAttribute("data-pb")) return 0;
+    const h = placeHour(tz);
+    return Math.min(1, Math.max(0, 1 - Math.abs(h - 6.8) / 1.6) + Math.max(0, 1 - Math.abs(h - 18.7) / 1.6));
+  }
+  function placeLight(c, t, tz) {
+    if (!document.documentElement.hasAttribute("data-pb")) return c;
+    const h = placeHour(tz), ramp = (x, a, b) => Math.max(0, Math.min(1, (x - a) / (b - a)));
+    const night = h < 12 ? 1 - ramp(h, 4, 6.5) : ramp(h, 19.5, 22.5);
+    const mix = (a, b, k) => { const A = rgbOf(a), B = rgbOf(b); return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, "0")).join(""); };
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const hsl = (x) => { const [r, g, b] = rgbOf(x).map((v) => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2; let hh = 0, ss = 0;
+      if (mx !== mn) { const d = mx - mn; ss = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); hh = (mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4) / 6; }
+      return [hh, ss, l]; };
+    const hex = (hh, ss, l) => { const q = (n) => { const k = (n + hh * 12) % 12, a = ss * Math.min(l, 1 - l); return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+      return "#" + [q(0), q(8), q(4)].map((v) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, "0")).join(""); };
+    const need = Math.min(4.5, ratio(c, t));
+    for (let k = 1; k > 0.04; k -= 0.12) {
+      let x = c;
+      if (night > 0) { const [hh, ss, l] = hsl(x); x = hex(hh, ss > 0.3 ? Math.min(1, ss * (1 + 0.3 * night * k)) : ss, l * (1 - 0.36 * night * k)); } // night: deeper, not greyer
+      if (ratio(x, t) >= need) return x;
+    }
+    return c;
   }
   const fpWide = window.matchMedia("(min-width: 700px) and (min-aspect-ratio: 5/4)");
   function fitCover() { // the poster's title as big as it goes: no word cut, and no more than about 40% of the screen's height
@@ -4787,6 +4949,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   /* (livealt.py) The stations live right now: a DJ on air, not a rerun or the station's playlist */
   function liveIds(except) { return stations.filter((x) => x.id !== except && live[x.id] && live[x.id].onAir).map((x) => x.id); }
   function step(dir) { // forward and back go through the stations live right now, or through all of them when none is
+    if (fpOpen && !fp.hidden && hzOn()) hzPrep(dir);
     const others = liveIds(current);
     if (others.length) {
       const pool = stations.filter((x) => x.id === current || others.includes(x.id));
@@ -5065,7 +5228,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const bl = big.querySelector(".ai-bl"), below = big.offsetHeight - bl.offsetTop; // from the baseline to the foot of the block (the mark is measured from the name's own box)
     big.style.marginBottom = (knock ? -(below + 2) : -below + (wide ? 34 : 22)) + "px";
   }
-  function aVeil(w) { const v = fpIn.querySelector(".ai-veil"); if (v) v.style.width = w; }
+  function aVeil(w) { const v = fpIn.querySelector(".ai-veil"); if (v) v.style.width = w; const e = fpIn.querySelector(".ai-edge i"); if (e) e.style.width = w; }
   // the poster: the field of colour at the top (the close, where it's from, the station's name), the show, the controls
   function lookPoster(st, A, info) {
     const top = fpIn.querySelector(".fp-top"); if (!top) return;
@@ -5073,6 +5236,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     field.className = "ai-field" + (A && A.dur ? " can-drag" : ""); veil.className = "ai-veil"; big.className = "ai-big"; big.setAttribute("aria-hidden", "true");
     veil.setAttribute("aria-hidden", "true");
     fpIn.insertBefore(field, top); field.append(veil, top, big);
+    const edge = document.createElement("div"); edge.className = "ai-edge"; edge.setAttribute("aria-hidden", "true"); edge.innerHTML = "<i></i>"; field.after(edge);
     aName(field, big, st);
     // the show: its title (or, with no show listed, what the station plays), and the song under it
     const hasShow = !!(A || (info && info.title));
@@ -5108,6 +5272,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     veil.style.transition = "none";
     veil.style.width = aDrag && aDrag.on ? (aDrag.k * 100).toFixed(2) + "%" : i ? i.style.width || "0%" : "0%";
     void veil.offsetWidth; veil.style.transition = "";
+    const ei = edge.firstChild; ei.style.transition = "none"; ei.style.width = veil.style.width; void ei.offsetWidth; ei.style.transition = "";
   }
   // the veil follows the show between redraws (an archive show moves every moment)
   setInterval(() => { if (fp.hidden || (aDrag && aDrag.on)) return; const i = fpIn.querySelector(".fp-bar .fp-line i"); aVeil(i ? i.style.width || "0%" : "0%"); }, 400);
