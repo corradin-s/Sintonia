@@ -1187,6 +1187,10 @@ html[data-look="a"] .ai-screen .fp-poster .fp-alt { padding-top: 8px; }
 /* (fitshow.py) the song's Copy, when the show's title is the song */
 html[data-look="a"] .fp-meta.has-copy { grid-template-columns: minmax(0, 1fr) auto auto; }
 html[data-look="a"] .fp[data-id] .fp-meta .fp-copy { align-self: center; }
+/* the times row too: one height for every station, with or without a show's times */
+html[data-look="a"] .ai-screen .ai-side > .fp-bar, html[data-look="a"] .ai-screen .ai-side > .fp-times { box-sizing: border-box; height: 34px; min-height: 0; display: flex; align-items: center; }
+html[data-look="a"] .ai-screen .ai-side > .fp-bar > .fp-times { flex: 1; display: flex; align-items: center; justify-content: space-between; }
+html[data-look="a"] .ai-screen .ai-side > .fp-bar.arch { height: auto; display: grid; }
 html[data-pc][data-look="a"] .fp[data-id] .ai-side { margin-top: auto; }
 .ai-edge { display: none; }
 html[data-pc] .ai-edge { display: block; position: relative; flex: none; height: 5px; margin: -22px calc(50% - 50vw) 0; }
