@@ -1164,6 +1164,13 @@ html[data-look="a"] .fp.hz-opening[data-id] { background: transparent; }
 .hz-page { position: absolute; left: 0; right: 0; z-index: 0; background: var(--pg-bg, var(--bg)); pointer-events: none; }
 /* C: time on the edge, a taller colour, the controls at the bottom */
 html[data-pc] .ai-veil { display: none; }
+/* (scredge.py) the time runs round the screen's edge, not under the colour */
+html[data-pc] .ai-edge { display: none !important; }
+.scr { display: none; }
+html[data-pc] .fp:not([hidden]) .scr.on { display: block; position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 33; pointer-events: none; overflow: visible; }
+.scr-l { fill: none; stroke-width: 3; stroke-linecap: round; }
+.scr-l.up, .scr-d.up { stroke: var(--scr-up); fill: none; } .scr-d.up { fill: var(--scr-up); stroke: none; }
+.scr-l.dn { stroke: var(--scr-dn); } .scr-d.dn { fill: var(--scr-dn); stroke: none; }
 /* B: at dawn and dusk a warm light rises from the line */
 html[data-pb][data-look="a"] .ai-field::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background: linear-gradient(to top, rgba(255, 128, 48, calc(.36 * var(--warm, 0))) 0%, rgba(255, 150, 70, calc(.14 * var(--warm, 0))) 38%, rgba(255, 150, 70, 0) 72%); }
@@ -1671,7 +1678,9 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   <div id="sheet-body"></div>
 </section>
 
-<section class="fp" id="fp" role="dialog" aria-modal="true" aria-labelledby="fp-title" hidden><div class="fp-in" id="fp-in"></div></section>
+<section class="fp" id="fp" role="dialog" aria-modal="true" aria-labelledby="fp-title" hidden><div class="fp-in" id="fp-in"></div>
+<svg class="scr" id="scr" aria-hidden="true"><defs><clipPath id="scr-up"><rect id="scr-up-r" x="0" y="0" width="0" height="0"/></clipPath><clipPath id="scr-dn"><rect id="scr-dn-r" x="0" y="0" width="0" height="0"/></clipPath></defs>
+<g clip-path="url(#scr-up)"><path class="scr-l up"/><circle class="scr-d up" r="4.5"/></g><g clip-path="url(#scr-dn)"><path class="scr-l dn"/><circle class="scr-d dn" r="4.5"/></g></svg></section>
 <div id="mcx" aria-label="Mixcloud player"></div>
 <section class="cp" id="cp" role="dialog" aria-modal="true" aria-labelledby="cp-title" hidden><div class="cp-in" id="cp-in"></div></section>
 
@@ -3905,7 +3914,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     closeNow();
   }
   function closeNow() {
-    fpOpen = false; fpLastKey = "";
+    fpOpen = false; fpLastKey = ""; scrFor = ""; $("scr").classList.remove("on");
     document.documentElement.classList.remove("fp-on");
     fp.hidden = true;
     themeTo("");
@@ -4219,6 +4228,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     fpIn.style.minHeight = "";
     if (fp.scrollTop !== y) fp.scrollTop = y;
     if (hzSwap) hzRunSwap();
+    { const li = fpIn.querySelector(".fp-bar .fp-line i"); scrSet(li ? parseFloat(li.style.width) / 100 : 0); }
   }
   /* (posterabc.py) B: the light of the place. The hour in the station's city sets the poster's colour: full at midday, deeper at
      night, a little warmer at dawn and dusk. Always the station's own colour, and its text keeps reading on it. */
@@ -5227,7 +5237,53 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const bl = big.querySelector(".ai-bl"), below = big.offsetHeight - bl.offsetTop; // from the baseline to the foot of the block (the mark is measured from the name's own box)
     big.style.marginBottom = (knock ? -(below + 2) : -below + (wide ? 34 : 22)) + "px";
   }
-  function aVeil(w) { const v = fpIn.querySelector(".ai-veil"); if (v) v.style.width = w; const e = fpIn.querySelector(".ai-edge i"); if (e) e.style.width = w; }
+  function aVeil(w) { const v = fpIn.querySelector(".ai-veil"); if (v) v.style.width = w; const e = fpIn.querySelector(".ai-edge i"); if (e) e.style.width = w; scrSet(parseFloat(w) / 100); }
+  /* (scredge.py) the show's time round the screen's edge: clockwise from the top centre, a dot for now */
+  const scr = $("scr"), scrL = scr.querySelectorAll(".scr-l"), scrD = scr.querySelectorAll(".scr-d");
+  let scrLen = 0, scrK = 0, scrShown = 0, scrFor = "", scrTween = 0, scrWH = "";
+  function scrShape() { // the screen's outline, a little inside its edge; round corners in the app on the iPhone
+    const W = innerWidth, H = fp.clientHeight || innerHeight, wh = W + "x" + H;
+    if (wh === scrWH) return;
+    scrWH = wh; scr.setAttribute("viewBox", "0 0 " + W + " " + H);
+    const app = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone, i = 1.5, r = app ? 50 : 0;
+    const d = `M${W / 2} ${i}H${W - i - r}` + (r ? `A${r} ${r} 0 0 1 ${W - i} ${i + r}` : "") + `V${H - i - r}` + (r ? `A${r} ${r} 0 0 1 ${W - i - r} ${H - i}` : "") +
+      `H${i + r}` + (r ? `A${r} ${r} 0 0 1 ${i} ${H - i - r}` : "") + `V${i + r}` + (r ? `A${r} ${r} 0 0 1 ${i + r} ${i}` : "") + `H${W / 2}`;
+    scrL.forEach((p) => p.setAttribute("d", d));
+    scrLen = scrL[0].getTotalLength();
+    ["scr-up-r", "scr-dn-r"].forEach((id) => $(id).setAttribute("width", W));
+  }
+  function scrSeam() { // over the colour, the station's ink; over the page, its colour
+    const fl = fpIn.querySelector(".ai-field"), H = fp.clientHeight || innerHeight, y = fl ? Math.max(0, Math.min(H, fl.getBoundingClientRect().bottom)) : 0;
+    $("scr-up-r").setAttribute("height", y); $("scr-dn-r").setAttribute("y", y); $("scr-dn-r").setAttribute("height", Math.max(0, H - y));
+  }
+  function scrDraw(k) {
+    scrShown = k;
+    const n = Math.max(0, Math.min(1, k)) * scrLen;
+    scrL.forEach((p) => { p.style.strokeDasharray = n.toFixed(1) + " " + (scrLen + 10).toFixed(1); });
+    const pt = scrLen ? scrL[0].getPointAtLength(n) : { x: 0, y: 0 };
+    scrD.forEach((c) => { c.setAttribute("cx", pt.x.toFixed(1)); c.setAttribute("cy", pt.y.toFixed(1)); });
+  }
+  function scrSet(k) {
+    if (!document.documentElement.hasAttribute("data-pc") || fp.hidden) return;
+    const st = current ? byId[current] : null;
+    k = isFinite(k) ? k : 0;
+    scr.classList.toggle("on", !!st && k > 0);
+    if (!st || k <= 0) { scrFor = ""; return; }
+    scrShape(); scrSeam();
+    const fl = fpIn.querySelector(".ai-field");
+    scr.style.setProperty("--scr-up", st.t); scr.style.setProperty("--scr-dn", st.dot);
+    scrK = k;
+    if (scrFor !== st.id) { // a new station: the line draws itself again from the top
+      scrFor = st.id; cancelAnimationFrame(scrTween);
+      const t0 = performance.now(), dur = 900, wait = hzBusy ? 900 : 120;
+      const run = (now) => { const u = Math.max(0, Math.min(1, (now - t0 - wait) / dur)); scrDraw(scrK * (1 - Math.pow(1 - u, 3))); if (u < 1) scrTween = requestAnimationFrame(run); };
+      scrDraw(0); scrTween = requestAnimationFrame(run);
+      return;
+    }
+    if (!scrTween || scrShown >= scrK - 0.002) scrDraw(k);
+  }
+  fp.addEventListener("scroll", () => { if (scr.classList.contains("on")) scrSeam(); }, { passive: true });
+  window.addEventListener("resize", () => { scrWH = ""; if (!fp.hidden) scrSet(scrK); });
   // the poster: the field of colour at the top (the close, where it's from, the station's name), the show, the controls
   function lookPoster(st, A, info) {
     const top = fpIn.querySelector(".fp-top"); if (!top) return;
