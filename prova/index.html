@@ -1161,6 +1161,8 @@ html[data-look="a"] .search input::placeholder { color: var(--ink); opacity: .66
 html[data-pa] .fp:not([hidden]) { animation: none; }
 .hz-ghost { pointer-events: none; overflow: hidden; }
 .hz-line { position: fixed; left: 0; right: 0; height: 2px; z-index: 40; pointer-events: none; }
+html[data-look="a"] .fp.hz-opening[data-id] { background: transparent; }
+.hz-page { position: absolute; left: 0; right: 0; z-index: 0; background: var(--pg-bg, var(--bg)); pointer-events: none; }
 /* C: time on the edge, a taller colour, the controls at the bottom */
 html[data-pc] .ai-veil { display: none; }
 /* B: at dawn and dusk a warm light rises from the line */
@@ -3813,18 +3815,47 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   // two bands: one from t to a (the colour), one from b to e (the page)
   const hzClip = (t, a, b, e) => `polygon(0 ${t}px, 100% ${t}px, 100% ${a}px, 0 ${a}px, 0 ${b}px, 100% ${b}px, 100% ${e}px, 0 ${e}px)`;
   function hzDone(ms) { clearTimeout(hzTimer); hzTimer = setTimeout(() => { hzBusy = false; if (hzQueued) { hzQueued = false; renderFP(); } }, ms); }
-  function hzOpen() {
-    const sm = hzSeam(), H = fp.clientHeight || innerHeight;
-    hzBusy = true;
-    fp.animate([{ clipPath: hzClip(0, 0, H, H) }, { clipPath: hzClip(0, sm, sm, H) }], { duration: 560, easing: "cubic-bezier(.72, 0, .18, 1)" });
-    const big = fpIn.querySelector(".ai-big");
-    if (big) big.animate([{ transform: "translateY(108%)" }, { transform: "none" }], { duration: 560, delay: 400, easing: "cubic-bezier(.16, .84, .24, 1)", fill: "backwards" });
-    [...fpIn.children].filter((el) => !el.classList.contains("ai-field") && !el.classList.contains("ai-edge")).forEach((el, i) =>
-      el.animate([{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "none" }], { duration: 360, delay: 470 + i * 60, easing: "ease-out", fill: "backwards" }));
-    hzDone(1000);
+  function hzOpen() { // the line rises from the player bar to where the colour meets the page, and the poster opens from it
+    const field = fpIn.querySelector(".ai-field"); if (!field) return;
+    const sm = hzSeam(), H = fp.clientHeight || innerHeight, st = current ? byId[current] : null;
+    const dock = document.querySelector(".dock"), from = dock ? Math.round(dock.getBoundingClientRect().top) : H;
+    hzBusy = true; clearTimeout(hzTimer);
+    // the very first frame is already the start: none of the poster, only the line on the player bar
+    fp.classList.add("hz-opening");
+    const page = document.createElement("div"); page.className = "hz-page";
+    page.style.top = sm + "px"; page.style.height = Math.max(fp.scrollHeight, H) - sm + "px"; page.style.clipPath = "inset(0 0 100% 0)";
+    fp.appendChild(page);
+    const rest = [...fpIn.children].filter((el) => el !== field && !el.classList.contains("ai-edge"));
+    rest.forEach((el) => { el.style.opacity = "0"; });
+    field.style.clipPath = "inset(100% 0 0 0)";
+    const big = field.querySelector(".ai-big"); if (big) big.style.transform = "translateY(108%)";
+    const line = document.createElement("div"); line.className = "hz-line";
+    line.style.top = sm + "px"; line.style.background = st ? st.dot : "var(--ink)"; line.style.transform = "translateY(" + (from - sm) + "px)";
+    document.body.appendChild(line);
+    const clean = () => {
+      field.style.clipPath = ""; if (big) big.style.transform = ""; rest.forEach((el) => { el.style.opacity = ""; });
+      [field, big, page, ...rest].forEach((el) => { if (el) el.getAnimations().forEach((a) => a.cancel()); });
+      page.remove(); line.remove(); fp.classList.remove("hz-opening");
+    };
+    requestAnimationFrame(() => {
+      const E = "cubic-bezier(.7, 0, .2, 1)";
+      line.animate([{ transform: "translateY(" + (from - sm) + "px)" }, { transform: "none" }], { duration: 300, easing: "cubic-bezier(.25, .8, .25, 1)", fill: "forwards" });
+      line.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, delay: 560, fill: "forwards" });
+      field.animate([{ clipPath: "inset(100% 0 0 0)" }, { clipPath: "inset(0 0 0 0)" }], { duration: 460, delay: 250, easing: E, fill: "both" });
+      page.animate([{ clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0 0)" }], { duration: 460, delay: 250, easing: E, fill: "both" });
+      if (big) big.animate([{ transform: "translateY(108%)" }, { transform: "none" }], { duration: 520, delay: 540, easing: "cubic-bezier(.16, .84, .24, 1)", fill: "both" });
+      rest.forEach((el, i) => el.animate([{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "none" }], { duration: 320, delay: 600 + i * 50, easing: "ease-out", fill: "both" }));
+      hzTimer = setTimeout(() => {
+        clean();
+        if (!fpOpen || hzClosing) return;
+        hzBusy = false; if (hzQueued) { hzQueued = false; renderFP(); }
+      }, 1120);
+    });
   }
   function hzClose() {
     hzClosing = true; hzBusy = true; clearTimeout(hzTimer);
+    document.querySelectorAll(".hz-page, .hz-line").forEach((el) => el.remove()); fp.classList.remove("hz-opening");
+    fpIn.querySelectorAll("[style]").forEach((el) => { el.style.opacity = ""; el.style.clipPath = ""; });
     const sm = hzSeam(), H = fp.clientHeight || innerHeight, st = current ? byId[current] : null;
     const big = fpIn.querySelector(".ai-big");
     if (big) big.animate([{ transform: "none" }, { transform: "translateY(108%)" }], { duration: 230, easing: "cubic-bezier(.55, 0, .9, .45)", fill: "forwards" });
