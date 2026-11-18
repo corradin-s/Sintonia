@@ -1668,42 +1668,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   <div id="sheet-body"></div>
 </section>
 
-<section class="fp" id="fp" role="dialog" aria-modal="true" aria-labelledby="fp-title" hidden><div class="fp-in" id="fp-in"></div>
-<div class="abc" id="abc"><button type="button" data-k="pa">A orizzonte</button><button type="button" data-k="pb">B luce</button><button type="button" data-k="pc">C bordo</button><button type="button" data-k="hour">Ora: vera</button></div></section>
-<style>
-.abc { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); z-index: 35; display: flex; gap: 4px; align-items: center;
-  padding: 5px; border-radius: 999px; background: rgba(12, 13, 17, .86); color: #F3EFE6; font: 600 11px/1 system-ui, -apple-system, sans-serif;
-  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 6px 20px rgba(0, 0, 0, .35); white-space: nowrap; }
-.abc button { appearance: none; -webkit-appearance: none; border: 1px solid rgba(243, 239, 230, .35); background: none; color: inherit; font: inherit; padding: 8px 10px; border-radius: 999px; cursor: pointer; }
-.abc button[aria-pressed="true"] { background: #FFD84D; border-color: #FFD84D; color: #1A1400; }
-html.fp-on .fp .fp-in { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 76px) !important; }
-</style>
-<script>
-/* (abcswitch.py, test copy only) the poster ideas on and off, and the hours of the day for B */
-(function () {
-  var R = document.documentElement, KEY = "sintonia:abc", HOURS = [[null, "vera"], [6.6, "alba"], [12.5, "mezzogiorno"], [18.7, "tramonto"], [2, "notte"]], hi = 0, saved = null;
-  try { saved = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
-  if (saved) ["pa", "pb", "pc"].forEach(function (k) { if (saved[k]) R.setAttribute("data-" + k, ""); else R.removeAttribute("data-" + k); });
-  var bar = document.getElementById("abc");
-  function show() {
-    bar.querySelectorAll("button").forEach(function (b) {
-      var k = b.dataset.k;
-      if (k === "hour") { b.textContent = "Ora: " + HOURS[hi][1]; b.setAttribute("aria-pressed", hi ? "true" : "false"); }
-      else b.setAttribute("aria-pressed", R.hasAttribute("data-" + k) ? "true" : "false");
-    });
-  }
-  bar.addEventListener("click", function (e) {
-    var b = e.target.closest("button"); if (!b) return;
-    var k = b.dataset.k;
-    if (k === "hour") { hi = (hi + 1) % HOURS.length; window.__simHour = HOURS[hi][0] == null ? undefined : HOURS[hi][0]; }
-    else { if (R.hasAttribute("data-" + k)) R.removeAttribute("data-" + k); else R.setAttribute("data-" + k, ""); }
-    try { localStorage.setItem(KEY, JSON.stringify({ pa: R.hasAttribute("data-pa"), pb: R.hasAttribute("data-pb"), pc: R.hasAttribute("data-pc") })); } catch (x) {}
-    show();
-    window.dispatchEvent(new Event("resize")); // the poster redraws itself
-  });
-  show();
-})();
-</script>
+<section class="fp" id="fp" role="dialog" aria-modal="true" aria-labelledby="fp-title" hidden><div class="fp-in" id="fp-in"></div></section>
 <div id="mcx" aria-label="Mixcloud player"></div>
 <section class="cp" id="cp" role="dialog" aria-modal="true" aria-labelledby="cp-title" hidden><div class="cp-in" id="cp-in"></div></section>
 
@@ -3897,7 +3862,10 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const big = f.querySelector(".ai-big");
     if (big) big.animate([{ transform: "translateY(108%)" }, { transform: "none" }], { duration: 480, delay: 470, easing: "cubic-bezier(.16, .84, .24, 1)", fill: "backwards" });
     setTimeout(() => sw.g.remove(), 720);
-    hzDone(980);
+    // C with A: once the new name has risen, the show's time draws itself along the line, up to now
+    const ei = fpIn.querySelector(".ai-edge i"), w = ei ? ei.style.width : "";
+    if (ei && w && w !== "0%") ei.animate([{ width: "0%" }, { width: w }], { duration: 520, delay: 900, easing: "cubic-bezier(.3, .6, .2, 1)", fill: "backwards" });
+    hzDone(1460);
   }
   function openPlayer() {
     if (hzClosing) hzShut();
