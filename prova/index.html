@@ -1677,6 +1677,25 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       <p class="set-note" id="name-note">Shown in the greeting at the top. It stays on this phone.</p>
     </form>
 
+    <div class="set-card" id="lock-test">
+      <span class="set-k">Test: lock screen</span>
+      <p class="set-note">Three ways of telling the iPhone that a station is live. Pick one, play a station, lock the phone: is there a progress bar?</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+        <button type="button" class="set-link" data-lv="zero" style="border:1px solid currentColor;border-radius:999px;padding:8px 14px;background:none;color:inherit">A · length 0</button>
+        <button type="button" class="set-link" data-lv="none" style="border:1px solid currentColor;border-radius:999px;padding:8px 14px;background:none;color:inherit">B · nothing</button>
+        <button type="button" class="set-link" data-lv="inf" style="border:1px solid currentColor;border-radius:999px;padding:8px 14px;background:none;color:inherit">C · endless</button>
+      </div>
+      <script>
+      (function () {
+        var box = document.getElementById("lock-test");
+        function show() { var v = "zero"; try { v = localStorage.getItem("sintonia:lockvar") || "zero"; } catch (e) {}
+          box.querySelectorAll("[data-lv]").forEach(function (b) { var on = b.dataset.lv === v; b.style.background = on ? "#FFD84D" : "none"; b.style.color = on ? "#1A1400" : "inherit"; b.style.borderColor = on ? "#FFD84D" : "currentColor"; }); }
+        box.addEventListener("click", function (e) { var b = e.target.closest("[data-lv]"); if (!b) return; try { localStorage.setItem("sintonia:lockvar", b.dataset.lv); } catch (x) {} show(); });
+        show();
+      })();
+      </script>
+    </div>
+
     <div class="set-card">
       <span class="set-k">Privacy</span>
       <p class="set-note">No accounts, no ads, no analytics. What Sintonia sends, what stays on this phone and how to delete it.</p>
@@ -4141,7 +4160,12 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   function lockSync() { // (lockbar.py) the lock screen: a station is live, with no length, so no progress bar; an archive show keeps its bar
     if (!("mediaSession" in navigator)) return;
     if (!arch && navigator.mediaSession.setPositionState) {
-      try { if (wanted) navigator.mediaSession.setPositionState({ duration: Infinity, playbackRate: 1, position: 0 }); else navigator.mediaSession.setPositionState(); } catch (e) {}
+      let v = "zero"; try { v = localStorage.getItem("sintonia:lockvar") || "zero"; } catch (e) {} // (locktest.py) which way the lock screen is told
+      try {
+        if (!wanted || v === "none") navigator.mediaSession.setPositionState();
+        else if (v === "zero") navigator.mediaSession.setPositionState({ duration: 0, playbackRate: 1, position: 0 });
+        else navigator.mediaSession.setPositionState({ duration: Infinity, playbackRate: 1, position: 0 });
+      } catch (e) {}
     }
     const seek = !!(arch && arch.dur); // the bar can be dragged only while an archive show plays
     if (seek !== seekShown && seekHandler) { seekShown = seek; try { navigator.mediaSession.setActionHandler("seekto", seek ? seekHandler : null); } catch (e) {} }
