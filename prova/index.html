@@ -5044,6 +5044,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   // not live right now: why, and one station that is (picked at random, so none is favoured; the same while it stays live)
   var altPick = null, altFor = "", altHidden = "";
   function altWhy() {
+    return ""; // (noalt.py) no other station suggested: "Rerun" or "Can't reach this station" already say it isn't live
     if (!current || altHidden === current || (arch && arch.id === current)) return "";
     const info = live[current];
     if (state === "error") return "Off air";
