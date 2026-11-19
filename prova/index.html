@@ -471,6 +471,9 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 [data-id="ehfm"]     { --c:#00B398; --t:#001427; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:-10%; --oy:50%; --gap:11px; --dot:#00B398; }
 [data-id="setagaya"] { --c:#C30000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:15%; --oy:-20%; --gap:10px; --dot:#FF3B3B; }
 .name.keepcase { text-transform: none; }
+/* black tiles on the dark ground and white tiles on the light one keep a hairline edge, so they never melt into the page */
+:root:not([data-theme="light"]) :is([data-id="nts1"],[data-id="alhara"],[data-id="tirkultura"],[data-id="wwfm"],[data-id="kiosk"],[data-id="hanoi"],[data-id="ida"],[data-id="sonic"],[data-id="nopal"],[data-id="super45"],[data-id="rinse"]).tile:not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(255,255,255,.11); }
+:root[data-theme="light"] :is([data-id="nts2"],[data-id="lithium"],[data-id="noods"],[data-id="raheem"]).tile:not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(0,0,0,.11); }
 
 /* ---------- Glass and glow: stations are tinted glass; the one you play lights up and colours the app ---------- */
 html { background: var(--bg); }
@@ -4295,9 +4298,12 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const hex = (hh, ss, l) => { const q = (n) => { const k = (n + hh * 12) % 12, a = ss * Math.min(l, 1 - l); return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
       return "#" + [q(0), q(8), q(4)].map((v) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, "0")).join(""); };
     const need = Math.min(4.5, ratio(c, t));
+    const [h0, s0] = hsl(c);
+    if (s0 < 0.08) return c; // black and white stations stay black and white at night (a white poster turned grey looks dirty)
+    const deep = h0 > 0.11 && h0 < 0.2 ? 0.14 : 0.36; // yellows only dim a touch: darker yellow turns olive
     for (let k = 1; k > 0.04; k -= 0.12) {
       let x = c;
-      if (night > 0) { const [hh, ss, l] = hsl(x); x = hex(hh, ss > 0.3 ? Math.min(1, ss * (1 + 0.3 * night * k)) : ss, l * (1 - 0.36 * night * k)); } // night: deeper, not greyer
+      if (night > 0) { const [hh, ss, l] = hsl(x); x = hex(hh, ss > 0.3 ? Math.min(1, ss * (1 + 0.3 * night * k)) : ss, l * (1 - deep * night * k)); } // night: deeper, not greyer
       if (ratio(x, t) >= need) return x;
     }
     return c;
