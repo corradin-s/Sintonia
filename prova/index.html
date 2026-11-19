@@ -746,6 +746,22 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
   padding: 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); color: var(--ink); font: inherit; font-weight: 600; font-size: 15px;
 }
 .sh-opt span { color: var(--muted); font-weight: 400; }
+/* (locask.py) the first-time suggestion to appear on the map: a strip of the map's dots, you in red, a line to a station */
+.wh-map { display: block; width: 100%; height: auto; margin: 4px 0 -4px; overflow: visible; }
+.wh-map .d { fill: var(--tick-2); }
+.wh-map .ln { stroke-width: 1.2; fill: none; stroke-dasharray: 3 3; }
+.wh-map .wh-me { fill: var(--live); }
+.wh-map .wh-ping { fill: none; stroke: var(--live); stroke-width: 1.2; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .wh-map .wh-ping { animation: wh-ping 2.2s ease-out infinite; }
+  @keyframes wh-ping { from { transform: scale(1); opacity: .9; } to { transform: scale(3.4); opacity: 0; } }
+}
+.wh-lead { margin: 0; font-size: 16px; line-height: 1.45; max-width: 46ch; }
+.wh-small { margin: 0; font-size: 13px; line-height: 1.45; color: var(--muted); max-width: 52ch; }
+.wh-acts { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.wh-yes { appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; font: inherit; font-size: 15px; font-weight: 600; background: var(--ink); color: var(--bg); }
+.wh-no { appearance: none; -webkit-appearance: none; border: 1px solid var(--line); border-radius: 999px; padding: 11px 18px; cursor: pointer; font: inherit; font-size: 15px; font-weight: 500; background: none; color: var(--ink); }
+.wh-yes:focus-visible, .wh-no:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 /* ---------- "The sound of…" city page ---------- */
 .cp { position: fixed; inset: 0; z-index: 34; background: var(--bg); color: var(--ink); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
@@ -1998,6 +2014,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   // withdrawing consent: the dot leaves the map for everyone, and the position saved on this phone is deleted
   function stopSharing() {
     locTok++; me = null; locState = "none";
+    try { localStorage.setItem("sintonia:whereasked", "1"); } catch (e) {} // (locask.py) whoever stopped sharing is never asked again
     try { localStorage.removeItem(POS_KEY); } catch (e) {}
     clearTimeout(trackTimer); sentSig = "";
     if (channel) channel.untrack().catch(() => {});
@@ -3711,6 +3728,37 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     else if (sheetOpen === "info") renderInfo(sheetId);
     else if (sheetOpen === "share") renderShare(sheetId);
     else if (sheetOpen === "privacy") renderPrivacy();
+    else if (sheetOpen === "where") renderWhere();
+  }
+  // (locask.py) the first time: would you like to be on the map? Asked once; the phone's own permission comes only after "Use my location"
+  function renderWhere() {
+    if (sheetBody.querySelector(".wh-map")) return;
+    const cols = 26, rows = 5, gap = 12, w = (cols - 1) * gap + 8, h = (rows - 1) * gap + 8;
+    const ids = stations.filter((x) => { const m = String(x.dot || "").match(/^#(..)(..)(..)$/); if (!m) return false; const v = m.slice(1).map((h) => parseInt(h, 16)); return Math.max(...v) - Math.min(...v) > 60; }).map((x) => x.id), a = byId[ids[(Math.random() * ids.length) | 0]], b = byId[ids[(Math.random() * ids.length) | 0]];
+    const P = (c, r) => [4 + c * gap, 4 + r * gap];
+    let dots = "";
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) if ((c * 7 + r * 3) % 11 !== 0) dots += `<circle class="d" cx="${P(c, r)[0]}" cy="${P(c, r)[1]}" r="1.6"/>`;
+    const [mx, my] = P(9, 2), [ax, ay] = P(3, 1), [bx, by] = P(21, 3);
+    sheetBody.innerHTML = '<div class="sheet-in sheet-pad">' +
+      `<svg class="wh-map" viewBox="0 0 ${w} ${h}" aria-hidden="true">${dots}` +
+      `<path class="ln" d="M${mx} ${my} Q ${(mx + bx) / 2} ${my - 18} ${bx} ${by}" stroke="${b.dot}"/><circle cx="${ax}" cy="${ay}" r="3.2" fill="${a.dot}"/><circle cx="${bx}" cy="${by}" r="3.2" fill="${b.dot}"/>` +
+      `<circle class="wh-ping" cx="${mx}" cy="${my}" r="3"/><circle class="wh-me" cx="${mx}" cy="${my}" r="3.6"/></svg>` +
+      '<h2 class="sh-title" id="sheet-title">Where are you listening from?</h2>' +
+      '<p class="wh-lead">Turn on your location and a red dot appears on Sintonia’s map, among everyone else who’s listening right now.</p>' +
+      `<p class="wh-small">${esc(SHARE_NOTE)} You can stop sharing whenever you like, from the map.</p>` +
+      '<div class="wh-acts"><button class="wh-yes" type="button" data-act="where-yes">Use my location</button><button class="wh-no" type="button" data-act="where-no">Not now</button></div></div>';
+  }
+  const WHERE_KEY = "sintonia:whereasked";
+  function maybeAskWhere() {
+    if (me || !("geolocation" in navigator) || readKey(WHERE_KEY)) return;
+    if (!helloCard.hidden || !sheet.hidden || !$("fp").hidden || document.hidden) { setTimeout(maybeAskWhere, 1500); return; } // after the name card, never over anything else
+    const ask = () => { writeKey(WHERE_KEY, "1"); openSheet("where"); };
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: "geolocation" }).then((q) => {
+        if (q.state !== "prompt") writeKey(WHERE_KEY, "1"); // already allowed or refused in the phone's settings: nothing to suggest (and never shared without a tap)
+        else ask();
+      }).catch(ask);
+    } else ask();
   }
 
   // the privacy notice: read from privacy.html, the same page that opens on its own
@@ -3807,6 +3855,8 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     else if (act === "link") { shareStation(id); return; }
     else if (act === "info") { openSheet("info", id); return; }
     else if (act === "copy") { copyText(a.dataset.q); return; }
+    else if (act === "where-yes") { closeSheet(); go("map"); locate(false); return; } // (locask.py)
+    else if (act === "where-no") { closeSheet(); return; }
     else if (act === "clear") { heard = []; writeKey(HEARD_KEY, "[]"); }
     renderSheet();
   });
@@ -5549,6 +5599,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     if (saved && byId[saved]) current = saved;
   } catch (e) {}
   if (fromHomeScreen && !readKey(NAME_KEY) && !readKey(ASKED_KEY)) openHello();
+  setTimeout(maybeAskWhere, 2500); // (locask.py)
   const deep = location.hash.match(/^#station=([a-z0-9-]+)$/i);
   if (deep && byId[deep[1]]) { current = deep[1]; try { localStorage.setItem(KEY, current); } catch (e) {} }
   setState(current ? "paused" : "idle");
