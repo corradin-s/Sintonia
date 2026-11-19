@@ -849,6 +849,8 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
   background: none; color: var(--muted); font-size: 14px; font-weight: 600;
 }
 .seg button[aria-checked="true"] { background: var(--ink); color: var(--bg); }
+.seg.two { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* (locset.py) */
+.seg button[aria-busy="true"] { opacity: .6; }
 .seg button:focus-visible, .bgs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .bgs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .bgs button {
@@ -1693,6 +1695,15 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       <div class="bgs" id="bgs" role="radiogroup" aria-labelledby="bg-k"></div>
     </div>
 
+    <div class="set-card" id="loc-set">
+      <span class="set-k" id="loc-k">Location</span>
+      <div class="seg two" role="radiogroup" aria-labelledby="loc-k">
+        <button type="button" role="radio" data-loc="on" aria-checked="false">On the map</button>
+        <button type="button" role="radio" data-loc="off" aria-checked="true">Off</button>
+      </div>
+      <p class="set-note" id="loc-set-note"></p>
+    </div>
+
     <form class="set-card" id="name-form">
       <label class="set-k" for="set-name">Your name</label>
       <div class="hello-row">
@@ -1816,7 +1827,17 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   try { const v = JSON.parse(localStorage.getItem(POS_KEY) || "null"); if (v && isFinite(v.lat) && isFinite(v.lon)) me = v; } catch (e) {}
   let locState = me ? "ok" : "none"; // none | asking | ok | denied | failed
 
+  function renderLocSet() { // (locset.py) the same switch in Settings
+    const on = locState === "ok" && !!me, n = $("loc-set-note");
+    document.querySelectorAll("[data-loc]").forEach((b) => { b.setAttribute("aria-checked", String((b.dataset.loc === "on") === on)); b.removeAttribute("aria-busy"); });
+    if (locState === "asking") { document.querySelector("[data-loc=on]").setAttribute("aria-busy", "true"); n.textContent = "Finding you…"; }
+    else if (on) n.textContent = "You’re a red dot on the map. " + SHARE_NOTE;
+    else if (locState === "denied") n.textContent = "Location is off for Sintonia on this iPhone. Allow it in Settings › Privacy & Security › Location Services › Safari Websites, then try again.";
+    else if (locState === "failed") n.textContent = "Couldn’t find you. Check that Location Services is on, then try again.";
+    else n.textContent = "Turn it on to appear as a red dot on the map, among everyone who’s listening. Rounded to about 50 km.";
+  }
   function renderLocate() {
+    renderLocSet();
     const t = $("loc-title"), p = $("loc-text"), b = $("loc-btn");
     b.disabled = false; b.className = "btn";
     $("loc-stop").hidden = !(locState === "ok" && me);
@@ -2644,6 +2665,11 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   }));
   $("loc-btn").addEventListener("click", () => locate(false));
   $("loc-stop").addEventListener("click", stopSharing);
+  document.querySelectorAll("[data-loc]").forEach((b) => b.addEventListener("click", () => { // (locset.py)
+    const on = locState === "ok" && !!me;
+    if (b.dataset.loc === "on" && (!on || locState === "denied")) { try { localStorage.setItem("sintonia:whereasked", "1"); } catch (e) {} locate(false); }
+    else if (b.dataset.loc === "off" && on) stopSharing();
+  }));
   $("privacy-link").addEventListener("click", (e) => { e.preventDefault(); openSheet("privacy"); });
   window.addEventListener("hashchange", () => showView(viewFromHash()));
 
@@ -2671,6 +2697,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     });
     const input = $("set-name");
     if (document.activeElement !== input) input.value = readKey(NAME_KEY);
+    renderLocSet(); // (locset.py)
   }
   if (window.matchMedia) {
     const mq = window.matchMedia("(prefers-color-scheme: light)");
