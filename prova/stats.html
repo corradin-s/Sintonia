@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Visite · Sintonia</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0C0D11">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=7">
+<link rel="stylesheet" href="fonts.css">
+<script>
+/* the same theme as the app */
+(function () {
+  var pref = "dark";
+  try { pref = localStorage.getItem("sintonia:theme") || "dark"; } catch (e) {}
+  var light = pref === "light" || (pref === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches);
+  document.documentElement.setAttribute("data-theme", light ? "light" : "dark");
+})();
+</script>
+<style>
+:root { color-scheme: dark; --bg: #0C0D11; --bg-2: #15171E; --ink: #F3EFE6; --muted: #9B9BA8; --line: #2B2E39; --new: #FF4D3F;
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", sans-serif; --f-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+:root[data-theme="light"] { color-scheme: light; --bg: #F1F2F4; --bg-2: #FFFFFF; --ink: #15171C; --muted: #5E6371; --line: #D9DCE2; --new: #E5352B; }
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45;
+  -webkit-text-size-adjust: 100%; font-variant-numeric: tabular-nums;
+  padding: calc(env(safe-area-inset-top, 0px) + 20px) max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 48px) max(16px, env(safe-area-inset-left, 0px));
+}
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 40px; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+
+/* top line: where you are, and the range */
+.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.mark { font-family: var(--f-display); font-weight: 900; font-stretch: 125%; font-size: 15px; letter-spacing: -.01em; text-decoration: none; }
+.mark small { font-family: var(--f-body); font-weight: 500; font-stretch: 100%; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-left: 8px; }
+.range { display: flex; gap: 2px; }
+.range button { appearance: none; border: 0; background: none; padding: 6px 10px; border-radius: 999px; cursor: pointer;
+  font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.range button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+/* the three numbers: as big as the screen allows */
+.big { display: grid; gap: 22px; }
+.fig { display: grid; gap: 4px; }
+.fig b { font-family: var(--f-display); font-weight: 900; font-stretch: 62%; font-size: clamp(96px, 34vw, 230px); line-height: .78; letter-spacing: -.02em; }
+.fig span { font-size: 13px; color: var(--muted); max-width: 30ch; }
+.fig span strong { color: var(--ink); font-weight: 600; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.pair .fig b { font-size: clamp(56px, 17vw, 120px); }
+.fig.new b { color: var(--new); }
+
+/* each block: a small title and a rule, no boxes */
+.blk { display: grid; gap: 14px; }
+.blk h2 { margin: 0; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+  display: flex; justify-content: space-between; gap: 10px; }
+.blk h2 i { font-style: normal; letter-spacing: .06em; text-transform: none; font-weight: 500; }
+
+/* days: one column per day, the new people at its foot in red */
+.days { position: relative; }
+.days svg { display: block; width: 100%; height: 190px; overflow: visible; }
+.days .tip { position: absolute; top: -4px; transform: translateX(-50%); font-size: 12px; white-space: nowrap; pointer-events: none; padding: 3px 7px; border-radius: 6px;
+  background: var(--ink); color: var(--bg); font-weight: 600; opacity: 0; transition: opacity .12s; }
+.days .tip.on { opacity: 1; }
+.days .ax { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+.key { display: flex; gap: 16px; font-size: 12px; color: var(--muted); }
+.key i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; background: var(--ink); }
+.key i.n { background: var(--new); }
+
+/* lists: name, a hairline bar, the number */
+.rows { display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
+.rows li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: baseline; }
+.rows .nm { font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
+.rows .nm em { font-style: normal; font-weight: 400; color: var(--muted); font-size: 12px; margin-left: 6px; }
+.rows .n { font-family: var(--f-display); font-weight: 800; font-stretch: 75%; font-size: 22px; line-height: 1; }
+.rows .bar { grid-column: 1 / -1; height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.rows .bar span { display: block; height: 100%; background: var(--ink); border-radius: 2px; }
+.rows .bar span.n2 { background: var(--new); }
+
+/* hours: 24 thin columns */
+.hours svg { display: block; width: 100%; height: 90px; }
+.hours .ax { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+.split { display: grid; gap: 40px; }
+@media (min-width: 700px) { .split { grid-template-columns: 1fr 1fr; gap: 32px; } }
+
+.note { font-size: 13px; color: var(--muted); max-width: 60ch; }
+.note b { color: var(--ink); font-weight: 600; }
+.msg { font-size: 17px; max-width: 40ch; }
+.msg small { display: block; margin-top: 8px; font-size: 13px; color: var(--muted); }
+.foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+.foot button { appearance: none; border: 0; background: none; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; color: var(--muted); font-size: 12px; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <a class="mark" href="./">Sintonìa<small>visite</small></a>
+    <div class="range" role="group" aria-label="Periodo">
+      <button type="button" data-d="7" aria-pressed="false">7 giorni</button>
+      <button type="button" data-d="30" aria-pressed="true">30 giorni</button>
+      <button type="button" data-d="90" aria-pressed="false">90 giorni</button>
+    </div>
+  </div>
+
+  <p class="msg" id="msg" hidden></p>
+
+  <div id="out" hidden>
+    <section class="big">
+      <div class="fig"><b id="today">0</b><span><strong>persone oggi</strong>, ognuna contata una volta sola anche se apre Sintonìa più volte</span></div>
+      <div class="pair">
+        <div class="fig new"><b id="newc">0</b><span><strong>persone nuove</strong> <span id="newc-l">negli ultimi 30 giorni</span>: aprono Sintonìa per la prima volta</span></div>
+        <div class="fig"><b id="avg">0</b><span><strong>al giorno</strong>, in media <span id="avg-l">negli ultimi 30 giorni</span></span></div>
+      </div>
+    </section>
+
+    <section class="blk" style="margin-top:40px">
+      <h2><span>Giorno per giorno</span><i id="sum"></i></h2>
+      <div class="days" id="days"><div class="tip" id="tip"></div><svg id="days-svg" role="img" aria-label="Persone al giorno"></svg><div class="ax"><span id="ax-a"></span><span id="ax-b"></span></div></div>
+      <div class="key"><span><i></i>persone</span><span><i class="n"></i>di cui nuove</span></div>
+    </section>
+
+    <div class="split" style="margin-top:40px">
+      <section class="blk">
+        <h2><span>Da dove arrivano</span><i>nuove in rosso</i></h2>
+        <ul class="rows" id="src"></ul>
+        <p class="note">Per sapere quale post funziona, aggiungi in fondo al link <b>?from=</b> e un nome, per esempio <b>?from=storia-mappa</b>. Comparirà qui con quel nome.</p>
+      </section>
+      <section class="blk">
+        <h2><span>Dove sono</span><i>dal fuso orario del telefono</i></h2>
+        <ul class="rows" id="places"></ul>
+      </section>
+    </div>
+
+    <div class="split" style="margin-top:40px">
+      <section class="blk hours">
+        <h2><span>A che ora aprono</span><i>ora italiana</i></h2>
+        <svg id="hours-svg" role="img" aria-label="Aperture per ora del giorno"></svg>
+        <div class="ax"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>
+      </section>
+      <section class="blk">
+        <h2><span>App installata</span></h2>
+        <div class="fig"><b id="app" style="font-size:clamp(56px,17vw,120px)">0%</b><span>delle aperture arriva dall'icona sulla schermata Home, il resto dal browser</span></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="foot"><span id="since"></span><span><span id="upd"></span> · <button type="button" id="again">aggiorna</button></span></div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var SB = { url: "https://pmltyidirptltjndbbem.supabase.co", key: "sb_publishable_orrmTVOKXWuyY0euuJl7Dg_ZT5B7IRn" };
+  var NS = "http://www.w3.org/2000/svg";
+  var $ = function (id) { return document.getElementById(id); };
+  var days = 30;
+  var demo = /[?&]demo\b/.test(location.search), lastJ = null;
+  var fmt = function (n) { return Math.round(n).toLocaleString("it-IT"); };
+  var dayKey = function (d) { return d.toLocaleDateString("en-CA", { timeZone: "Europe/Rome" }); };
+  var dayName = function (k) { var p = k.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString("it-IT", { day: "numeric", month: "short" }); };
+  var SRC = { direct: "Link diretto", "home-screen": "Icona sulla Home", instagram: "Instagram", facebook: "Facebook", whatsapp: "WhatsApp", threads: "Threads",
+    x: "X", bluesky: "Bluesky", tiktok: "TikTok", linkedin: "LinkedIn", email: "Email", google: "Google", telegram: "Telegram" };
+  var place = function (tz) { var p = String(tz).split("/"); return p[p.length - 1].replace(/_/g, " "); };
+  var region = function (tz) { var r = String(tz).split("/")[0]; return { Europe: "Europa", America: "Americhe", Asia: "Asia", Africa: "Africa", Australia: "Oceania", Pacific: "Oceania", Atlantic: "Atlantico", Indian: "Oceano Indiano" }[r] || r; };
+
+  function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  function fakeData(n) { // ?demo: invented numbers, to see the page before real ones arrive
+    var out = { daily: [], sources: [], places: [], hours: [], total: 1, people: 1840, since: new Date(Date.now() - 400 * 864e5).toISOString() }, seed = 7;
+    var rnd = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    for (var i = n - 1; i >= 0; i--) { var o = Math.round(14 + 30 * rnd() + (i < 6 ? 25 * rnd() : 0)); out.daily.push({ day: dayKey(new Date(Date.now() - i * 864e5)), opens: o, newcomers: Math.round(o * (0.15 + 0.3 * rnd())), in_app: Math.round(o * 0.4) }); }
+    [["instagram", .42], ["direct", .25], ["home-screen", .17], ["whatsapp", .07], ["storia-mappa", .05], ["x", .02], ["google", .02]].forEach(function (s) { out.sources.push({ src: s[0], opens: Math.round(900 * s[1] * n / 30), newcomers: Math.round(300 * s[1] * n / 30) }); });
+    [["Europe/Rome", 40], ["Europe/Berlin", 12], ["Europe/London", 10], ["America/New_York", 6], ["Europe/Athens", 4], ["Asia/Tokyo", 3], ["Africa/Lagos", 2]].forEach(function (p) { out.places.push({ tz: p[0], opens: Math.round(p[1] * n / 3) }); });
+    for (var h = 0; h < 24; h++) out.hours.push({ hour: h, opens: Math.round(40 * Math.max(0.05, Math.sin((h - 6) / 24 * Math.PI * 2) * 0.5 + 0.5 + (h > 20 ? 0.4 : 0))) });
+    return out;
+  }
+
+  function load() {
+    $("upd").textContent = "carico…";
+    if (demo) { draw(fakeData(days)); $("upd").textContent = "dati inventati (demo)"; return; }
+    fetch(SB.url + "/rest/v1/rpc/hits_stats", { method: "POST", headers: { apikey: SB.key, "Content-Type": "application/json" }, body: JSON.stringify({ days: days }) })
+      .then(function (r) { if (r.status === 404) throw new Error("notable"); if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+      .then(function (j) { draw(j); $("upd").textContent = "aggiornato alle " + new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }); })
+      .catch(function (e) {
+        $("out").hidden = true; $("msg").hidden = false;
+        $("msg").innerHTML = e.message === "notable"
+          ? "Il conteggio su Supabase non è ancora attivo.<small>Incolla il codice SQL nel SQL Editor di Supabase e premi Run. Intanto puoi vedere la pagina con <a href=\"?demo\">dati inventati</a>.</small>"
+          : "Non riesco a leggere i numeri adesso.<small>Controlla la connessione e premi aggiorna.</small>";
+        $("upd").textContent = "";
+      });
+  }
+
+  function draw(j) {
+    lastJ = j;
+    var daily = j.daily || [], byDay = {};
+    daily.forEach(function (d) { byDay[String(d.day).slice(0, 10)] = d; });
+    // every day of the range, also the ones with nobody
+    var list = [], now = Date.now();
+    for (var i = days - 1; i >= 0; i--) { var k = dayKey(new Date(now - i * 864e5)); var d = byDay[k] || { opens: 0, newcomers: 0, in_app: 0 }; list.push({ k: k, o: +d.opens || 0, n: +d.newcomers || 0, a: +d.in_app || 0 }); }
+    var tot = list.reduce(function (a, d) { return a + d.o; }, 0), totN = list.reduce(function (a, d) { return a + d.n; }, 0), totA = list.reduce(function (a, d) { return a + d.a; }, 0);
+    $("msg").hidden = true; $("out").hidden = false;
+    if (!j.total && !demo) { $("msg").hidden = false; $("msg").innerHTML = "Ancora nessuna apertura contata.<small>Il conteggio è attivo: i numeri compaiono appena qualcuno apre Sintonìa.</small>"; }
+    var label = "negli ultimi " + days + " giorni";
+    $("today").textContent = fmt(list[list.length - 1].o);
+    $("newc").textContent = fmt(totN); $("newc-l").textContent = label;
+    $("avg").textContent = fmt(tot / days); $("avg-l").textContent = label;
+    $("sum").textContent = fmt(tot) + " in tutto";
+    $("app").textContent = tot ? Math.round(totA / tot * 100) + "%" : "–";
+    $("since").textContent = j.since ? "Contiamo dal " + new Date(j.since).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" }) + " · " + fmt(j.people || 0) + " persone nuove in tutto" : "";
+    drawDays(list); drawRows($("src"), (j.sources || []).map(function (s) { return { name: SRC[s.src] || s.src, sub: SRC[s.src] ? "" : "link con ?from", v: +s.opens, n: +s.newcomers }; }));
+    var places = j.places || [];
+    drawRows($("places"), places.map(function (p) { return { name: place(p.tz), sub: region(p.tz), v: +p.opens }; }));
+    drawHours(j.hours || []);
+  }
+
+  function drawDays(list) {
+    var svg = $("days-svg"); svg.textContent = "";
+    var W = svg.clientWidth || 340, H = 190, n = list.length, gap = n > 40 ? 1 : 2, bw = Math.max(1, (W - gap * (n - 1)) / n);
+    var max = Math.max(4, Math.max.apply(null, list.map(function (d) { return d.o; })));
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    var ink = css("--ink"), red = css("--new"), line = css("--line");
+    el("line", { x1: 0, x2: W, y1: H - .5, y2: H - .5, stroke: line, "stroke-width": 1 }, svg);
+    list.forEach(function (d, i) {
+      var x = i * (bw + gap), h = d.o / max * (H - 18), hn = d.n / max * (H - 18), g = el("g", {}, svg);
+      if (d.o) el("rect", { x: x, y: H - h, width: bw, height: h, rx: Math.min(2, bw / 3), fill: ink, opacity: i === n - 1 ? 1 : .82 }, g);
+      if (d.n) el("rect", { x: x, y: H - hn, width: bw, height: hn, rx: Math.min(2, bw / 3), fill: red }, g);
+      var hit = el("rect", { x: x - gap / 2, y: 0, width: bw + gap, height: H, fill: "transparent" }, g);
+      var show = function () { var t = $("tip"); t.textContent = dayName(d.k) + ": " + d.o + (d.n ? " (" + d.n + " nuove)" : ""); t.style.left = Math.min(Math.max(x + bw / 2, 60), W - 60) + "px"; t.classList.add("on"); };
+      hit.addEventListener("mouseenter", show); hit.addEventListener("click", show); hit.addEventListener("touchstart", show, { passive: true });
+    });
+    svg.addEventListener("mouseleave", function () { $("tip").classList.remove("on"); });
+    $("ax-a").textContent = dayName(list[0].k); $("ax-b").textContent = "oggi";
+  }
+
+  function drawRows(ul, rows) {
+    ul.textContent = "";
+    if (!rows.length) { var li0 = document.createElement("li"); li0.innerHTML = '<span class="nm" style="font-weight:400;color:var(--muted)">Ancora niente</span>'; ul.appendChild(li0); return; }
+    var max = Math.max.apply(null, rows.map(function (r) { return r.v; })) || 1;
+    rows.forEach(function (r) {
+      var li = document.createElement("li");
+      var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = r.name;
+      if (r.sub) { var em = document.createElement("em"); em.textContent = r.sub; nm.appendChild(em); }
+      var n = document.createElement("span"); n.className = "n"; n.textContent = fmt(r.v);
+      var bar = document.createElement("span"); bar.className = "bar";
+      var b1 = document.createElement("span"); b1.style.width = (r.v / max * 100) + "%"; bar.appendChild(b1);
+      if (r.n) { b1.style.background = "linear-gradient(90deg, var(--new) " + (r.n / r.v * 100) + "%, var(--ink) " + (r.n / r.v * 100) + "%)"; }
+      li.append(nm, n, bar); ul.appendChild(li);
+    });
+  }
+
+  function drawHours(hours) {
+    var svg = $("hours-svg"); svg.textContent = "";
+    var W = svg.clientWidth || 300, H = 90, v = new Array(24).fill(0);
+    hours.forEach(function (h) { v[+h.hour] = +h.opens; });
+    var max = Math.max(1, Math.max.apply(null, v)), bw = (W - 23 * 3) / 24, ink = css("--ink");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    v.forEach(function (o, i) { var h = Math.max(o ? 2 : 1, o / max * H); el("rect", { x: i * (bw + 3), y: H - h, width: bw, height: h, rx: 1.5, fill: ink, opacity: o ? .85 : .2 }, svg); });
+  }
+
+  document.querySelectorAll(".range button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      days = +b.dataset.d;
+      document.querySelectorAll(".range button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      load();
+    });
+  });
+  $("again").addEventListener("click", load);
+  var rt; window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { if (lastJ) draw(lastJ); }, 250); });
+  load();
+})();
+</script>
+</body>
+</html>
