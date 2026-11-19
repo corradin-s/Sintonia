@@ -474,6 +474,12 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 /* black tiles on the dark ground and white tiles on the light one keep a hairline edge, so they never melt into the page */
 :root:not([data-theme="light"]) :is([data-id="nts1"],[data-id="alhara"],[data-id="tirkultura"],[data-id="wwfm"],[data-id="kiosk"],[data-id="hanoi"],[data-id="ida"],[data-id="sonic"],[data-id="nopal"],[data-id="super45"],[data-id="rinse"]).tile:not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(255,255,255,.11); }
 :root[data-theme="light"] :is([data-id="nts2"],[data-id="lithium"],[data-id="noods"],[data-id="raheem"]).tile:not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(0,0,0,.11); }
+/* dark theme: the print grain a little stronger; on the black tiles it is light, so it shows there too */
+:root:not([data-theme="light"]) .tile::after { opacity: .32; }
+:root:not([data-theme="light"]) :is([data-id="nts1"],[data-id="alhara"],[data-id="tirkultura"],[data-id="wwfm"],[data-id="kiosk"],[data-id="hanoi"],[data-id="ida"],[data-id="sonic"],[data-id="nopal"],[data-id="super45"],[data-id="rinse"]).tile::after {
+  opacity: .22;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.7 -.78'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
 
 /* ---------- Glass and glow: stations are tinted glass; the one you play lights up and colours the app ---------- */
 html { background: var(--bg); }
