@@ -477,6 +477,9 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 [data-id="ehfm"]     { --c:#00B398; --t:#001427; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:-10%; --oy:50%; --gap:11px; --dot:#00B398; }
 [data-id="setagaya"] { --c:#C30000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:15%; --oy:-20%; --gap:10px; --dot:#FF3B3B; }
 .name.keepcase { text-transform: none; }
+/* (bwedge.py) black and white stations keep a thin edge where they would melt into the page */
+:root[data-theme="light"] :is([data-id="nts2"],[data-id="lithium"],[data-id="noods"],[data-id="raheem"]):is(.tile, .mini):not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(0,0,0,.14); }
+:root:not([data-theme="light"]) :is([data-id="nts1"],[data-id="alhara"],[data-id="tirkultura"],[data-id="wwfm"],[data-id="kiosk"],[data-id="hanoi"],[data-id="ida"],[data-id="sonic"],[data-id="nopal"],[data-id="super45"],[data-id="rinse"]):is(.tile, .mini):not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(255,255,255,.13); }
 
 /* ---------- Glass and glow: stations are tinted glass; the one you play lights up and colours the app ---------- */
 html { background: var(--bg); }
