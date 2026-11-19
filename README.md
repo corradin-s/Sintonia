@@ -1,7 +1,7 @@
 # Sintonìa
-Independent radio from around the world, live: https://corradin-s.github.io/Sintonia/
+Independent radio from around the world, live: https://sintonia.now/
 
-Privacy: https://corradin-s.github.io/Sintonia/privacy.html
+Privacy: https://sintonia.now/privacy.html
 
 Stations can ask for changes or removal at sintoniaonair@gmail.com.
 
