@@ -13,6 +13,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=7">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=7">
 <script>
+/* (count.py) whether this phone has ever opened Sintonia, read before the app writes anything */
+window.__sinFirst = (function () { try { for (var i = 0; i < localStorage.length; i++) if (String(localStorage.key(i)).indexOf("sintonia:") === 0) return false; return true; } catch (e) { return false; } })();
 /* Theme and background, applied before the page paints. One palette, used by the Settings section too. */
 window.SintoniaTheme = (function () {
   var BG = {
@@ -1682,7 +1684,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
     <div class="set-card">
       <span class="set-k">Privacy</span>
-      <p class="set-note">No accounts, no ads, no analytics. What Sintonia sends, what stays on this phone and how to delete it.</p>
+      <p class="set-note">No accounts, no ads, no tracking: only an anonymous count of how many people open it. What Sintonia sends, what stays on this phone and how to delete it.</p>
       <a class="set-link" id="privacy-link" href="privacy.html">Read the privacy notice <span aria-hidden="true">›</span></a>
     </div>
 
@@ -1862,6 +1864,37 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
   function loadScript(src) {
     return new Promise((ok, fail) => { const el = document.createElement("script"); el.src = src; el.onload = ok; el.onerror = fail; document.head.appendChild(el); });
+  }
+  /* ---------- (count.py) how many people open Sintonia: one line a day per phone, with nothing that tells one person from another ----------
+     first time on this phone or not, Home Screen or browser, the kind of link it came from, the phone's time zone. Read only as totals. */
+  function countOpen() {
+    if (!COMMUNITY.url || !window.fetch) return;
+    let today = "", last = "", first = !!window.__sinFirst;
+    try {
+      today = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Rome" }); last = localStorage.getItem("sintonia:counted") || "";
+      if (first) localStorage.setItem("sintonia:fresh", "1"); else first = localStorage.getItem("sintonia:fresh") === "1"; // new here, until it has been counted once
+    } catch (e) { return; }
+    if (last === today) return;
+    const app = !!((window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true);
+    const q = new URLSearchParams(location.search);
+    let src = (q.get("from") || q.get("utm_source") || "").toLowerCase().replace(/[^a-z0-9.-]/g, "").slice(0, 24);
+    if (q.has("from")) { q.delete("from"); try { history.replaceState(history.state, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash); } catch (e) {} } // a clean address to share on
+    if (!src) {
+      let h = ""; try { h = document.referrer ? new URL(document.referrer).hostname.toLowerCase() : ""; } catch (e) {}
+      if (h === location.hostname) h = "";
+      const ua = navigator.userAgent || "", k = h + " " + ua;
+      src = /instagram/i.test(k) ? "instagram" : /facebook|fb\.com|FBAN|FBAV/i.test(k) ? "facebook" : /threads/i.test(h) ? "threads" : /whatsapp/i.test(h) ? "whatsapp"
+        : /(^|\.)t\.co$|twitter|(^|\.)x\.com$/.test(h) ? "x" : /bsky/.test(h) ? "bluesky" : /tiktok/i.test(k) ? "tiktok" : /linkedin|lnkd/.test(h) ? "linkedin"
+        : /mail\.google|outlook|mail\./.test(h) ? "email" : /google\./.test(h) ? "google" : /telegram/i.test(k) ? "telegram"
+        : h ? h.replace(/^(www|m|l|lm|out)\./, "").replace(/[^a-z0-9.-]/g, "").slice(0, 24) : (app ? "home-screen" : "direct");
+    }
+    let tz = ""; try { tz = (Intl.DateTimeFormat().resolvedOptions().timeZone || "").replace(/[^A-Za-z0-9_/+-]/g, "").slice(0, 40); } catch (e) {}
+    const test = /\/prova/.test(location.pathname) || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+    fetch(COMMUNITY.url + "/rest/v1/hits", {
+      method: "POST", keepalive: true,
+      headers: { apikey: COMMUNITY.key, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ first, app, src, tz, test }),
+    }).then((r) => { if (r.ok) { try { localStorage.setItem("sintonia:counted", today); localStorage.removeItem("sintonia:fresh"); } catch (e) {} } }).catch(() => {});
   }
   function startPresence() {
     if (!SHARING || channel) return;
@@ -5451,6 +5484,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
   refreshLive();
   startPresence();
+  setTimeout(countOpen, 1200); // (count.py)
   renderOthers();
   setInterval(tickClocks, 30000);
   setInterval(() => { if (!document.hidden || state === "live") refreshLive(); }, 60000);

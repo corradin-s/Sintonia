@@ -91,6 +91,13 @@ button { font: inherit; color: inherit; }
 .msg small { display: block; margin-top: 8px; font-size: 13px; color: var(--muted); }
 .foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
 .foot button { appearance: none; border: 0; background: none; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; color: var(--muted); font-size: 12px; }
+/* the passphrase: only who knows it sees the numbers */
+.lock { display: grid; gap: 12px; max-width: 420px; }
+.lock label { font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.lock .lk { display: flex; gap: 10px; align-items: end; border-bottom: 1.5px solid var(--ink); }
+.lock input { flex: 1; min-width: 0; appearance: none; border: 0; background: none; color: var(--ink); font: inherit; font-size: 22px; padding: 6px 0 8px; outline: none; }
+.lock button { appearance: none; border: 0; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 8px 16px; margin-bottom: 8px; font-weight: 600; font-size: 13px; letter-spacing: .06em; cursor: pointer; }
+.lock .err { color: var(--new); font-size: 13px; font-weight: 600; }
 [hidden] { display: none !important; }
 </style>
 </head>
@@ -106,6 +113,13 @@ button { font: inherit; color: inherit; }
   </div>
 
   <p class="msg" id="msg" hidden></p>
+
+  <form class="lock" id="lock" hidden>
+    <label for="pw">Parola d'ordine</label>
+    <div class="lk"><input id="pw" type="password" autocomplete="current-password" autocapitalize="none" spellcheck="false"><button type="submit">Apri</button></div>
+    <p class="err" id="lock-err" hidden></p>
+    <p class="note">È quella che hai scritto su Supabase. Resta salvata solo su questo telefono, così la prossima volta la pagina si apre da sola.</p>
+  </form>
 
   <div id="out" hidden>
     <section class="big">
@@ -147,7 +161,7 @@ button { font: inherit; color: inherit; }
     </div>
   </div>
 
-  <div class="foot"><span id="since"></span><span><span id="upd"></span> · <button type="button" id="again">aggiorna</button></span></div>
+  <div class="foot"><span id="since"></span><span><span id="upd"></span> · <button type="button" id="again">aggiorna</button> · <button type="button" id="forget">dimentica la parola</button></span></div>
 </main>
 
 <script>
@@ -158,6 +172,13 @@ button { font: inherit; color: inherit; }
   var $ = function (id) { return document.getElementById(id); };
   var days = 30;
   var demo = /[?&]demo\b/.test(location.search), lastJ = null;
+  var PK = "sintonia:statspass", pass = "";
+  try { pass = localStorage.getItem(PK) || ""; } catch (e) {}
+  function showLock(err) {
+    $("out").hidden = true; $("msg").hidden = true; $("lock").hidden = false; $("upd").textContent = "";
+    $("lock-err").hidden = !err; $("lock-err").textContent = err || "";
+    setTimeout(function () { $("pw").focus(); }, 50);
+  }
   var fmt = function (n) { return Math.round(n).toLocaleString("it-IT"); };
   var dayKey = function (d) { return d.toLocaleDateString("en-CA", { timeZone: "Europe/Rome" }); };
   var dayName = function (k) { var p = k.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString("it-IT", { day: "numeric", month: "short" }); };
@@ -181,14 +202,19 @@ button { font: inherit; color: inherit; }
 
   function load() {
     $("upd").textContent = "carico…";
-    if (demo) { draw(fakeData(days)); $("upd").textContent = "dati inventati (demo)"; return; }
-    fetch(SB.url + "/rest/v1/rpc/hits_stats", { method: "POST", headers: { apikey: SB.key, "Content-Type": "application/json" }, body: JSON.stringify({ days: days }) })
-      .then(function (r) { if (r.status === 404) throw new Error("notable"); if (!r.ok) throw new Error("http " + r.status); return r.json(); })
-      .then(function (j) { draw(j); $("upd").textContent = "aggiornato alle " + new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }); })
+    if (demo) { $("lock").hidden = true; draw(fakeData(days)); $("upd").textContent = "dati inventati (demo)"; return; }
+    if (!pass) { showLock(""); return; }
+    $("lock").hidden = true;
+    fetch(SB.url + "/rest/v1/rpc/hits_stats", { method: "POST", headers: { apikey: SB.key, "Content-Type": "application/json" }, body: JSON.stringify({ days: days, pass: pass }) })
+      .then(function (r) { if (r.status === 404) throw new Error("nokey"); if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+      .then(function (j) {
+        if (j && j.denied) { pass = ""; try { localStorage.removeItem(PK); } catch (e) {} showLock("Parola sbagliata, riprova."); return; }
+        draw(j); $("upd").textContent = "aggiornato alle " + new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+      })
       .catch(function (e) {
         $("out").hidden = true; $("msg").hidden = false;
-        $("msg").innerHTML = e.message === "notable"
-          ? "Il conteggio su Supabase non è ancora attivo.<small>Incolla il codice SQL nel SQL Editor di Supabase e premi Run. Intanto puoi vedere la pagina con <a href=\"?demo\">dati inventati</a>.</small>"
+        $("msg").innerHTML = e.message === "nokey"
+          ? "Su Supabase manca l'ultimo passo.<small>Incolla sintonia-chiave.sql nel SQL Editor, con la tua parola d'ordine al posto di LA-TUA-PAROLA, e premi Run. Intanto puoi vedere la pagina con <a href=\"?demo\">dati inventati</a>.</small>"
           : "Non riesco a leggere i numeri adesso.<small>Controlla la connessione e premi aggiorna.</small>";
         $("upd").textContent = "";
       });
@@ -269,6 +295,13 @@ button { font: inherit; color: inherit; }
     });
   });
   $("again").addEventListener("click", load);
+  $("lock").addEventListener("submit", function (e) {
+    e.preventDefault(); pass = $("pw").value.trim(); $("pw").value = "";
+    if (!pass) return;
+    try { localStorage.setItem(PK, pass); } catch (x) {}
+    load();
+  });
+  $("forget").addEventListener("click", function () { pass = ""; try { localStorage.removeItem(PK); } catch (e) {} lastJ = null; showLock(""); });
   var rt; window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { if (lastJ) draw(lastJ); }, 250); });
   load();
 })();
