@@ -275,6 +275,12 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .mini .nm.keepcase { text-transform: none; }
+/* (favshow.py) the show on now, under the name, like on the big tiles */
+.mini .ms { font-size: 11px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mini .ms[hidden] { display: none; }
+.mini .ms.live::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 5px; vertical-align: 1px; animation: live-blink 1.6s ease-in-out infinite; }
+.mini .ms .rr { font-family: var(--f-mono); font-size: 8.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; opacity: .8; margin-right: 5px; }
 .mini .mm { font-family: var(--f-mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; opacity: .82; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mini.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--c); }
 /* the star that pins a station to "Your stations" */
@@ -436,38 +442,38 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 
 /* station colours (--dot is the brighter version used on the dark receiver) */
 .tile, .mini { --dot: var(--c); }
-[data-id="nts1"]     { --c:#2337D6; --t:#F4F1E8; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:100%; --oy:0%;   --gap:13px; --dot:#5468FF; }
-[data-id="nts2"]     { --c:#E8472C; --t:#1C0C08; --ring:rgba(0,0,0,.13);       --pill:rgba(0,0,0,.16);       --ox:0%;   --oy:100%; --gap:11px; }
-[data-id="refuge"]   { --c:#BBA6F2; --t:#17112A; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.14);       --ox:50%;  --oy:125%; --gap:15px; }
-[data-id="rinse"]    { --c:#CDE650; --t:#141B05; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.14);       --ox:0%;   --oy:0%;   --gap:9px;  }
-[data-id="wwfm"]     { --c:#F3A93A; --t:#1E1203; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:100%; --oy:100%; --gap:17px; }
-[data-id="kiosk"]    { --c:#1D6847; --t:#EEF5EC; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.2);  --ox:30%;  --oy:-20%; --gap:12px; --dot:#2E9A68; }
-[data-id="raheem"]   { --c:#F07CB0; --t:#2A0A18; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:115%; --oy:45%;  --gap:14px; }
-[data-id="cashmere"] { --c:#E4D2B1; --t:#2A2116; --ring:rgba(0,0,0,.10);       --pill:rgba(0,0,0,.13);       --ox:-15%; --oy:60%;  --gap:10px; }
-[data-id="noods"]    { --c:#2FB3BF; --t:#061A1D; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:80%;  --oy:35%;  --gap:8px;  }
-[data-id="stegi"]    { --c:#5A2FB8; --t:#F1ECFB; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:110%; --oy:-10%; --gap:16px; --dot:#8C66F2; }
-[data-id="alhara"]   { --c:#8C1D35; --t:#F8E9EC; --ring:rgba(255,255,255,.11); --pill:rgba(255,255,255,.18); --ox:20%;  --oy:110%; --gap:12px; --dot:#D63B5C; }
-[data-id="batuta"]   { --c:#8FD3F4; --t:#08202C; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:-10%; --oy:20%;  --gap:10px; }
-[data-id="super45"]  { --c:#F1EEE6; --t:#1A1915; --ring:rgba(0,0,0,.09);       --pill:rgba(0,0,0,.09);       --ox:60%;  --oy:-15%; --gap:13px; }
-[data-id="deepspace"]{ --c:#AEB4BF; --t:#12151B; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:50%;  --oy:50%;  --gap:9px;  }
-[data-id="newtown"]  { --c:#3E64A8; --t:#EEF2FA; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:-10%; --oy:110%; --gap:13px; --dot:#6F93D8; }
-[data-id="hanoi"]    { --c:#A6E3C8; --t:#0B2219; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:90%;  --oy:80%;  --gap:12px; }
-[data-id="lithium"]  { --c:#16120F; --t:#FF4A2E; --ring:rgba(255,74,46,.16);   --pill:rgba(255,74,46,.18);   --ox:85%;  --oy:-15%; --gap:12px; --dot:#FF5A3C; }
-[data-id="satellite"]{ --c:#0E4A5A; --t:#F7D774; --ring:rgba(247,215,116,.14); --pill:rgba(247,215,116,.2);  --ox:92%;  --oy:88%;  --gap:14px; --dot:#F7D774; }
-[data-id="pass"]     { --c:#B8862B; --t:#1E1404; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:85%;  --oy:-10%; --gap:12px; }
-[data-id="sonic"]    { --c:#19A06C; --t:#03170F; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:10%;  --oy:110%; --gap:10px; }
-[data-id="lake"]     { --c:#5E8FA8; --t:#F2F8FB; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:50%;  --oy:-20%; --gap:14px; --dot:#8FC0D8; }
-[data-id="ida"]      { --c:#F4D35E; --t:#1C1702; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:-10%; --oy:40%;  --gap:11px; }
-[data-id="retreat"]  { --c:#2E4057; --t:#F2E8CF; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:100%; --oy:60%;  --gap:13px; --dot:#7E9CC4; }
-[data-id="rotation"] { --c:#4CC9F0; --t:#04202B; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.13);       --ox:20%;  --oy:90%;  --gap:9px; }
-[data-id="nopal"]    { --c:#A51D5C; --t:#E3F4CC; --ring:rgba(227,244,204,.14); --pill:rgba(227,244,204,.2);  --ox:18%;  --oy:-18%; --gap:12px; --dot:#8CCB5E; }
+[data-id="nts1"]     { --c:#000000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:100%; --oy:0%; --gap:13px; --dot:#FFFFFF; }
+[data-id="nts2"]     { --c:#FFFFFF; --t:#000000; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:0%; --oy:100%; --gap:11px; --dot:#FFFFFF; }
+[data-id="refuge"]   { --c:#FFFE49; --t:#000000; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:50%; --oy:125%; --gap:15px; --dot:#FFFE49; }
+[data-id="rinse"]    { --c:#333333; --t:#FEFEFE; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:0%; --oy:0%; --gap:9px; --dot:#FFFFFF; }
+[data-id="wwfm"]     { --c:#000000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:100%; --oy:100%; --gap:17px; --dot:#FFFFFF; }
+[data-id="kiosk"]    { --c:#161616; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:30%; --oy:-20%; --gap:12px; --dot:#FFFFFF; }
+[data-id="raheem"]   { --c:#FFFFFF; --t:#000000; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:115%; --oy:45%; --gap:14px; --dot:#FFFFFF; }
+[data-id="cashmere"] { --c:#DCC8D7; --t:#221A12; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:-15%; --oy:60%; --gap:10px; --dot:#F7B900; }
+[data-id="noods"]    { --c:#FFFFFF; --t:#000000; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:80%; --oy:35%; --gap:8px; --dot:#FFFFFF; }
+[data-id="stegi"]    { --c:#6E32FB; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:110%; --oy:-10%; --gap:16px; --dot:#4BF402; }
+[data-id="alhara"]   { --c:#000000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:20%; --oy:110%; --gap:12px; --dot:#FFFFFF; }
+[data-id="batuta"]   { --c:#454545; --t:#48D2C5; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:-10%; --oy:20%; --gap:10px; --dot:#48D2C5; }
+[data-id="super45"]  { --c:#15202B; --t:#1493FB; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:60%; --oy:-15%; --gap:13px; --dot:#1493FB; }
+[data-id="deepspace"]{ --c:#65EFFF; --t:#000000; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:50%; --oy:50%; --gap:9px; --dot:#65EFFF; }
+[data-id="newtown"]  { --c:#ED91AF; --t:#0A0A0A; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:-10%; --oy:110%; --gap:13px; --dot:#ED91AF; }
+[data-id="hanoi"]    { --c:#000C05; --t:#FFFA5B; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:90%; --oy:80%; --gap:12px; --dot:#FFFA5B; }
+[data-id="lithium"]  { --c:#FFFFFF; --t:#000000; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:85%; --oy:-15%; --gap:12px; --dot:#FF0000; }
+[data-id="satellite"]{ --c:#FE0000; --t:#000000; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:92%; --oy:88%; --gap:14px; --dot:#FE0000; }
+[data-id="pass"]     { --c:#990000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:85%; --oy:-10%; --gap:12px; --dot:#E04646; }
+[data-id="sonic"]    { --c:#0B0810; --t:#FC853D; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:10%; --oy:110%; --gap:10px; --dot:#FC853D; }
+[data-id="lake"]     { --c:#FFCB00; --t:#000000; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:50%; --oy:-20%; --gap:14px; --dot:#FFCB00; }
+[data-id="ida"]      { --c:#1D211F; --t:#D2D3D2; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:-10%; --oy:40%; --gap:11px; --dot:#7FA37E; }
+[data-id="retreat"]  { --c:#40167A; --t:#C7C7C7; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:100%; --oy:60%; --gap:13px; --dot:#8A5CF0; }
+[data-id="rotation"] { --c:#F48434; --t:#141414; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:20%; --oy:90%; --gap:9px; --dot:#F48434; }
+[data-id="nopal"]    { --c:#000000; --t:#AAD924; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:18%; --oy:-18%; --gap:12px; --dot:#AAD924; }
 [data-id="bcr"]      { --c:#3F4697; --t:#F4EBE0; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:10%;  --oy:115%; --gap:13px; --dot:#7C84E0; }
-[data-id="rbl"]      { --c:#FF8B6B; --t:#2A0D06; --ring:rgba(0,0,0,.11);       --pill:rgba(0,0,0,.14);       --ox:90%;  --oy:105%; --gap:11px; --dot:#FF8B6B; }
-[data-id="relativa"] { --c:#E83FD0; --t:#22041C; --ring:rgba(0,0,0,.12);       --pill:rgba(0,0,0,.15);       --ox:70%;  --oy:-15%; --gap:12px; }
-[data-id="verslibre"] { --c:#E2231A; --t:#FFF1EC; --ring:rgba(255,255,255,.13); --pill:rgba(255,255,255,.2);  --ox:80%;  --oy:-15%; --gap:12px; }
-[data-id="tirkultura"] { --c:#4B2E22; --t:#F3D9C4; --ring:rgba(243,217,196,.13); --pill:rgba(243,217,196,.2);  --ox:15%;  --oy:110%; --gap:13px; }
-[data-id="ehfm"]     { --c:#5F6B73; --t:#F1F3F4; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:-10%; --oy:50%;  --gap:11px; }
-[data-id="setagaya"] { --c:#6E7F2E; --t:#F3F6E6; --ring:rgba(255,255,255,.12); --pill:rgba(255,255,255,.18); --ox:15%;  --oy:-20%; --gap:10px; --dot:#9DB040; }
+[data-id="rbl"]      { --c:#FFA10B; --t:#140A0D; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:90%; --oy:105%; --gap:11px; --dot:#FFA10B; }
+[data-id="relativa"] { --c:#038E43; --t:#FFFFFF; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:70%; --oy:-15%; --gap:12px; --dot:#12C063; }
+[data-id="verslibre"] { --c:#C41E3A; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:80%; --oy:-15%; --gap:12px; --dot:#E8475F; }
+[data-id="tirkultura"] { --c:#000000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:15%; --oy:110%; --gap:13px; --dot:#FFFFFF; }
+[data-id="ehfm"]     { --c:#00B398; --t:#001427; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:-10%; --oy:50%; --gap:11px; --dot:#00B398; }
+[data-id="setagaya"] { --c:#C30000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:15%; --oy:-20%; --gap:10px; --dot:#FF3B3B; }
 .name.keepcase { text-transform: none; }
 
 /* ---------- Glass and glow: stations are tinted glass; the one you play lights up and colours the app ---------- */
@@ -2872,7 +2878,18 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     if (a && b && info.end > info.start) return a + "\u2013" + b;
     return b ? "until " + b : "";
   }
+  function miniShow(m, ms) { // (favshow.py) a small card's show line, from the same live data as the big tiles
+    ms = ms || m.querySelector(".ms"); if (!ms) return;
+    const info = live[m.dataset.id];
+    if (!info || !info.title) { ms.hidden = true; ms.textContent = ""; return; }
+    ms.textContent = "";
+    ms.classList.toggle("live", !!info.onAir);
+    if (info.rerun) { const rr = document.createElement("span"); rr.className = "rr"; rr.textContent = info.tag || "Rerun"; ms.appendChild(rr); }
+    ms.appendChild(document.createTextNode(info.title));
+    ms.hidden = false;
+  }
   function renderLive() {
+    document.querySelectorAll(".mini[data-id]").forEach((m) => miniShow(m));
     stations.forEach((st) => {
       const info = live[st.id];
       const box = st.el.querySelector(".now");
@@ -2959,8 +2976,10 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       const mm = document.createElement("span"); mm.className = "mm";
       const ck = document.createElement("span"); ck.className = "clock"; ck.textContent = hhmm(now, st.tz);
       mm.append(st.city + " · ", ck);
+      const ms = document.createElement("span"); ms.className = "ms"; ms.hidden = true; // (favshow.py) the show on now
       if (tagged) { const tg = document.createElement("span"); tg.className = "newtag"; tg.textContent = "New"; t.append(tg); }
-      t.append(nm, mm);
+      t.append(nm, ms, mm);
+      miniShow(m, ms);
       b.append(st.el.querySelector(".knob").cloneNode(true), t);
       const pin = pinButton(st);
       pinState(pin, id);
@@ -4207,9 +4226,12 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     const hex = (hh, ss, l) => { const q = (n) => { const k = (n + hh * 12) % 12, a = ss * Math.min(l, 1 - l); return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
       return "#" + [q(0), q(8), q(4)].map((v) => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, "0")).join(""); };
     const need = Math.min(4.5, ratio(c, t));
+    const [h0, s0] = hsl(c);
+    if (s0 < 0.08) return c; // black and white stations stay black and white at night (a white poster turned grey looks dirty)
+    const deep = h0 > 0.11 && h0 < 0.2 ? 0.14 : 0.36; // yellows only dim a touch: darker yellow turns olive
     for (let k = 1; k > 0.04; k -= 0.12) {
       let x = c;
-      if (night > 0) { const [hh, ss, l] = hsl(x); x = hex(hh, ss > 0.3 ? Math.min(1, ss * (1 + 0.3 * night * k)) : ss, l * (1 - 0.36 * night * k)); } // night: deeper, not greyer
+      if (night > 0) { const [hh, ss, l] = hsl(x); x = hex(hh, ss > 0.3 ? Math.min(1, ss * (1 + 0.3 * night * k)) : ss, l * (1 - deep * night * k)); } // night: deeper, not greyer
       if (ratio(x, t) >= need) return x;
     }
     return c;
