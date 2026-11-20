@@ -3089,6 +3089,12 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     Object.keys(HOURS).forEach((id) => { SCHED[id] = hoursAhead(HOURS[id]); });
     Promise.all(jobs).then(() => renderLive());
   }
+  function planNow(id) { // the show the schedule has on now, as the cards show what's on air
+    const now = Date.now(), x = (SCHED[id] || []).find((y) => y.a <= now && y.b > now && y.t);
+    if (!x) return null;
+    const rerun = /\((r|rerun|repeat|restream|replay)\)|\b(restream|rerun|repeat|replay)\b/i.test(x.t);
+    return { title: x.t.replace(/\s*\((r|rerun|repeat|restream|replay)\)\s*/ig, " ").trim(), sub: "", start: x.a, end: x.b, song: null, rerun, onAir: false, fromPlan: true };
+  }
   function nextLive(id) { // none while a live slot is running: the card already says what's on
     const now = Date.now(), L = SCHED[id] || [];
     if (L.some((x) => x.live && x.a <= now && x.b > now)) return null;
@@ -3122,6 +3128,12 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     ms.hidden = false;
   }
   function renderLive() {
+    stations.forEach((st) => { // (plannow.py) only for stations with no word of their own on what's on air
+      const cur = live[st.id];
+      if (cur !== undefined && !(cur && cur.fromPlan)) return;
+      const p = planNow(st.id);
+      if (p) live[st.id] = p; else delete live[st.id];
+    });
     document.querySelectorAll(".mini[data-id]").forEach((m) => miniShow(m));
     stations.forEach((st) => {
       const info = live[st.id];
