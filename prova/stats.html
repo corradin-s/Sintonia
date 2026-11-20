@@ -98,6 +98,23 @@ button { font: inherit; color: inherit; }
 .lock input { flex: 1; min-width: 0; appearance: none; border: 0; background: none; color: var(--ink); font: inherit; font-size: 22px; padding: 6px 0 8px; outline: none; }
 .lock button { appearance: none; border: 0; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 8px 16px; margin-bottom: 8px; font-weight: 600; font-size: 13px; letter-spacing: .06em; cursor: pointer; }
 .lock .err { color: var(--new); font-size: 13px; font-weight: 600; }
+/* the map question: one bar split by answer, then the numbers */
+.wbar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--line); }
+.wbar span { display: block; height: 100%; }
+.w-y { background: var(--ink); }
+.w-g { background: color-mix(in srgb, var(--ink) 55%, var(--bg)); }
+.w-n { background: var(--new); }
+.w-c { background: color-mix(in srgb, var(--new) 55%, var(--bg)); }
+.w-r { background: color-mix(in srgb, var(--new) 28%, var(--bg)); }
+.wkey { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.wkey li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; }
+.wkey i { width: 10px; height: 10px; border-radius: 2px; align-self: center; }
+.wkey .nm { font-size: 15px; }
+.wkey .nm em { font-style: normal; color: var(--muted); font-size: 12px; margin-left: 6px; }
+.wkey .v { font-family: var(--f-display); font-weight: 800; font-stretch: 75%; font-size: 22px; line-height: 1; }
+.wmom { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.wmom .fig b { font-size: clamp(44px, 12vw, 84px); }
+.fig.no b { color: var(--new); }
 [hidden] { display: none !important; }
 </style>
 </head>
@@ -159,6 +176,18 @@ button { font: inherit; color: inherit; }
         <div class="fig"><b id="app" style="font-size:clamp(56px,17vw,120px)">0%</b><span>delle aperture arriva dall'icona sulla schermata Home, il resto dal browser</span></div>
       </section>
     </div>
+
+    <section class="blk" style="margin-top:40px">
+      <h2><span>La mappa: chi si aggiunge</span><i id="w-sum"></i></h2>
+      <div class="fig no"><b id="w-no">–</b><span><strong>dice di no</strong> quando gli chiediamo la città: “Not now”, chiude senza rispondere, o il telefono rifiuta il GPS</span></div>
+      <div class="wbar" id="w-bar" aria-hidden="true"></div>
+      <ul class="wkey" id="w-key"></ul>
+      <div class="wmom">
+        <div class="fig"><b id="w-listen">–</b><span><strong>dice sì</strong> se glielo chiediamo dopo un minuto di ascolto</span></div>
+        <div class="fig"><b id="w-map">–</b><span><strong>dice sì</strong> se glielo chiediamo la prima volta che apre la mappa</span></div>
+      </div>
+      <p class="note" id="w-self"></p>
+    </section>
   </div>
 
   <div class="foot"><span id="since"></span><span><span id="upd"></span> · <button type="button" id="again">aggiorna</button> · <button type="button" id="forget">dimentica la parola</button></span></div>
@@ -172,6 +201,7 @@ button { font: inherit; color: inherit; }
   var $ = function (id) { return document.getElementById(id); };
   var days = 30;
   var demo = /[?&]demo\b/.test(location.search), lastJ = null;
+  var TEST = /\/prova\//.test(location.pathname); // the test copy also counts the test copy's own answers
   var PK = "sintonia:statspass", pass = "";
   try { pass = localStorage.getItem(PK) || ""; } catch (e) {}
   function showLock(err) {
@@ -196,6 +226,9 @@ button { font: inherit; color: inherit; }
     for (var i = n - 1; i >= 0; i--) { var o = Math.round(14 + 30 * rnd() + (i < 6 ? 25 * rnd() : 0)); out.daily.push({ day: dayKey(new Date(Date.now() - i * 864e5)), opens: o, newcomers: Math.round(o * (0.15 + 0.3 * rnd())), in_app: Math.round(o * 0.4) }); }
     [["instagram", .42], ["direct", .25], ["home-screen", .17], ["whatsapp", .07], ["storia-mappa", .05], ["x", .02], ["google", .02]].forEach(function (s) { out.sources.push({ src: s[0], opens: Math.round(900 * s[1] * n / 30), newcomers: Math.round(300 * s[1] * n / 30) }); });
     [["Europe/Rome", 40], ["Europe/Berlin", 12], ["Europe/London", 10], ["America/New_York", 6], ["Europe/Athens", 4], ["Asia/Tokyo", 3], ["Africa/Lagos", 2]].forEach(function (p) { out.places.push({ tz: p[0], opens: Math.round(p[1] * n / 3) }); });
+    out.where = [["listen", "shown", 60], ["listen", "city", 31], ["listen", "gps-ok", 4], ["listen", "not-now", 15], ["listen", "closed", 8], ["listen", "gps-refused", 2],
+      ["map", "shown", 40], ["map", "city", 15], ["map", "gps-ok", 2], ["map", "not-now", 12], ["map", "closed", 9], ["map", "gps-failed", 1],
+      ["self", "city", 7], ["self", "gps-ok", 1], ["self", "stopped", 3]].map(function (w) { return { via: w[0], answer: w[1], n: Math.round(w[2] * n / 30) }; });
     for (var h = 0; h < 24; h++) out.hours.push({ hour: h, opens: Math.round(40 * Math.max(0.05, Math.sin((h - 6) / 24 * Math.PI * 2) * 0.5 + 0.5 + (h > 20 ? 0.4 : 0))) });
     return out;
   }
@@ -205,7 +238,7 @@ button { font: inherit; color: inherit; }
     if (demo) { $("lock").hidden = true; draw(fakeData(days)); $("upd").textContent = "dati inventati (demo)"; return; }
     if (!pass) { showLock(""); return; }
     $("lock").hidden = true;
-    fetch(SB.url + "/rest/v1/rpc/hits_stats", { method: "POST", headers: { apikey: SB.key, "Content-Type": "application/json" }, body: JSON.stringify({ days: days, pass: pass }) })
+    fetch(SB.url + "/rest/v1/rpc/hits_stats", { method: "POST", headers: { apikey: SB.key, "Content-Type": "application/json" }, body: JSON.stringify({ days: days, pass: pass, with_test: TEST }) })
       .then(function (r) { if (r.status === 404) throw new Error("nokey"); if (!r.ok) throw new Error("http " + r.status); return r.json(); })
       .then(function (j) {
         if (j && j.denied) { pass = ""; try { localStorage.removeItem(PK); } catch (e) {} showLock("Parola sbagliata, riprova."); return; }
@@ -214,7 +247,7 @@ button { font: inherit; color: inherit; }
       .catch(function (e) {
         $("out").hidden = true; $("msg").hidden = false;
         $("msg").innerHTML = e.message === "nokey"
-          ? "Su Supabase manca l'ultimo passo.<small>Incolla sintonia-chiave.sql nel SQL Editor, con la tua parola d'ordine al posto di LA-TUA-PAROLA, e premi Run. Intanto puoi vedere la pagina con <a href=\"?demo\">dati inventati</a>.</small>"
+          ? "Su Supabase manca l'ultimo passo.<small>Incolla sintonia-mappa.sql nel SQL Editor e premi Run. Intanto puoi vedere la pagina con <a href=\"?demo\">dati inventati</a>.</small>"
           : "Non riesco a leggere i numeri adesso.<small>Controlla la connessione e premi aggiorna.</small>";
         $("upd").textContent = "";
       });
@@ -241,6 +274,36 @@ button { font: inherit; color: inherit; }
     var places = j.places || [];
     drawRows($("places"), places.map(function (p) { return { name: place(p.tz), sub: region(p.tz), v: +p.opens }; }));
     drawHours(j.hours || []);
+    drawWhere(j.where || []);
+  }
+
+  function drawWhere(rows) {
+    var W = {};
+    rows.forEach(function (r) { W[r.via + ":" + r.answer] = (W[r.via + ":" + r.answer] || 0) + (+r.n || 0); });
+    var g = function (via, a) { return W[via + ":" + a] || 0; };
+    var auto = function (a) { return g("listen", a) + g("map", a); };
+    var asked = auto("shown"), yc = auto("city"), yg = auto("gps-ok"), nn = auto("not-now"), cl = auto("closed"), gr = auto("gps-refused") + auto("gps-failed");
+    var no = nn + cl + gr, ans = yc + yg + no, pct = function (a, b) { return b ? Math.round(a / b * 100) + "%" : "–"; };
+    $("w-no").textContent = pct(no, ans);
+    $("w-sum").textContent = asked ? fmt(asked) + (asked === 1 ? " domanda" : " domande") + " in automatico" : "ancora nessuna domanda";
+    var parts = [["y", yc, "Sceglie la città"], ["g", yg, "Usa il GPS del telefono"], ["n", nn, "Not now"], ["c", cl, "Chiude senza rispondere"], ["r", gr, "Il telefono rifiuta il GPS"]];
+    var bar = $("w-bar"); bar.textContent = "";
+    parts.forEach(function (p) { if (!p[1]) return; var sp = document.createElement("span"); sp.className = "w-" + p[0]; sp.style.width = (p[1] / ans * 100) + "%"; bar.appendChild(sp); });
+    var key = $("w-key"); key.textContent = "";
+    parts.forEach(function (p) {
+      var li = document.createElement("li"), i = document.createElement("i"), nm = document.createElement("span"), v = document.createElement("span");
+      i.className = "w-" + p[0];
+      nm.className = "nm"; nm.textContent = p[2];
+      if (ans) { var em = document.createElement("em"); em.textContent = pct(p[1], ans); nm.appendChild(em); }
+      v.className = "v"; v.textContent = fmt(p[1]);
+      li.append(i, nm, v); key.appendChild(li);
+    });
+    var m = function (via) { var y = g(via, "city") + g(via, "gps-ok"), n = g(via, "not-now") + g(via, "closed") + g(via, "gps-refused") + g(via, "gps-failed"); return pct(y, y + n); };
+    $("w-listen").textContent = m("listen"); $("w-map").textContent = m("map");
+    var selfIn = g("self", "city") + g("self", "gps-ok"), out = g("self", "stopped");
+    $("w-self").innerHTML = "Da soli, dal bottone sulla mappa o dalle impostazioni: <b>" + fmt(selfIn) + "</b> " + (selfIn === 1 ? "si è aggiunto" : "si sono aggiunti") +
+      " · <b>" + fmt(out) + "</b> " + (out === 1 ? "ha tolto" : "hanno tolto") + " il proprio puntino." +
+      (asked > ans ? " Alcune domande non hanno ancora una risposta registrata: chi chiude l'app con la domanda aperta non viene contato." : "");
   }
 
   function drawDays(list) {
