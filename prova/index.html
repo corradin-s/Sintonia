@@ -951,7 +951,16 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
 .tab:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; border-radius: 8px; }
 .progress { position: absolute; left: 0; right: 0; top: -1px; height: 2px; }
 .progress i { display: block; height: 100%; width: 0; background: var(--pc, transparent); box-shadow: 0 0 10px var(--pc, transparent); }
-.player-inner { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 46px minmax(0, 1fr) 48px; gap: 10px; align-items: center; }
+.player-inner { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+/* (skipbar.py) previous · play/stop · next */
+.pp-group { display: flex; align-items: center; gap: 2px; }
+.sk { appearance: none; -webkit-appearance: none; border: 0; margin: 0; padding: 0; background: none; cursor: pointer; color: var(--ink);
+  width: 34px; height: 44px; display: grid; place-items: center; border-radius: 10px; }
+.sk svg { width: 17px; height: 17px; fill: currentColor; }
+.sk:active { transform: scale(.9); }
+.sk:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+.sk[hidden] { display: none; }
+.np-name.two { white-space: normal; text-overflow: clip; font-size: 15px; line-height: .98; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .swatch {
   position: relative; width: 46px; height: 46px; border-radius: 10px; overflow: hidden;
   background: var(--pc, var(--bg-2)); color: var(--pt, var(--muted));
@@ -1787,10 +1796,14 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       <div class="np-name" id="np-name">Sintonia</div>
       <div class="np-show" id="np-show" hidden></div>
     </div>
+    <div class="pp-group">
+    <button class="sk" id="sk-prev" type="button" aria-label="Previous station" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h2.4v14H5zM20 5.6v12.8a.8.8 0 0 1-1.2.7L9 12.7a.8.8 0 0 1 0-1.4l9.8-6.4a.8.8 0 0 1 1.2.7z"/></svg></button>
     <button class="pp" id="pp" type="button" aria-label="Play" disabled>
       <svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg>
       <svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg>
     </button>
+    <button class="sk" id="sk-next" type="button" aria-label="Next station" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 5H19v14h-2.4zM4 5.6v12.8a.8.8 0 0 0 1.2.7l9.8-6.4a.8.8 0 0 0 0-1.4L5.2 4.9a.8.8 0 0 0-1.2.7z"/></svg></button>
+    </div>
   </div>
 </div>
 <div class="tabs-wrap">
@@ -5155,10 +5168,16 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       prog.parentNode.style.setProperty("--pc", st.c);
       npName.textContent = st.name;
       pp.disabled = false;
+      $("sk-prev").hidden = $("sk-next").hidden = false; // (skipbar.py)
+      requestAnimationFrame(() => { // shrink to fit; a name too long even then goes on two lines, never cut
+        npName.classList.remove("two"); fitText(npName, 14);
+        if (npName.scrollWidth > npName.clientWidth + 1) { npName.style.fontSize = ""; npName.classList.add("two"); }
+      });
     } else {
       ["--glow", "--dock-glow", "--chip", "--chip-t", "--au1", "--au2", "--au3"].forEach((k) => root.removeProperty(k));
       npName.textContent = "Sintonia";
       pp.disabled = true;
+      $("sk-prev").hidden = $("sk-next").hidden = true;
     }
 
     npShow.hidden = !(info && info.title);
@@ -5404,6 +5423,8 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
 
   /* (livealt.py) The stations live right now: a DJ on air, not a rerun or the station's playlist */
   function liveIds(except) { return stations.filter((x) => x.id !== except && live[x.id] && live[x.id].onAir).map((x) => x.id); }
+  $("sk-prev").addEventListener("click", () => step(-1)); // (skipbar.py)
+  $("sk-next").addEventListener("click", () => step(1));
   function step(dir) { // forward and back go through the stations live right now, or through all of them when none is
     if (fpOpen && !fp.hidden && hzOn()) hzPrep(dir);
     const others = liveIds(current);
