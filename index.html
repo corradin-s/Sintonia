@@ -630,7 +630,7 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .heard .finds { padding: 0 12px 12px 31px; }
 .sh-facts { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 9px 16px; font-size: 14px; }
 .sh-facts dt { font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
-.sh-facts dd { margin: 0; }
+.sh-facts dd { margin: 0; white-space: pre-line; }
 .sh-links { display: grid; gap: 8px; }
 .sh-links a { display: flex; justify-content: space-between; gap: 10px; padding: 13px 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14.5px; }
 .sh-links a span { color: var(--muted); }
@@ -949,7 +949,16 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
 .tab:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; border-radius: 8px; }
 .progress { position: absolute; left: 0; right: 0; top: -1px; height: 2px; }
 .progress i { display: block; height: 100%; width: 0; background: var(--pc, transparent); box-shadow: 0 0 10px var(--pc, transparent); }
-.player-inner { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 46px minmax(0, 1fr) 48px; gap: 10px; align-items: center; }
+.player-inner { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+/* (skipbar.py) previous · play/stop · next */
+.pp-group { display: flex; align-items: center; gap: 2px; }
+.sk { appearance: none; -webkit-appearance: none; border: 0; margin: 0; padding: 0; background: none; cursor: pointer; color: var(--ink);
+  width: 34px; height: 44px; display: grid; place-items: center; border-radius: 10px; }
+.sk svg { width: 17px; height: 17px; fill: currentColor; }
+.sk:active { transform: scale(.9); }
+.sk:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+.sk[hidden] { display: none; }
+.np-name.two { white-space: normal; text-overflow: clip; font-size: 15px; line-height: .98; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .swatch {
   position: relative; width: 46px; height: 46px; border-radius: 10px; overflow: hidden;
   background: var(--pc, var(--bg-2)); color: var(--pt, var(--muted));
@@ -1783,10 +1792,14 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       <div class="np-name" id="np-name">Sintonia</div>
       <div class="np-show" id="np-show" hidden></div>
     </div>
+    <div class="pp-group">
+    <button class="sk" id="sk-prev" type="button" aria-label="Previous station" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h2.4v14H5zM20 5.6v12.8a.8.8 0 0 1-1.2.7L9 12.7a.8.8 0 0 1 0-1.4l9.8-6.4a.8.8 0 0 1 1.2.7z"/></svg></button>
     <button class="pp" id="pp" type="button" aria-label="Play" disabled>
       <svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg>
       <svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg>
     </button>
+    <button class="sk" id="sk-next" type="button" aria-label="Next station" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 5H19v14h-2.4zM4 5.6v12.8a.8.8 0 0 0 1.2.7l9.8-6.4a.8.8 0 0 0 0-1.4L5.2 4.9a.8.8 0 0 0-1.2.7z"/></svg></button>
+    </div>
   </div>
 </div>
 <div class="tabs-wrap">
@@ -2120,6 +2133,11 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     const from = mine && origin ? { lat: origin.lat, lon: origin.lon }
       : isFinite(lat) && isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat: coarse(lat), lon: coarse(lon) } : null;
     const st = byId[p.st], c = cityByCode[st.code], R_ = REACT[p.k];
+    // (rxvis.py) colours that read on this map, light or dark
+    const css = getComputedStyle(document.documentElement), pageBg = css.getPropertyValue("--bg").trim() || "#0C0D11", pageInk = css.getPropertyValue("--ink").trim() || "#F3EFE6";
+    const cr = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const faint = cr(st.dot, pageBg) < 2.2; // the disc would melt into the map
+    const symInk = lum(st.dot) > 0.4 ? "#121318" : "#FFFFFF";
     // the line under the map: the latest reaction, for a little while
     $("lg-react-i").firstChild.setAttribute("d", R_.d);
     $("lg-react").textContent = (mine ? "You sent " : "Someone sent ") + R_.name + " while listening to " + st.name;
@@ -2133,14 +2151,15 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     let spark = null;
     if (from) {
       spark = document.createElementNS(SVGNS, "path");
-      spark.setAttribute("class", "rx-spark"); spark.setAttribute("pathLength", "1"); spark.style.stroke = st.dot;
+      spark.setAttribute("class", "rx-spark"); spark.setAttribute("pathLength", "1"); spark.style.stroke = faint ? pageInk : st.dot;
       g.appendChild(spark);
     }
     const symbol = (at, delay) => {
       const icon = document.createElementNS(SVGNS, "g"), inner = document.createElementNS(SVGNS, "g");
       inner.setAttribute("class", "rx-in");
       if (delay) inner.style.animationDelay = delay;
-      inner.innerHTML = '<circle r="12" style="fill:' + st.dot + '"/><path transform="translate(-9 -9) scale(.75)" d="' + R_.d + '"/>';
+      inner.innerHTML = '<circle r="16" style="fill:' + st.dot + (faint ? ";stroke:" + pageInk + ";stroke-width:2" : ";stroke:" + pageBg + ";stroke-width:1.5") + '"/>' +
+        '<path transform="translate(-11.4 -11.4) scale(.95)" style="stroke:' + symInk + '" d="' + R_.d + '"/>';
       icon.appendChild(inner); g.appendChild(icon);
       return { icon, lat: at.lat, lon: at.lon };
     };
@@ -2875,7 +2894,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     if (!t) return null;
     const when = (v) => Date.parse(String(v || "").replace(/([+-]\d\d)(\d\d)$/, "$1:$2")); // "+0000" for Safari
     if (j.is_live) return { title: t, sub: "", start: when(j.started_at), end: NaN, song: null, rerun: false, onAir: true };
-    return { title: a ? a + " – " + t : t, sub: "", start: when(j.started_at), end: when(j.end_at), song: a ? { artist: a, title: t } : null, rerun: false, onAir: false };
+    return { title: a ? a + " – " + t : t, sub: "", start: when(j.started_at), end: when(j.end_at), song: a ? { artist: a, title: t } : null, rerun: false, onAir: false, auto: true };
   }
   function fromRadioCult(j) { // radiocult.fm: the scheduled show, and the track when it names an artist
     const r = j && j.result, c = r && r.content;
@@ -3003,6 +3022,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
   let refreshing = false;
   function refreshLive() {
+    loadPlan(); // (liveplan.py) at most every half hour
     if (refreshing) return;
     refreshing = true;
     Promise.all(SOURCES.map((s) =>
@@ -3012,6 +3032,76 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       }).catch(() => {})
     )).then(() => { refreshing = false; renderLive(); });
   }
+
+  /* ---------- (liveplan.py) the next live show: public schedules where there are some, set hours for the others ---------- */
+  const SCHED = {};
+  // reruns, archive blocks and all-night playlists are not live
+  const NOT_LIVE = /\((r|rerun|repeat|restream|replay)\)|\b(restream|rerun|repeat|replay|archive|archivi|rotazione|night music|all day|playlist|auto ?dj|best of|staff picks)\b/i;
+  const AIRTIME_PLAN = { kiosk: "kioskradiobxl", raheem: "radioraheem", cashmere: "cashmereradio", stegi: "movementathens", setagaya: "fmsetagaya834", ehfm: "ehfm", pass: "pass", retreat: "retreatradio" };
+  // set hours, in the station's own time: [weekday 0 = Sunday … 6 = Saturday, from, to]; a "to" earlier than "from" ends after midnight
+  const HOURS = {
+    pinata: { tz: "Europe/Paris", t: "Live from the bar", w: [[1, "16:00", "23:00"], [2, "16:00", "23:00"], [3, "16:00", "23:00"], [4, "16:00", "01:00"], [5, "16:00", "01:00"], [6, "16:00", "01:00"]] },
+    verslibre: { tz: "Europe/Oslo", t: "", w: [0, 1, 2, 3, 4, 5, 6].map((d) => [d, "10:00", "23:00"]) },
+  };
+  function tzAhead(ms, tz) { // how far the zone's clock is ahead of UTC at that moment, in ms
+    try {
+      const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).formatToParts(new Date(ms));
+      const g = (k) => +(p.find((x) => x.type === k) || {}).value;
+      return Date.UTC(g("year"), g("month") - 1, g("day"), g("hour") % 24, g("minute"), g("second")) - Math.floor(ms / 1000) * 1000;
+    } catch (e) { return 0; }
+  }
+  function atZone(y, mo, d, hm, tz) { // a wall-clock time in a zone, as a moment
+    const [h, m] = hm.split(":").map(Number), wall = Date.UTC(y, mo, d, h, m);
+    let t = wall - tzAhead(wall, tz);
+    const t2 = wall - tzAhead(t, tz);
+    return t2 === t ? t : t2;
+  }
+  function hoursAhead(h) { // the set hours of the next eight days, as moments
+    const now = Date.now(), here = new Date(now + tzAhead(now, h.tz)), out = [];
+    for (let k = -1; k < 8; k++) {
+      const day = new Date(Date.UTC(here.getUTCFullYear(), here.getUTCMonth(), here.getUTCDate() + k));
+      h.w.filter((r) => r[0] === day.getUTCDay()).forEach(([, from, to]) => {
+        const y = day.getUTCFullYear(), mo = day.getUTCMonth(), d = day.getUTCDate();
+        const a = atZone(y, mo, d, from, h.tz), b = to > from ? atZone(y, mo, d, to, h.tz) : atZone(y, mo, d + 1, to, h.tz);
+        if (b > now) out.push({ t: h.t, a, b, live: true });
+      });
+    }
+    return out.sort((p, q) => p.a - q.a);
+  }
+  let planAt = 0;
+  function loadPlan() {
+    if (Date.now() - planAt < 30 * 60000) return;
+    planAt = Date.now();
+    const jobs = [];
+    [["nts1", 1], ["nts2", 2]].forEach(([id, ch]) => jobs.push(fetch("https://www.nts.live/api/v2/radio/schedule/" + ch).then((r) => r.json()).then((j) => {
+      SCHED[id] = (j.results || []).flatMap((d) => d.broadcasts || []).map((b) => {
+        const t = clean(b.broadcast_title);
+        return { t, a: Date.parse(b.start_timestamp), b: Date.parse(b.end_timestamp), live: !NOT_LIVE.test(t) };
+      }).filter((x) => isFinite(x.a)).sort((p, q) => p.a - q.a);
+    }).catch(() => {})));
+    Object.keys(AIRTIME_PLAN).forEach((id) => jobs.push(fetch("https://" + AIRTIME_PLAN[id] + ".airtime.pro/api/week-info?timezone=UTC").then((r) => r.json()).then((j) => {
+      const own = byId[id] ? byId[id].name : "";
+      SCHED[id] = Object.keys(j).filter((k) => Array.isArray(j[k])).flatMap((k) => j[k]).map((x) => {
+        const t = clean(x.name), at = (v) => Date.parse(String(v || "").replace(" ", "T") + "Z");
+        return { t, a: at(x.starts || x.start_timestamp), b: at(x.ends || x.end_timestamp), live: !x.auto_dj && !NOT_LIVE.test(t) && !same(t, own) };
+      }).filter((x) => isFinite(x.a) && isFinite(x.b)).sort((p, q) => p.a - q.a);
+    }).catch(() => {})));
+    Object.keys(HOURS).forEach((id) => { SCHED[id] = hoursAhead(HOURS[id]); });
+    Promise.all(jobs).then(() => renderLive());
+  }
+  function nextLive(id) { // none while a live slot is running: the card already says what's on
+    const now = Date.now(), L = SCHED[id] || [];
+    if (L.some((x) => x.live && x.a <= now && x.b > now)) return null;
+    return L.find((x) => x.live && x.a > now + 60000) || null;
+  }
+  function whenLive(ms) { // in the listener's own time: "today 20:00", "tomorrow 14:00", "Sat 14:00"
+    const d = new Date(ms), now = new Date(), tm = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const t = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    if (d.toDateString() === now.toDateString()) return "today " + t;
+    if (d.toDateString() === tm.toDateString()) return "tomorrow " + t;
+    return d.toLocaleDateString("en-GB", { weekday: "short" }) + " " + t;
+  }
+  const cap1 = (v) => v.charAt(0).toUpperCase() + v.slice(1);
 
   // when the show runs, short: 8–11, 8:30–11, 22–24
   function hShort(ms, tz) { var t = hhmm(ms, tz); if (!t) return ""; var p = t.split(":"); return p[1] === "00" ? String(+p[0]) : +p[0] + ":" + p[1]; }
@@ -3036,7 +3126,18 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     stations.forEach((st) => {
       const info = live[st.id];
       const box = st.el.querySelector(".now");
-      if (!info) { box.hidden = true; return; }
+      const nx = !info || !info.onAir ? nextLive(st.id) : null; // (liveplan.py)
+      if (!info || (info.auto && nx)) { // nothing on, or only the automatic playlist: when the next live show is
+        if (!nx) { box.hidden = true; return; }
+        const k0 = box.querySelector(".now-k");
+        k0.textContent = "Next live"; k0.classList.remove("live");
+        if (nx.t) { const hs = document.createElement("span"); hs.className = "now-h"; hs.textContent = whenLive(nx.a); k0.appendChild(hs); }
+        box.querySelector(".now-t").textContent = nx.t || cap1(whenLive(nx.a));
+        const s0 = box.querySelector(".now-s");
+        s0.textContent = ""; s0.hidden = true;
+        box.hidden = false;
+        return;
+      }
       const k = box.querySelector(".now-k");
       k.textContent = info.onAir ? "Live now" : "On now";
       k.classList.toggle("live", !!info.onAir);
@@ -3047,6 +3148,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       const parts = [];
       if (info.sub) parts.push(info.sub);
       if (isFinite(info.end)) parts.push("until " + hhmm(info.end, st.tz));
+      if (nx) parts.push("live " + whenLive(nx.a)); // (liveplan.py)
       const s = box.querySelector(".now-s");
       s.textContent = parts.join(" · ");
       s.hidden = !parts.length;
@@ -3637,38 +3739,48 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     best.px = Math.floor(best.px);
     return best;
   }
-  function drawStory(d) {
+  function drawStory(d) { // (storyfine.py) I'm listening to, the name, Sintonìa with the cat, set on one left margin
     const st = d.st, cv = document.createElement("canvas");
     cv.width = S_W; cv.height = S_H;
-    const c = cv.getContext("2d"), M = 76, W = S_W - 2 * M;
-    const field = readableGround(st.c, st.t), fInk = st.t;
-    const ratio = (p, q) => { const x = lum(p), y = lum(q); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
-    const BAND = "page";
-    const page = BAND === "ink" ? fInk : S_PAL[d.mode].bg, pInk = BAND === "ink" ? field : S_PAL[d.mode].ink;
-    const knock = ratio(field, page) >= 2.2; // the name in the band's colour, standing on the field's edge
-    SP = Object.assign({}, S_PAL[d.mode]);
-    const FB = 1540, lift = knock ? 0 : 60; // the field's lower edge; below it, the band
-    c.fillStyle = field; c.fillRect(0, 0, S_W, FB);
-    c.fillStyle = page; c.fillRect(0, FB, S_W, S_H - FB);
-    if (!knock && ratio(field, page) < 1.35) { c.fillStyle = rgba(pInk, 0.18); c.fillRect(0, FB - 2, S_W, 2); }
-    const now = Date.now();
-    // the name, measured first: the map takes the room above it
-    const nm = storyName(c, d.words, W, 470);
-    const nameH = nm.px * (0.72 + (nm.n - 1) * nm.lh), nameTop = FB - lift - nameH;
-    // above: what this is, and where from (below the bar Instagram draws over a story)
-    c.textBaseline = "alphabetic"; c.font = fLabel(30); c.fillStyle = rgba(fInk, 0.8);
-    spaced(c, clip1(c, d.kicker.toUpperCase(), W), M, 318, 4);
-    c.font = fBody(600, 34); c.fillStyle = fInk;
-    spaced(c, clip1(c, d.place.toUpperCase() + " · " + hhmm(now, st.tz), W), M, 368, 3);
-    storyFieldMap(c, st, 0, 410, S_W, Math.round(nameTop - 60 - 410), fInk);
-    // the name: from its last line's baseline (on the edge, or a little above it) upwards
-    c.font = fBig(nm.px); c.fillStyle = knock ? page : fInk; c.textAlign = "left";
-    let by = FB - lift + (knock ? 3 : 0);
+    const c = cv.getContext("2d"), M = 112, W = S_W - 2 * M;
+    const field = readableGround(st.c, st.t), ink = st.t;
+    c.fillStyle = field; c.fillRect(0, 0, S_W, S_H); // one colour to every edge: Instagram fills around a smaller picture with it
+    // the name: large, but never wider than four fifths of the line and never taller than its share of the page
+    const nm = storyName(c, d.words, W * 0.86, 560);
+    nm.px = Math.min(nm.px, 300);
+    const nameH = nm.px * (0.72 + (nm.n - 1) * nm.lh);
+    // the name's last line sits a little above the middle; the words above it, the mark at the foot
+    const base = 1080, nameTop = base - nameH;
+    // (storyveil.py) under the name, in the free band above the mark: the name again on one line, huge and almost clear, running off the edge
+    c.save();
+    c.font = fBig(470); c.fillStyle = rgba(ink, 0.08); c.textBaseline = "alphabetic"; c.textAlign = "left";
+    c.fillText(d.words.join(" "), M - 22, 1452);
+    c.restore();
+    // a short line and I'm listening to, small and spaced
+    c.fillStyle = rgba(ink, 0.45); c.textBaseline = "alphabetic";
+    c.fillRect(M, nameTop - 118, 56, 3);
+    c.font = fBody(500, 30); c.fillStyle = rgba(ink, 0.66);
+    spaced(c, "I’M LISTENING TO", M, nameTop - 64, 8);
+    // the name
+    c.font = fBig(nm.px); c.fillStyle = rgba(ink, 0.94); c.textAlign = "left";
+    let by = base;
     for (let j = nm.lines.length - 1; j >= 0; j--) { c.fillText(nm.lines[j], M - nm.px * 0.02, by); by -= nm.px * nm.lh; }
-    // the band: the wordmark (above where Instagram puts its reply bar)
-    c.font = fWord(54); c.fillStyle = pInk; c.textBaseline = "alphabetic";
-    spaced(c, "Sintonìa", M, 1662, -2.5);
+    // the foot: the cat reaching up beside Sintonìa, small, above Instagram's reply bar
+    const footY = 1590, catH = 92, catW = catH * 1248 / 1385;
+    let x = M;
+    if (CAT.path) {
+      c.save(); c.translate(x, footY - catH); c.scale(catH / 1385, catH / 1385); c.translate(-400, -332);
+      c.fillStyle = rgba(ink, 0.78); c.fill(CAT.path, "evenodd"); c.restore();
+      x += catW + 20;
+    }
+    c.font = fWord(42); c.fillStyle = rgba(ink, 0.78); spaced(c, "Sintonìa", x, footY - 12, -1.5);
     return cv;
+  }
+
+  const CAT = { path: null, p: null }; // the cat of the profile picture, loaded only for the story
+  function catReady() {
+    if (!CAT.p) CAT.p = fetch("cat.svg").then((r) => r.text()).then((t) => { const m = /\sd="([^"]+)"/.exec(t); if (m && window.Path2D) CAT.path = new Path2D(m[1]); }).catch(() => {});
+    return CAT.p;
   }
 
   let facesP = null;
@@ -3700,7 +3812,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   function makeStory(id) {
     const tok = ++STORY.tok;
     const d0 = storyData(id);
-    Promise.race([Promise.all([storyFonts(d0), landReady()]), new Promise((r) => setTimeout(r, 2500))]).then(() => {
+    Promise.race([Promise.all([storyFonts(d0), landReady(), catReady()]), new Promise((r) => setTimeout(r, 2500))]).then(() => {
       if (tok !== STORY.tok) return;
       const cv = drawStory(storyData(id));
       cv.toBlob((blob) => {
@@ -3732,8 +3844,6 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       sheetBody.innerHTML = `<div class="sheet-in story" style="--sc:${esc(st.c)};--st:${esc(st.t)}">` +
         `<h2 class="story-h${keep}" id="sheet-title">Share ${esc(st.name)}</h2>` +
         (INFO[id] && INFO[id].plays ? `<p class="story-plays">${esc(INFO[id].plays)}</p>` : "") +
-        '<div class="seg story-mode" role="radiogroup" aria-label="Story colours">' +
-        ["dark", "light"].map((m) => `<button type="button" role="radio" data-act="smode" data-mode="${m}" aria-checked="false">${m === "dark" ? "Dark" : "Light"}</button>`).join("") + "</div>" +
         '<figure class="story-prev"><img id="story-img" alt=""><span class="story-wait">Drawing your story…</span></figure>' +
         '<div class="story-acts">' +
         (files ? '<button class="sh-big" type="button" data-act="story" disabled>Share as a story</button>'
@@ -3993,6 +4103,8 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     const info = live[id];
     const facts = [["On now", info && info.title ? info.title + (info.rerun ? " (" + (info.tag || "rerun").toLowerCase() + ")" : "") : ""], ["Local time", hhmm(Date.now(), st.tz)],
       ["Since", I.since], ["Plays", I.plays], ["How alternative", ALT[id] ? ALT_W[ALT[id] - 1] : ""], ["Languages", I.lang], ["Run by", I.by]].filter((f) => f[1]);
+    const up = (SCHED[id] || []).filter((x) => x.live && x.b > Date.now()).slice(0, 5); // (liveplan.py)
+    if (up.length) facts.splice(1, 0, ["Next live", up.map((x) => (x.a <= Date.now() ? "Now" : cap1(whenLive(x.a))) + (x.t ? " · " + x.t : "")).join("\n")]);
     h += '<dl class="sh-facts">' + facts.map(([k, v]) => `<dt>${k}</dt><dd>${k === "How alternative" ? `<i class="alt-ic" data-alt="${ALT[id]}" aria-hidden="true"></i>` : ""}${esc(v)}</dd>`).join("") + "</dl>";
     h += '<div class="sh-links">' + `<a href="${esc(st.site)}" target="_blank" rel="noopener">Website and schedule <span>↗</span></a>` +
       // the station's own way to support it, where it has one: membership, donations, or its shop
@@ -4996,10 +5108,16 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       prog.parentNode.style.setProperty("--pc", st.c);
       npName.textContent = st.name;
       pp.disabled = false;
+      $("sk-prev").hidden = $("sk-next").hidden = false; // (skipbar.py)
+      requestAnimationFrame(() => { // shrink to fit; a name too long even then goes on two lines, never cut
+        npName.classList.remove("two"); fitText(npName, 14);
+        if (npName.scrollWidth > npName.clientWidth + 1) { npName.style.fontSize = ""; npName.classList.add("two"); }
+      });
     } else {
       ["--glow", "--dock-glow", "--chip", "--chip-t", "--au1", "--au2", "--au3"].forEach((k) => root.removeProperty(k));
       npName.textContent = "Sintonia";
       pp.disabled = true;
+      $("sk-prev").hidden = $("sk-next").hidden = true;
     }
 
     npShow.hidden = !(info && info.title);
@@ -5236,6 +5354,8 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
   /* (livealt.py) The stations live right now: a DJ on air, not a rerun or the station's playlist */
   function liveIds(except) { return stations.filter((x) => x.id !== except && live[x.id] && live[x.id].onAir).map((x) => x.id); }
+  $("sk-prev").addEventListener("click", () => step(-1)); // (skipbar.py)
+  $("sk-next").addEventListener("click", () => step(1));
   function step(dir) { // forward and back go through the stations live right now, or through all of them when none is
     if (fpOpen && !fp.hidden && hzOn()) hzPrep(dir);
     const others = liveIds(current);
