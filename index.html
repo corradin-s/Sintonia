@@ -3068,26 +3068,44 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     }
     return out.sort((p, q) => p.a - q.a);
   }
-  let planAt = 0;
+  // (planstore.py) each schedule: fetched again after an hour, or after five minutes when it failed; kept on this phone for a day
+  const planOk = {}, planTry = {}, PLAN_KEY = "sintonia:plan";
+  const planDue = (id) => { const n = Date.now(); return (!planOk[id] || n - planOk[id] > 60 * 60000) && (!planTry[id] || n - planTry[id] > 5 * 60000); };
+  (function planRestore() {
+    try {
+      const o = JSON.parse(localStorage.getItem(PLAN_KEY) || "{}"), n = Date.now();
+      Object.keys(o).forEach((id) => { if (o[id] && n - o[id].at < 24 * 3600000 && Array.isArray(o[id].l)) { SCHED[id] = o[id].l.filter((x) => x.b > n); planOk[id] = o[id].at; } });
+    } catch (e) {}
+  })();
+  function planKeep() {
+    try {
+      const o = {}, n = Date.now();
+      Object.keys(planOk).forEach((id) => { if (SCHED[id]) o[id] = { at: planOk[id], l: SCHED[id].filter((x) => x.b > n && x.a < n + 8 * 864e5) }; });
+      localStorage.setItem(PLAN_KEY, JSON.stringify(o));
+    } catch (e) {}
+  }
   function loadPlan() {
-    if (Date.now() - planAt < 30 * 60000) return;
-    planAt = Date.now();
     const jobs = [];
-    [["nts1", 1], ["nts2", 2]].forEach(([id, ch]) => jobs.push(fetch("https://www.nts.live/api/v2/radio/schedule/" + ch).then((r) => r.json()).then((j) => {
-      SCHED[id] = (j.results || []).flatMap((d) => d.broadcasts || []).map((b) => {
+    const get = (id, url, read) => {
+      if (!planDue(id)) return;
+      planTry[id] = Date.now();
+      jobs.push(fetch(url).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then((j) => { SCHED[id] = read(j); planOk[id] = Date.now(); }).catch(() => {}));
+    };
+    [["nts1", 1], ["nts2", 2]].forEach(([id, ch]) => get(id, "https://www.nts.live/api/v2/radio/schedule/" + ch, (j) =>
+      (j.results || []).flatMap((d) => d.broadcasts || []).map((b) => {
         const t = clean(b.broadcast_title);
         return { t, a: Date.parse(b.start_timestamp), b: Date.parse(b.end_timestamp), live: !NOT_LIVE.test(t) };
-      }).filter((x) => isFinite(x.a)).sort((p, q) => p.a - q.a);
-    }).catch(() => {})));
-    Object.keys(AIRTIME_PLAN).forEach((id) => jobs.push(fetch("https://" + AIRTIME_PLAN[id] + ".airtime.pro/api/week-info?timezone=UTC").then((r) => r.json()).then((j) => {
+      }).filter((x) => isFinite(x.a)).sort((p, q) => p.a - q.a)));
+    Object.keys(AIRTIME_PLAN).forEach((id) => get(id, "https://" + AIRTIME_PLAN[id] + ".airtime.pro/api/week-info?timezone=UTC", (j) => {
       const own = byId[id] ? byId[id].name : "";
-      SCHED[id] = Object.keys(j).filter((k) => Array.isArray(j[k])).flatMap((k) => j[k]).map((x) => {
+      return Object.keys(j).filter((k) => Array.isArray(j[k])).flatMap((k) => j[k]).map((x) => {
         const t = clean(x.name), at = (v) => Date.parse(String(v || "").replace(" ", "T") + "Z");
         return { t, a: at(x.starts || x.start_timestamp), b: at(x.ends || x.end_timestamp), live: !x.auto_dj && !NOT_LIVE.test(t) && !same(t, own) };
       }).filter((x) => isFinite(x.a) && isFinite(x.b)).sort((p, q) => p.a - q.a);
-    }).catch(() => {})));
+    }));
     Object.keys(HOURS).forEach((id) => { SCHED[id] = hoursAhead(HOURS[id]); });
-    Promise.all(jobs).then(() => renderLive());
+    if (jobs.length) Promise.all(jobs).then(() => { planKeep(); renderLive(); });
   }
   function planNow(id) { // the show the schedule has on now, as the cards show what's on air
     const now = Date.now(), x = (SCHED[id] || []).find((y) => y.a <= now && y.b > now && y.t);
