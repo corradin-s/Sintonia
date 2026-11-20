@@ -3702,62 +3702,75 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     best.px = Math.floor(best.px);
     return best;
   }
-  function drawStory(d) { // (storybright.py)
+  // text along the circle, read left to right: along the top it stands outwards, along the bottom inwards
+  function arcText(c, cx, cy, r, text, top, ls) {
+    const ws = [...text].map((ch) => c.measureText(ch).width + ls), total = ws.reduce((a, b) => a + b, 0) - ls;
+    let s = -total / 2;
+    c.textAlign = "center"; c.textBaseline = "alphabetic";
+    [...text].forEach((ch, i) => {
+      const mid = s + (ws[i] - ls) / 2, th = top ? -Math.PI / 2 + mid / r : Math.PI / 2 - mid / r;
+      c.save(); c.translate(cx + r * Math.cos(th), cy + r * Math.sin(th)); c.rotate(top ? th + Math.PI / 2 : th - Math.PI / 2);
+      c.fillText(ch, 0, 0); c.restore();
+      s += ws[i];
+    });
+    c.textAlign = "left";
+    return total / r; // the angle it takes
+  }
+  // (storysticker.py) the round sticker, centred on (cx, cy): the same as the ones on the street, with the radio's name
+  function drawSticker(c, d, cx, cy, R) {
+    const st = d.st, field = readableGround(st.c, st.t), ink = st.t;
+    const ratio = (p, q) => { const x = lum(p), y = lum(q); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const red = ratio("#FF4D3F", field) >= 2.2 ? "#FF4D3F" : ink;
+    // a white edge, like a sticker cut out of vinyl, and the disc in the station's colour
+    c.save(); c.shadowColor = "rgba(0,0,0,.18)"; c.shadowBlur = R * 0.06; c.shadowOffsetY = R * 0.02;
+    c.fillStyle = "#FFFFFF"; c.beginPath(); c.arc(cx, cy, R * 1.035, 0, TAU); c.fill(); c.restore();
+    c.fillStyle = field; c.beginPath(); c.arc(cx, cy, R, 0, TAU); c.fill();
+    if (ratio(field, "#FFFFFF") < 1.15) { c.strokeStyle = rgba(ink, 0.14); c.lineWidth = R * 0.006; c.stroke(); } // a white station: keep its edge
+    // along the top: I'm listening to
+    c.fillStyle = ink; c.font = fBody(600, Math.round(R * 0.092));
+    const kick = d.kicker.toUpperCase();
+    arcText(c, cx, cy, R * 0.8, kick, true, R * 0.016);
+    // the name, as large as the middle of the disc allows
+    // the room between the line on top and the cat: the name, then the place under it, centred together
+    const top = cy - R * 0.6, foot = cy + R * 0.21, placeH = R * 0.13;
+    const nm = storyName(c, d.words, R * 1.3, foot - top - placeH);
+    const nameH = nm.px * (0.72 + (nm.n - 1) * nm.lh), blockTop = top + (foot - top - nameH - placeH) / 2;
+    c.font = fBig(nm.px); c.fillStyle = ink; c.textAlign = "center";
+    let by = blockTop + nameH;
+    for (let j = nm.lines.length - 1; j >= 0; j--) { c.fillText(nm.lines[j], cx, by); by -= nm.px * nm.lh; }
+    // where it is, small, under the name
+    c.font = fBody(600, Math.round(R * 0.066)); c.fillStyle = rgba(ink, 0.8); c.textAlign = "left";
+    spaced(c, clip1(c, d.place.toUpperCase(), R * 1.5), cx, blockTop + nameH + placeH * 0.82, R * 0.008, "center");
+    // the cat reaching up beside Sintonìa
+    const rowY = cy + R * 0.5, catH = R * 0.24, catW = catH * 1248 / 1385;
+    c.font = fWord(Math.round(R * 0.13));
+    const wordW = spacedW(c, "Sintonìa", -R * 0.006), gap = R * 0.05, rowW = (CAT.path ? catW + gap : 0) + wordW;
+    let x = cx - rowW / 2;
+    if (CAT.path) {
+      c.save(); c.translate(x, rowY - catH); c.scale(catH / 1385, catH / 1385); c.translate(-400, -332);
+      c.fillStyle = ink; c.fill(CAT.path, "evenodd"); c.restore();
+      x += catW + gap;
+    }
+    c.fillStyle = ink; c.textBaseline = "alphabetic"; spaced(c, "Sintonìa", x, rowY - R * 0.015, -R * 0.006);
+    // along the bottom: what Sintonìa is, and where to find it, opened by the live dot
+    c.font = fBody(600, Math.round(R * 0.07));
+    const line = "Independent radios, live · " + location.host.replace(/^www\./, "");
+    const ang = arcText(c, cx, cy, R * 0.86, line, false, R * 0.004);
+    const dth = Math.PI / 2 + ang / 2 + R * 0.075 / (R * 0.86);
+    c.fillStyle = red; c.beginPath(); c.arc(cx + R * 0.835 * Math.cos(dth), cy + R * 0.835 * Math.sin(dth), R * 0.024, 0, TAU); c.fill();
+  }
+  function drawStory(d) { // (storysticker.py) the sticker on a light ground tinted with the station's colour
     const st = d.st, cv = document.createElement("canvas");
     cv.width = S_W; cv.height = S_H;
-    const c = cv.getContext("2d"), M = 84, W = S_W - 2 * M;
-    const field = readableGround(st.c, st.t), ink = st.t;
-    const ratio = (p, q) => { const x = lum(p), y = lum(q); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
-    SP = Object.assign({}, S_PAL.dark);
-    const red = ratio(SP.live, field) >= 2.2 ? SP.live : ink; // the live dot, red unless the station is red
-    // one colour from edge to edge: Instagram fills around a smaller picture with its edges' colours
-    c.fillStyle = field; c.fillRect(0, 0, S_W, S_H);
-    const now = Date.now();
-    // the foot: the cat, the wordmark and the address, above the reply bar Instagram draws
-    const FOOT = 1610, catH = 128;
-    // what's on air, above the foot
-    let showTop = FOOT - catH - 90, showLines = [], songLine = "";
-    if (d.show) {
-      c.font = fMid(800, 66); showLines = wrap(c, d.show, W, 2);
-      if (d.song) { c.font = fBody(500, 36); songLine = clip1(c, "♪ " + d.song, W); }
-      showTop -= 50 + showLines.length * 72 + (songLine ? 58 : 0);
-    }
-    // the name, as large as fits, standing on the show (or on the foot)
-    const nm = storyName(c, d.words, W, 440);
-    const nameH = nm.px * (0.72 + (nm.n - 1) * nm.lh), nameBase = (d.show ? showTop - 64 : FOOT - catH - 120), nameTop = nameBase - nameH;
-    // the top: who's sharing and where the station is (below the bar Instagram draws over a story)
-    c.textBaseline = "alphabetic"; c.font = fLabel(30); c.fillStyle = rgba(ink, 0.82);
-    spaced(c, clip1(c, d.kicker.toUpperCase(), W), M, 300, 4);
-    c.font = fBody(600, 34); c.fillStyle = ink;
-    spaced(c, clip1(c, d.place.toUpperCase() + " · " + hhmm(now, st.tz), W), M, 350, 3);
-    // the dots of the map, between the top and the name
-    storyFieldMap(c, st, 0, 392, S_W, Math.round(nameTop - 40 - 392), ink);
-    // the name
-    c.font = fBig(nm.px); c.fillStyle = ink; c.textAlign = "left";
-    let by = nameBase;
-    for (let j = nm.lines.length - 1; j >= 0; j--) { c.fillText(nm.lines[j], M - nm.px * 0.02, by); by -= nm.px * nm.lh; }
-    // on air: a live dot when it's live, then the show, then the song
-    if (d.show) {
-      let y = showTop + 30;
-      c.font = fLabel(30);
-      if (d.live) { c.fillStyle = red; c.beginPath(); c.arc(M + 11, y - 10, 11, 0, TAU); c.fill(); }
-      c.fillStyle = ink; spaced(c, d.live ? "LIVE NOW" : (d.chip || "On air").toUpperCase(), M + (d.live ? 36 : 0), y, 4);
-      y += 22;
-      c.font = fMid(800, 66);
-      showLines.forEach((l) => { y += 72; c.fillText(l, M - 2, y); });
-      if (songLine) { c.font = fBody(500, 36); c.fillStyle = rgba(ink, 0.82); c.fillText(songLine, M, y + 58); }
-    }
-    // the foot: the cat reaching up, Sintonìa, and where to find it
-    const catW = catH * 1248 / 1385;
-    if (CAT.path) {
-      c.save(); c.translate(M, FOOT - catH); c.scale(catH / 1385, catH / 1385); c.translate(-400, -332);
-      c.fillStyle = ink; c.fill(CAT.path, "evenodd"); c.restore();
-    }
-    const tx = CAT.path ? M + catW + 26 : M;
-    c.font = fWord(58); c.fillStyle = ink; c.textBaseline = "alphabetic";
-    spaced(c, "Sintonìa", tx, FOOT - 46, -2.5);
-    c.font = fBody(600, 32); c.fillStyle = rgba(ink, 0.82);
-    spaced(c, "Independent radios, live · " + location.host.replace(/^www\./, ""), tx, FOOT + 2, 1);
+    const c = cv.getContext("2d");
+    c.fillStyle = mixC(readableGround(st.c, st.t), "#FFFFFF", 0.8); c.fillRect(0, 0, S_W, S_H); // one colour to every edge
+    drawSticker(c, d, S_W / 2, 900, 465);
+    return cv;
+  }
+  function drawStickerAlone(d) { // the same sticker with nothing around it, to paste on any story
+    const cv = document.createElement("canvas"), R = 465, P = Math.ceil(R * 0.14);
+    cv.width = cv.height = 2 * (R + P);
+    drawSticker(cv.getContext("2d"), d, R + P, R + P, R);
     return cv;
   }
 
@@ -3832,7 +3845,8 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
         '<div class="story-acts">' +
         (files ? '<button class="sh-big" type="button" data-act="story" disabled>Share as a story</button>'
           : `<a class="sh-big" id="story-save" download="sintonia-${id}.jpg" aria-disabled="true">Save the picture</a>`) +
-        `<p class="story-tip">${files ? "Pick Instagram, then Story." : "Then post it as a story from Instagram."} To make it tappable, add a Link sticker and paste the station’s link.</p>` +
+        (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write ? '<button class="find sticker-copy" type="button" data-act="stickercopy" data-id="' + id + '">Copy just the sticker</button>' : "") +
+        `<p class="story-tip">${files ? "Pick Instagram, then Story." : "Then post it as a story from Instagram."} Or copy just the sticker and paste it on a story of yours. To make it tappable, add a Link sticker and paste the station’s link.</p>` +
         `<div class="finds"><button class="find" type="button" data-act="copylink" data-id="${id}">Copy link</button>` +
         `<button class="find" type="button" data-act="link" data-id="${id}">Share link only</button></div>` +
         "</div></div>";
@@ -4105,6 +4119,13 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     else if (act === "pin") togglePin(id);
     else if (act === "share") { openSheet("share", id); return; }
     else if (act === "story") { if (STORY.file) navigator.share({ files: [STORY.file] }).catch(() => {}); return; }
+    else if (act === "stickercopy") { // (storysticker.py) a clear PNG of the sticker alone, to paste in Instagram
+      const d = storyData(id);
+      const png = new Promise((ok, no) => drawStickerAlone(d).toBlob((b) => (b ? ok(b) : no(new Error("png"))), "image/png"));
+      navigator.clipboard.write([new ClipboardItem({ "image/png": png })])
+        .then(() => toast("Sticker copied. In Instagram, open a story and paste it"), () => toast("Couldn’t copy the sticker on this phone"));
+      return;
+    }
     else if (act === "sleepset") { setSleep(+a.dataset.min); closeSheet(); toast(+a.dataset.min ? "Sleep in " + sleepLeft() + " min" : "Timer off"); return; }
     else if (act === "copylink") { copyText(stationUrl(id), "Link copied"); return; }
     else if (act === "smode") writeKey("sintonia:story", a.dataset.mode);
