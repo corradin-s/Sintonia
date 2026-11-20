@@ -3702,38 +3702,69 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     best.px = Math.floor(best.px);
     return best;
   }
-  function drawStory(d) {
+  function drawStory(d) { // (storybright.py)
     const st = d.st, cv = document.createElement("canvas");
     cv.width = S_W; cv.height = S_H;
-    const c = cv.getContext("2d"), M = 76, W = S_W - 2 * M;
-    const field = readableGround(st.c, st.t), fInk = st.t;
+    const c = cv.getContext("2d"), M = 84, W = S_W - 2 * M;
+    const field = readableGround(st.c, st.t), ink = st.t;
     const ratio = (p, q) => { const x = lum(p), y = lum(q); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
-    const BAND = "page";
-    const page = BAND === "ink" ? fInk : S_PAL[d.mode].bg, pInk = BAND === "ink" ? field : S_PAL[d.mode].ink;
-    const knock = ratio(field, page) >= 2.2; // the name in the band's colour, standing on the field's edge
-    SP = Object.assign({}, S_PAL[d.mode]);
-    const FB = 1540, lift = knock ? 0 : 60; // the field's lower edge; below it, the band
-    c.fillStyle = field; c.fillRect(0, 0, S_W, FB);
-    c.fillStyle = page; c.fillRect(0, FB, S_W, S_H - FB);
-    if (!knock && ratio(field, page) < 1.35) { c.fillStyle = rgba(pInk, 0.18); c.fillRect(0, FB - 2, S_W, 2); }
+    SP = Object.assign({}, S_PAL.dark);
+    const red = ratio(SP.live, field) >= 2.2 ? SP.live : ink; // the live dot, red unless the station is red
+    // one colour from edge to edge: Instagram fills around a smaller picture with its edges' colours
+    c.fillStyle = field; c.fillRect(0, 0, S_W, S_H);
     const now = Date.now();
-    // the name, measured first: the map takes the room above it
-    const nm = storyName(c, d.words, W, 470);
-    const nameH = nm.px * (0.72 + (nm.n - 1) * nm.lh), nameTop = FB - lift - nameH;
-    // above: what this is, and where from (below the bar Instagram draws over a story)
-    c.textBaseline = "alphabetic"; c.font = fLabel(30); c.fillStyle = rgba(fInk, 0.8);
-    spaced(c, clip1(c, d.kicker.toUpperCase(), W), M, 318, 4);
-    c.font = fBody(600, 34); c.fillStyle = fInk;
-    spaced(c, clip1(c, d.place.toUpperCase() + " · " + hhmm(now, st.tz), W), M, 368, 3);
-    storyFieldMap(c, st, 0, 410, S_W, Math.round(nameTop - 60 - 410), fInk);
-    // the name: from its last line's baseline (on the edge, or a little above it) upwards
-    c.font = fBig(nm.px); c.fillStyle = knock ? page : fInk; c.textAlign = "left";
-    let by = FB - lift + (knock ? 3 : 0);
+    // the foot: the cat, the wordmark and the address, above the reply bar Instagram draws
+    const FOOT = 1610, catH = 128;
+    // what's on air, above the foot
+    let showTop = FOOT - catH - 90, showLines = [], songLine = "";
+    if (d.show) {
+      c.font = fMid(800, 66); showLines = wrap(c, d.show, W, 2);
+      if (d.song) { c.font = fBody(500, 36); songLine = clip1(c, "♪ " + d.song, W); }
+      showTop -= 50 + showLines.length * 72 + (songLine ? 58 : 0);
+    }
+    // the name, as large as fits, standing on the show (or on the foot)
+    const nm = storyName(c, d.words, W, 440);
+    const nameH = nm.px * (0.72 + (nm.n - 1) * nm.lh), nameBase = (d.show ? showTop - 64 : FOOT - catH - 120), nameTop = nameBase - nameH;
+    // the top: who's sharing and where the station is (below the bar Instagram draws over a story)
+    c.textBaseline = "alphabetic"; c.font = fLabel(30); c.fillStyle = rgba(ink, 0.82);
+    spaced(c, clip1(c, d.kicker.toUpperCase(), W), M, 300, 4);
+    c.font = fBody(600, 34); c.fillStyle = ink;
+    spaced(c, clip1(c, d.place.toUpperCase() + " · " + hhmm(now, st.tz), W), M, 350, 3);
+    // the dots of the map, between the top and the name
+    storyFieldMap(c, st, 0, 392, S_W, Math.round(nameTop - 40 - 392), ink);
+    // the name
+    c.font = fBig(nm.px); c.fillStyle = ink; c.textAlign = "left";
+    let by = nameBase;
     for (let j = nm.lines.length - 1; j >= 0; j--) { c.fillText(nm.lines[j], M - nm.px * 0.02, by); by -= nm.px * nm.lh; }
-    // the band: the wordmark (above where Instagram puts its reply bar)
-    c.font = fWord(54); c.fillStyle = pInk; c.textBaseline = "alphabetic";
-    spaced(c, "Sintonìa", M, 1662, -2.5);
+    // on air: a live dot when it's live, then the show, then the song
+    if (d.show) {
+      let y = showTop + 30;
+      c.font = fLabel(30);
+      if (d.live) { c.fillStyle = red; c.beginPath(); c.arc(M + 11, y - 10, 11, 0, TAU); c.fill(); }
+      c.fillStyle = ink; spaced(c, d.live ? "LIVE NOW" : (d.chip || "On air").toUpperCase(), M + (d.live ? 36 : 0), y, 4);
+      y += 22;
+      c.font = fMid(800, 66);
+      showLines.forEach((l) => { y += 72; c.fillText(l, M - 2, y); });
+      if (songLine) { c.font = fBody(500, 36); c.fillStyle = rgba(ink, 0.82); c.fillText(songLine, M, y + 58); }
+    }
+    // the foot: the cat reaching up, Sintonìa, and where to find it
+    const catW = catH * 1248 / 1385;
+    if (CAT.path) {
+      c.save(); c.translate(M, FOOT - catH); c.scale(catH / 1385, catH / 1385); c.translate(-400, -332);
+      c.fillStyle = ink; c.fill(CAT.path, "evenodd"); c.restore();
+    }
+    const tx = CAT.path ? M + catW + 26 : M;
+    c.font = fWord(58); c.fillStyle = ink; c.textBaseline = "alphabetic";
+    spaced(c, "Sintonìa", tx, FOOT - 46, -2.5);
+    c.font = fBody(600, 32); c.fillStyle = rgba(ink, 0.82);
+    spaced(c, "Independent radios, live · " + location.host.replace(/^www\./, ""), tx, FOOT + 2, 1);
     return cv;
+  }
+
+  const CAT = { path: null, p: null }; // the cat of the profile picture, loaded only for the story
+  function catReady() {
+    if (!CAT.p) CAT.p = fetch("cat.svg").then((r) => r.text()).then((t) => { const m = /\sd="([^"]+)"/.exec(t); if (m && window.Path2D) CAT.path = new Path2D(m[1]); }).catch(() => {});
+    return CAT.p;
   }
 
   let facesP = null;
@@ -3765,7 +3796,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   function makeStory(id) {
     const tok = ++STORY.tok;
     const d0 = storyData(id);
-    Promise.race([Promise.all([storyFonts(d0), landReady()]), new Promise((r) => setTimeout(r, 2500))]).then(() => {
+    Promise.race([Promise.all([storyFonts(d0), landReady(), catReady()]), new Promise((r) => setTimeout(r, 2500))]).then(() => {
       if (tok !== STORY.tok) return;
       const cv = drawStory(storyData(id));
       cv.toBlob((blob) => {
@@ -3797,8 +3828,6 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       sheetBody.innerHTML = `<div class="sheet-in story" style="--sc:${esc(st.c)};--st:${esc(st.t)}">` +
         `<h2 class="story-h${keep}" id="sheet-title">Share ${esc(st.name)}</h2>` +
         (INFO[id] && INFO[id].plays ? `<p class="story-plays">${esc(INFO[id].plays)}</p>` : "") +
-        '<div class="seg story-mode" role="radiogroup" aria-label="Story colours">' +
-        ["dark", "light"].map((m) => `<button type="button" role="radio" data-act="smode" data-mode="${m}" aria-checked="false">${m === "dark" ? "Dark" : "Light"}</button>`).join("") + "</div>" +
         '<figure class="story-prev"><img id="story-img" alt=""><span class="story-wait">Drawing your story…</span></figure>' +
         '<div class="story-acts">' +
         (files ? '<button class="sh-big" type="button" data-act="story" disabled>Share as a story</button>'
