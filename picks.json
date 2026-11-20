@@ -8,6 +8,18 @@
    "start": "2026-11-19T15:00:00.000Z",
    "end": "2026-11-19T16:00:00.000Z",
    "why": "A Mediterranean port, one episode at a time: alternative, electronic and indietronica from around the sea. Third Thursday of every month."
+  },
+  {
+   "video": true,
+   "name": "Studio Can-V",
+   "city": "Nairobi",
+   "c": "#1F5BFF",
+   "t": "#FFFFFF",
+   "url": "https://www.youtube.com/@studiocanv/live",
+   "title": "Saturday live from the container at Kuona",
+   "start": "2026-11-21T12:00:00.000Z",
+   "end": "2026-11-21T19:00:00.000Z",
+   "why": "An independent studio in a refurbished shipping container in Kilimani, where Nairobi's DJs play from afternoon to night."
   }
  ]
 }
