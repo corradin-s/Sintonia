@@ -3721,11 +3721,9 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const st = d.st, field = readableGround(st.c, st.t), ink = st.t;
     const ratio = (p, q) => { const x = lum(p), y = lum(q); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
     const red = ratio("#FF4D3F", field) >= 2.2 ? "#FF4D3F" : ink;
-    // a white edge, like a sticker cut out of vinyl, and the disc in the station's colour
-    c.save(); c.shadowColor = "rgba(0,0,0,.18)"; c.shadowBlur = R * 0.06; c.shadowOffsetY = R * 0.02;
-    c.fillStyle = "#FFFFFF"; c.beginPath(); c.arc(cx, cy, R * 1.035, 0, TAU); c.fill(); c.restore();
+    // the disc in the station's colour, nothing around it
     c.fillStyle = field; c.beginPath(); c.arc(cx, cy, R, 0, TAU); c.fill();
-    if (ratio(field, "#FFFFFF") < 1.15) { c.strokeStyle = rgba(ink, 0.14); c.lineWidth = R * 0.006; c.stroke(); } // a white station: keep its edge
+    if (ratio(field, "#FFFFFF") < 1.15) { c.strokeStyle = rgba(ink, 0.16); c.lineWidth = R * 0.006; c.stroke(); } // a white station on a white ground: a hairline so the circle shows
     // along the top: I'm listening to
     c.fillStyle = ink; c.font = fBody(600, Math.round(R * 0.092));
     const kick = d.kicker.toUpperCase();
@@ -3768,7 +3766,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     return cv;
   }
   function drawStickerAlone(d) { // the same sticker with nothing around it, to paste on any story
-    const cv = document.createElement("canvas"), R = 465, P = Math.ceil(R * 0.14);
+    const cv = document.createElement("canvas"), R = 465, P = 4;
     cv.width = cv.height = 2 * (R + P);
     drawSticker(cv.getContext("2d"), d, R + P, R + P, R);
     return cv;
