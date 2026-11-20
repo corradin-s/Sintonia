@@ -481,12 +481,13 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 [data-id="relativa"] { --c:#038E43; --t:#FFFFFF; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:70%; --oy:-15%; --gap:12px; --dot:#12C063; }
 [data-id="verslibre"] { --c:#C41E3A; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:80%; --oy:-15%; --gap:12px; --dot:#E8475F; }
 [data-id="tirkultura"] { --c:#000000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:15%; --oy:110%; --gap:13px; --dot:#FFFFFF; }
+[data-id="pinata"]   { --c:#000000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:75%; --oy:115%; --gap:12px; --dot:#FFFFFF; }
 [data-id="ehfm"]     { --c:#00B398; --t:#001427; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:-10%; --oy:50%; --gap:11px; --dot:#00B398; }
 [data-id="setagaya"] { --c:#C30000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:15%; --oy:-20%; --gap:10px; --dot:#FF3B3B; }
 .name.keepcase { text-transform: none; }
 /* (bwedge.py) black and white stations keep a thin edge where they would melt into the page */
 :root[data-theme="light"] :is([data-id="nts2"],[data-id="lithium"],[data-id="noods"],[data-id="raheem"]):is(.tile, .mini):not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(0,0,0,.14); }
-:root:not([data-theme="light"]) :is([data-id="nts1"],[data-id="alhara"],[data-id="tirkultura"],[data-id="wwfm"],[data-id="kiosk"],[data-id="hanoi"],[data-id="ida"],[data-id="sonic"],[data-id="nopal"],[data-id="super45"],[data-id="rinse"]):is(.tile, .mini):not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(255,255,255,.13); }
+:root:not([data-theme="light"]) :is([data-id="nts1"],[data-id="alhara"],[data-id="tirkultura"],[data-id="pinata"],[data-id="wwfm"],[data-id="kiosk"],[data-id="hanoi"],[data-id="ida"],[data-id="sonic"],[data-id="nopal"],[data-id="super45"],[data-id="rinse"]):is(.tile, .mini):not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(255,255,255,.13); }
 
 /* ---------- Glass and glow: stations are tinted glass; the one you play lights up and colours the app ---------- */
 html { background: var(--bg); }
@@ -1501,6 +1502,13 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Pan African Space Station</span><span class="meta"><span>P13 · Cape Town</span><span class="clock"></span></span></span>
       </button>
       <button class="sched" type="button" data-site="https://panafricanspacestation.org.za/">Info</button>
+    </li>
+    <li class="tile" data-id="pinata" data-added="2026-11-20" data-country="France" data-code="MPL" data-lat="43.605" data-lon="3.879" data-region="Europe" data-city="Montpellier" data-tz="Europe/Paris" data-src="https://play.radioking.io/pinata-radio">
+      <button class="tune" type="button" aria-label="Listen to Piñata Radio">
+        <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Piñata Radio</span><span class="meta"><span>P1 · Montpellier</span><span class="clock"></span></span></span>
+      </button>
+      <button class="sched" type="button" data-site="https://www.pinataradio.com/">Info</button>
     </li>
     <li class="tile" data-id="alhara" data-country="Palestine" data-code="BTH" data-lat="31.7" data-lon="35.2" data-region="Mid East" data-city="Bethlehem" data-tz="Asia/Hebron" data-src="https://stream.radioalhara.net/ra">
       <button class="tune" type="button" aria-label="Listen to Radio alHara">
@@ -2926,6 +2934,14 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     };
   }
 
+  function fromRadioKing(j) { // RadioKing (pinata.py): a live show under its own name, or the track the automation is playing
+    if (!j) return null;
+    const t = clean(j.title), a = clean(j.artist);
+    if (!t) return null;
+    const when = (v) => Date.parse(String(v || "").replace(/([+-]\d\d)(\d\d)$/, "$1:$2")); // "+0000" for Safari
+    if (j.is_live) return { title: t, sub: "", start: when(j.started_at), end: NaN, song: null, rerun: false, onAir: true };
+    return { title: a ? a + " – " + t : t, sub: "", start: when(j.started_at), end: when(j.end_at), song: a ? { artist: a, title: t } : null, rerun: false, onAir: false };
+  }
   function fromRadioCult(j) { // radiocult.fm: the scheduled show, and the track when it names an artist
     const r = j && j.result, c = r && r.content;
     if (!r || r.status !== "schedule" || !c || !c.title) return null;
@@ -3038,7 +3054,8 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     { url: "https://public.radio.co/stations/sd6131729c/status", parse: (j) => ({ relativa: fromRelativa(j) }) },
     { url: "https://api.radiocult.fm/api/station/vers-libre/schedule/live", parse: (j) => ({ verslibre: fromRadioCult(j) }) },
     { url: "https://public.radio.co/stations/s216811754/status", parse: (j) => ({ tirkultura: fromRadioCo(j, "track") }) },
-    { url: "https://ehfm.airtime.pro/api/live-info-v2", parse: (j) => ({ ehfm: fromAirtime(j) }) }
+    { url: "https://ehfm.airtime.pro/api/live-info-v2", parse: (j) => ({ ehfm: fromAirtime(j) }) },
+    { url: "https://api.radioking.io/widget/radio/pinata-radio/track/current", parse: (j) => ({ pinata: fromRadioKing(j) }) }
   ];
 
   function getJSON(url) {
@@ -3398,6 +3415,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     bcr: { desc: "Community-led, independent radio from Bangkok, launched by a collective to connect the city’s cultural communities.", since: "2021", plays: "Ambient, techno, molam, Balearic, disco, funk and soul", lang: "Thai, English", by: "Bangkok Community Radio collective", shop: "https://store.bangkokcommunityradio.com/" },
     rbl: { desc: "Ad-free community radio born in Turin in 2011: its first broadcast, in 2012, came live from the terrace of Imbarchino in Parco del Valentino. Run by volunteers, it now broadcasts from Turin, Berlin and Barcelona.", since: "2011", plays: "Electronic, bass, jazz, funk, afrobeat, rock and experimental, with guest mixes", lang: "Italian, English", by: "Radio Banda Larga community, Turin", support: "https://www.paypal.me/rblmedia" },
     verslibre: { desc: "Community-run, non-profit radio from Bergen since 2018: local DJs, musicians and anyone who wants to try radio, with a studio open to its members and workshops. On air every day from 10 to 23.", plays: "Ambient, jazz, drum & bass, afrobeat and club music", lang: "Norwegian, English", by: "Vers Libre community, Bergen", support: "https://verslib.re/support" },
+    pinata: { desc: "Community bar-radio in the centre of Montpellier: a glass studio inside the bar where DJs play live from Monday to Saturday, afternoon to night, and an online stream around the clock. More than 70 resident DJs and emerging artists.", plays: "Electronic and club music, alternative sounds and emerging artists", lang: "French", by: "Piñata Radio, Montpellier" },
     tirkultura: { desc: "Non-commercial, listener-supported radio from Riga, working mainly through sound: born in 2015 as a weekly show, on air around the clock since 2020, with no ads or sponsored content.", plays: "Sound collages, mixtapes, field recordings, live sets and poetry", lang: "Latvian, English", by: "Rolands Pēterkops, Reinis Semēvics and Jānis Šipkēvics" },
     ehfm: { desc: "Community radio from Edinburgh since 2018, started by local DJs and run by volunteers, with a café and studio in Leith. More than 90 shows by bands, DJs, venues and labels.", plays: "Electronic, hip-hop, folk, jazz and everything in between; some talk", lang: "English", by: "EHFM volunteers, Edinburgh" },
     relativa: { desc: "Community, independent and experimental radio from Madrid, run as a non-profit association since 2018, for artists and projects working outside the mainstream: around 250 of them a year, live from its studio in the city and from satellites in Amsterdam and London.", since: "2018", plays: "Electronic, ambient, jazz, experimental and club, with interviews", lang: "Spanish, English", by: "Radio Relativa association, Madrid", support: "https://radiorelativa.eu/support" },
@@ -5736,7 +5754,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!fp.hidden) renderFP(); });
   lookTick(); lookOnPlayer();
 
-  var ALT = { batuta: 1, setagaya: 1, wwfm: 1, super45: 1, rinse: 1, deepspace: 1, newtown: 1, bcr: 2, hanoi: 2, ida: 2, kiosk: 2, lithium: 2, noods: 2, nts1: 2, nts2: 2, alhara: 2, rbl: 2, nopal: 2, raheem: 2, relativa: 2, refuge: 2, rotation: 2, satellite: 2, sonic: 2, verslibre: 2, ehfm: 2, cashmere: 3, lake: 3, tirkultura: 3, pass: 3, stegi: 3, retreat: 3 }, ALT_W = ["Easy way in", "Adventurous", "Way out there"];
+  var ALT = { pinata: 2, batuta: 1, setagaya: 1, wwfm: 1, super45: 1, rinse: 1, deepspace: 1, newtown: 1, bcr: 2, hanoi: 2, ida: 2, kiosk: 2, lithium: 2, noods: 2, nts1: 2, nts2: 2, alhara: 2, rbl: 2, nopal: 2, raheem: 2, relativa: 2, refuge: 2, rotation: 2, satellite: 2, sonic: 2, verslibre: 2, ehfm: 2, cashmere: 3, lake: 3, tirkultura: 3, pass: 3, stegi: 3, retreat: 3 }, ALT_W = ["Easy way in", "Adventurous", "Way out there"];
   tiles.forEach((el) => { const n = ALT[el.dataset.id]; if (n) el.dataset.alt = n; });
   /* ---------- the turning "a" ----------
      Once when the app opens, and each time a different station comes on. */
