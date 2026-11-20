@@ -632,7 +632,7 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .heard .finds { padding: 0 12px 12px 31px; }
 .sh-facts { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 9px 16px; font-size: 14px; }
 .sh-facts dt { font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
-.sh-facts dd { margin: 0; }
+.sh-facts dd { margin: 0; white-space: pre-line; }
 .sh-links { display: grid; gap: 8px; }
 .sh-links a { display: flex; justify-content: space-between; gap: 10px; padding: 13px 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14.5px; }
 .sh-links a span { color: var(--muted); }
@@ -2946,7 +2946,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     if (!t) return null;
     const when = (v) => Date.parse(String(v || "").replace(/([+-]\d\d)(\d\d)$/, "$1:$2")); // "+0000" for Safari
     if (j.is_live) return { title: t, sub: "", start: when(j.started_at), end: NaN, song: null, rerun: false, onAir: true };
-    return { title: a ? a + " – " + t : t, sub: "", start: when(j.started_at), end: when(j.end_at), song: a ? { artist: a, title: t } : null, rerun: false, onAir: false };
+    return { title: a ? a + " – " + t : t, sub: "", start: when(j.started_at), end: when(j.end_at), song: a ? { artist: a, title: t } : null, rerun: false, onAir: false, auto: true };
   }
   function fromRadioCult(j) { // radiocult.fm: the scheduled show, and the track when it names an artist
     const r = j && j.result, c = r && r.content;
@@ -3074,6 +3074,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
 
   let refreshing = false;
   function refreshLive() {
+    loadPlan(); // (liveplan.py) at most every half hour
     if (refreshing) return;
     refreshing = true;
     Promise.all(SOURCES.map((s) =>
@@ -3083,6 +3084,76 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       }).catch(() => {})
     )).then(() => { refreshing = false; renderLive(); });
   }
+
+  /* ---------- (liveplan.py) the next live show: public schedules where there are some, set hours for the others ---------- */
+  const SCHED = {};
+  // reruns, archive blocks and all-night playlists are not live
+  const NOT_LIVE = /\((r|rerun|repeat|restream|replay)\)|\b(restream|rerun|repeat|replay|archive|archivi|rotazione|night music|all day|playlist|auto ?dj|best of|staff picks)\b/i;
+  const AIRTIME_PLAN = { kiosk: "kioskradiobxl", raheem: "radioraheem", cashmere: "cashmereradio", stegi: "movementathens", setagaya: "fmsetagaya834", ehfm: "ehfm", pass: "pass", retreat: "retreatradio" };
+  // set hours, in the station's own time: [weekday 0 = Sunday … 6 = Saturday, from, to]; a "to" earlier than "from" ends after midnight
+  const HOURS = {
+    pinata: { tz: "Europe/Paris", t: "Live from the bar", w: [[1, "16:00", "23:00"], [2, "16:00", "23:00"], [3, "16:00", "23:00"], [4, "16:00", "01:00"], [5, "16:00", "01:00"], [6, "16:00", "01:00"]] },
+    verslibre: { tz: "Europe/Oslo", t: "", w: [0, 1, 2, 3, 4, 5, 6].map((d) => [d, "10:00", "23:00"]) },
+  };
+  function tzAhead(ms, tz) { // how far the zone's clock is ahead of UTC at that moment, in ms
+    try {
+      const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" }).formatToParts(new Date(ms));
+      const g = (k) => +(p.find((x) => x.type === k) || {}).value;
+      return Date.UTC(g("year"), g("month") - 1, g("day"), g("hour") % 24, g("minute"), g("second")) - Math.floor(ms / 1000) * 1000;
+    } catch (e) { return 0; }
+  }
+  function atZone(y, mo, d, hm, tz) { // a wall-clock time in a zone, as a moment
+    const [h, m] = hm.split(":").map(Number), wall = Date.UTC(y, mo, d, h, m);
+    let t = wall - tzAhead(wall, tz);
+    const t2 = wall - tzAhead(t, tz);
+    return t2 === t ? t : t2;
+  }
+  function hoursAhead(h) { // the set hours of the next eight days, as moments
+    const now = Date.now(), here = new Date(now + tzAhead(now, h.tz)), out = [];
+    for (let k = -1; k < 8; k++) {
+      const day = new Date(Date.UTC(here.getUTCFullYear(), here.getUTCMonth(), here.getUTCDate() + k));
+      h.w.filter((r) => r[0] === day.getUTCDay()).forEach(([, from, to]) => {
+        const y = day.getUTCFullYear(), mo = day.getUTCMonth(), d = day.getUTCDate();
+        const a = atZone(y, mo, d, from, h.tz), b = to > from ? atZone(y, mo, d, to, h.tz) : atZone(y, mo, d + 1, to, h.tz);
+        if (b > now) out.push({ t: h.t, a, b, live: true });
+      });
+    }
+    return out.sort((p, q) => p.a - q.a);
+  }
+  let planAt = 0;
+  function loadPlan() {
+    if (Date.now() - planAt < 30 * 60000) return;
+    planAt = Date.now();
+    const jobs = [];
+    [["nts1", 1], ["nts2", 2]].forEach(([id, ch]) => jobs.push(fetch("https://www.nts.live/api/v2/radio/schedule/" + ch).then((r) => r.json()).then((j) => {
+      SCHED[id] = (j.results || []).flatMap((d) => d.broadcasts || []).map((b) => {
+        const t = clean(b.broadcast_title);
+        return { t, a: Date.parse(b.start_timestamp), b: Date.parse(b.end_timestamp), live: !NOT_LIVE.test(t) };
+      }).filter((x) => isFinite(x.a)).sort((p, q) => p.a - q.a);
+    }).catch(() => {})));
+    Object.keys(AIRTIME_PLAN).forEach((id) => jobs.push(fetch("https://" + AIRTIME_PLAN[id] + ".airtime.pro/api/week-info?timezone=UTC").then((r) => r.json()).then((j) => {
+      const own = byId[id] ? byId[id].name : "";
+      SCHED[id] = Object.keys(j).filter((k) => Array.isArray(j[k])).flatMap((k) => j[k]).map((x) => {
+        const t = clean(x.name), at = (v) => Date.parse(String(v || "").replace(" ", "T") + "Z");
+        return { t, a: at(x.starts || x.start_timestamp), b: at(x.ends || x.end_timestamp), live: !x.auto_dj && !NOT_LIVE.test(t) && !same(t, own) };
+      }).filter((x) => isFinite(x.a) && isFinite(x.b)).sort((p, q) => p.a - q.a);
+    }).catch(() => {})));
+    Object.keys(HOURS).forEach((id) => { SCHED[id] = hoursAhead(HOURS[id]); });
+    Promise.all(jobs).then(() => renderLive());
+  }
+  function nextLive(id) { // none while a live slot is running: the card already says what's on
+    const now = Date.now(), L = SCHED[id] || [];
+    if (L.some((x) => x.live && x.a <= now && x.b > now)) return null;
+    return L.find((x) => x.live && x.a > now + 60000) || null;
+  }
+  function whenLive(ms) { // in the listener's own time: "today 20:00", "tomorrow 14:00", "Sat 14:00"
+    const d = new Date(ms), now = new Date(), tm = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const t = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    if (d.toDateString() === now.toDateString()) return "today " + t;
+    if (d.toDateString() === tm.toDateString()) return "tomorrow " + t;
+    return d.toLocaleDateString("en-GB", { weekday: "short" }) + " " + t;
+  }
+  const cap1 = (v) => v.charAt(0).toUpperCase() + v.slice(1);
 
   // when the show runs, short: 8–11, 8:30–11, 22–24
   function hShort(ms, tz) { var t = hhmm(ms, tz); if (!t) return ""; var p = t.split(":"); return p[1] === "00" ? String(+p[0]) : +p[0] + ":" + p[1]; }
@@ -3107,7 +3178,18 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     stations.forEach((st) => {
       const info = live[st.id];
       const box = st.el.querySelector(".now");
-      if (!info) { box.hidden = true; return; }
+      const nx = !info || !info.onAir ? nextLive(st.id) : null; // (liveplan.py)
+      if (!info || (info.auto && nx)) { // nothing on, or only the automatic playlist: when the next live show is
+        if (!nx) { box.hidden = true; return; }
+        const k0 = box.querySelector(".now-k");
+        k0.textContent = "Next live"; k0.classList.remove("live");
+        if (nx.t) { const hs = document.createElement("span"); hs.className = "now-h"; hs.textContent = whenLive(nx.a); k0.appendChild(hs); }
+        box.querySelector(".now-t").textContent = nx.t || cap1(whenLive(nx.a));
+        const s0 = box.querySelector(".now-s");
+        s0.textContent = ""; s0.hidden = true;
+        box.hidden = false;
+        return;
+      }
       const k = box.querySelector(".now-k");
       k.textContent = info.onAir ? "Live now" : "On now";
       k.classList.toggle("live", !!info.onAir);
@@ -3118,6 +3200,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       const parts = [];
       if (info.sub) parts.push(info.sub);
       if (isFinite(info.end)) parts.push("until " + hhmm(info.end, st.tz));
+      if (nx) parts.push("live " + whenLive(nx.a)); // (liveplan.py)
       const s = box.querySelector(".now-s");
       s.textContent = parts.join(" · ");
       s.hidden = !parts.length;
@@ -4067,6 +4150,8 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const info = live[id];
     const facts = [["On now", info && info.title ? info.title + (info.rerun ? " (" + (info.tag || "rerun").toLowerCase() + ")" : "") : ""], ["Local time", hhmm(Date.now(), st.tz)],
       ["Since", I.since], ["Plays", I.plays], ["How alternative", ALT[id] ? ALT_W[ALT[id] - 1] : ""], ["Languages", I.lang], ["Run by", I.by]].filter((f) => f[1]);
+    const up = (SCHED[id] || []).filter((x) => x.live && x.b > Date.now()).slice(0, 5); // (liveplan.py)
+    if (up.length) facts.splice(1, 0, ["Next live", up.map((x) => (x.a <= Date.now() ? "Now" : cap1(whenLive(x.a))) + (x.t ? " · " + x.t : "")).join("\n")]);
     h += '<dl class="sh-facts">' + facts.map(([k, v]) => `<dt>${k}</dt><dd>${k === "How alternative" ? `<i class="alt-ic" data-alt="${ALT[id]}" aria-hidden="true"></i>` : ""}${esc(v)}</dd>`).join("") + "</dl>";
     h += '<div class="sh-links">' + `<a href="${esc(st.site)}" target="_blank" rel="noopener">Website and schedule <span>↗</span></a>` +
       // the station's own way to support it, where it has one: membership, donations, or its shop
