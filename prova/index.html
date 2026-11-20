@@ -2185,6 +2185,11 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const from = mine && origin ? { lat: origin.lat, lon: origin.lon }
       : isFinite(lat) && isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat: coarse(lat), lon: coarse(lon) } : null;
     const st = byId[p.st], c = cityByCode[st.code], R_ = REACT[p.k];
+    // (rxvis.py) colours that read on this map, light or dark
+    const css = getComputedStyle(document.documentElement), pageBg = css.getPropertyValue("--bg").trim() || "#0C0D11", pageInk = css.getPropertyValue("--ink").trim() || "#F3EFE6";
+    const cr = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const faint = cr(st.dot, pageBg) < 2.2; // the disc would melt into the map
+    const symInk = lum(st.dot) > 0.4 ? "#121318" : "#FFFFFF";
     // the line under the map: the latest reaction, for a little while
     $("lg-react-i").firstChild.setAttribute("d", R_.d);
     $("lg-react").textContent = (mine ? "You sent " : "Someone sent ") + R_.name + " while listening to " + st.name;
@@ -2198,14 +2203,15 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     let spark = null;
     if (from) {
       spark = document.createElementNS(SVGNS, "path");
-      spark.setAttribute("class", "rx-spark"); spark.setAttribute("pathLength", "1"); spark.style.stroke = st.dot;
+      spark.setAttribute("class", "rx-spark"); spark.setAttribute("pathLength", "1"); spark.style.stroke = faint ? pageInk : st.dot;
       g.appendChild(spark);
     }
     const symbol = (at, delay) => {
       const icon = document.createElementNS(SVGNS, "g"), inner = document.createElementNS(SVGNS, "g");
       inner.setAttribute("class", "rx-in");
       if (delay) inner.style.animationDelay = delay;
-      inner.innerHTML = '<circle r="12" style="fill:' + st.dot + '"/><path transform="translate(-9 -9) scale(.75)" d="' + R_.d + '"/>';
+      inner.innerHTML = '<circle r="16" style="fill:' + st.dot + (faint ? ";stroke:" + pageInk + ";stroke-width:2" : ";stroke:" + pageBg + ";stroke-width:1.5") + '"/>' +
+        '<path transform="translate(-11.4 -11.4) scale(.95)" style="stroke:' + symInk + '" d="' + R_.d + '"/>';
       icon.appendChild(inner); g.appendChild(icon);
       return { icon, lat: at.lat, lon: at.lon };
     };
