@@ -352,6 +352,8 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .pick .pk { font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .pick .pn { font-weight: 600; font-size: 15px; line-height: 1.25; }
 .pick .pw { font-size: 13px; line-height: 1.4; color: var(--muted); }
+.pick .vtag { display: inline-flex; align-items: center; gap: 6px; margin-top: 3px; font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); } /* (videopick.py) */
+.pick .vtag svg { width: 8px; height: 8px; fill: currentColor; }
 .pick button { appearance: none; -webkit-appearance: none; position: absolute; inset: 0; border: 0; background: none; border-radius: 16px; cursor: pointer; }
 .tile .meta .newtag { margin-right: 2px; }
 .tile .meta { padding-right: 28px; }
@@ -3228,14 +3230,31 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   let picks = [];
   function renderPicks() {
     const now = Date.now();
-    const list = picks.filter((p) => byId[p.id] && Date.parse(p.end) > now).slice(0, 3);
+    const list = picks.filter((p) => (byId[p.id] || isVideoPick(p)) && Date.parse(p.end) > now).slice(0, 3);
     $("picks-empty").hidden = list.length > 0;
     const box = $("picks");
     box.textContent = "";
     list.forEach((p) => box.appendChild(pickCard(p, now)));
     renderEvents();
   }
+  // (videopick.py) a live only on video: its own colours, "video" said plainly, and a tap opens it where it is
+  const isVideoPick = (p) => !!(p && p.video && /^https:\/\/[^\s"<>]+$/i.test(p.url || "") && p.name && /^#[0-9a-f]{6}$/i.test(p.c || "") && /^#[0-9a-f]{6}$/i.test(p.t || ""));
+  function videoPickCard(p, now) {
+    const start = new Date(p.start), end = new Date(p.end), on = start <= now && now < end;
+    const hm = (d) => d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    let site = "video"; try { site = /youtu/.test(new URL(p.url).hostname) ? "YouTube" : new URL(p.url).hostname.replace(/^www\./, ""); } catch (e) {}
+    const card = document.createElement("div");
+    card.className = "pick vpick"; card.style.setProperty("--c", p.c); card.style.setProperty("--t", p.t);
+    card.innerHTML = `<div class="when"><span>${esc(on ? "Now" : start.toLocaleDateString("en-GB", { weekday: "short" }))}</span><b>${esc(on ? "ON" : hm(start))}</b></div>` +
+      `<div class="pt"><span class="pk">${esc(p.name)}${p.city ? " · " + esc(p.city) : ""} · ${esc(on ? "until " + hm(end) : start.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + ", your time")}</span>` +
+      `<span class="pn">${esc(p.title || p.name)}</span>${p.why ? `<span class="pw">${esc(p.why)}</span>` : ""}` +
+      `<span class="vtag"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1.2v7.6L8.6 5z"/></svg>Video · opens ${esc(site)}</span></div>` +
+      `<button type="button" aria-label="${esc("Watch " + p.name + " on " + site)}"></button>`;
+    card.querySelector("button").addEventListener("click", () => { window.open(p.url, "_blank", "noopener"); });
+    return card;
+  }
   function pickCard(p, now) { // a show: when, in your time; tap it while it's on to listen, before then for the station's Info
+    if (!byId[p.id] && isVideoPick(p)) return videoPickCard(p, now);
     const st = byId[p.id], start = new Date(p.start), end = new Date(p.end);
     const on = start <= now && now < end;
     const day = on ? "Now" : start.toLocaleDateString("en-GB", { weekday: "short" });
