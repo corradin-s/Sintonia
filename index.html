@@ -234,6 +234,9 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .lg-others { background: var(--ink); opacity: .85; }
 .lg-row .lg-st { border-radius: 2px; background: var(--bg-2); border: 1.5px solid var(--muted); width: 8px; height: 8px; margin: 0 .5px; }
 .m-others circle { fill: var(--ink); opacity: .85; }
+/* (citypick.py) where someone listened in the last 24 hours: a faint ring, never a live dot */
+.m-recent circle { fill: none; stroke: var(--ink); stroke-width: 1.2; opacity: .5; }
+.lg-recent { border: 1.2px solid var(--ink); opacity: .5; }
 .lg-row span { min-width: 0; color: var(--muted); overflow-wrap: anywhere; }
 .lg-row b { color: var(--ink); font-weight: 600; }
 
@@ -763,6 +766,27 @@ body[data-state="loading"] .fp-big { animation: pulse 1.1s ease-in-out infinite;
 .wh-yes { appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; font: inherit; font-size: 15px; font-weight: 600; background: var(--ink); color: var(--bg); }
 .wh-no { appearance: none; -webkit-appearance: none; border: 1px solid var(--line); border-radius: 999px; padding: 11px 18px; cursor: pointer; font: inherit; font-size: 15px; font-weight: 500; background: none; color: var(--ink); }
 .wh-yes:focus-visible, .wh-no:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* (citypick.py) the city picker: suggestions from the phone's time zone, then a search */
+.wh-pick { display: grid; gap: 10px; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.wh-k { font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.wh-chips { display: flex; flex-wrap: wrap; gap: 8px; min-height: 42px; }
+.wh-chip { appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; padding: 11px 16px; cursor: pointer; font: inherit; font-size: 15px; font-weight: 600; background: var(--ink); color: var(--bg); display: inline-flex; align-items: center; gap: 8px; }
+.wh-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--live); flex: none; }
+.wh-chip.alt { background: none; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); font-weight: 500; }
+.wh-chip.alt i { display: none; }
+.wh-wait { color: var(--muted); font-size: 14px; align-self: center; }
+.wh-find { display: block; }
+.wh-q { width: 100%; box-sizing: border-box; appearance: none; -webkit-appearance: none; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); font: inherit; font-size: 16px; padding: 12px 14px; }
+.wh-q::placeholder { color: var(--muted); }
+.wh-q:focus { outline: none; border-color: var(--ink); }
+.wh-res { display: grid; }
+.wh-res:empty { display: none; }
+.wh-r { appearance: none; -webkit-appearance: none; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink); font: inherit; font-size: 15px; text-align: left; padding: 11px 2px; cursor: pointer; display: flex; justify-content: space-between; gap: 12px; }
+.wh-r span { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.wh-none { color: var(--muted); font-size: 14px; padding: 8px 2px; }
+.wh-gps { appearance: none; -webkit-appearance: none; border: 0; background: none; color: var(--muted); font: inherit; font-size: 13.5px; padding: 6px 2px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.wh-chip:focus-visible, .wh-r:focus-visible, .wh-gps:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 /* ---------- "The sound of…" city page ---------- */
 .cp { position: fixed; inset: 0; z-index: 34; background: var(--bg); color: var(--ink); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
@@ -1625,6 +1649,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
         <svg id="map-over" aria-hidden="true" focusable="false">
           <g id="m-lines"></g>
           <g id="m-stations"></g>
+          <g class="m-recent" id="m-recent"></g>
           <g class="m-others" id="m-others"></g>
           <g class="me" id="me"><circle class="ping" r="4"/><circle class="core" r="4"/></g>
           <g id="m-react"></g>
@@ -1645,6 +1670,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       <div class="legend" aria-live="polite">
         <div class="lg-row"><i class="lg-you"></i><span id="lg-you">You · location off</span></div>
         <div class="lg-row" id="lg-others-row" hidden><i class="lg-others"></i><span id="lg-others"></span></div>
+        <div class="lg-row" id="lg-recent-row" hidden><i class="lg-recent"></i><span id="lg-recent"></span></div>
         <div class="lg-row"><i class="lg-st"></i><span>Stations. A line links each listener to what they’re playing.</span></div>
         <div class="lg-row lg-react-row" id="lg-react-row" hidden><svg class="lg-react" id="lg-react-i" viewBox="0 0 24 24" aria-hidden="true"><path/></svg><span id="lg-react"></span></div>
       </div>
@@ -1652,9 +1678,9 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
     <div class="locate" id="locate">
       <strong id="loc-title">See yourself on the map</strong>
-      <p id="loc-text">Sintonia puts a red dot where you are. Your position stays on this phone.</p>
+      <p id="loc-text">Choose your city and Sintonia puts a red dot there.</p>
       <div class="loc-acts">
-        <button class="btn" id="loc-btn" type="button">Use my location</button>
+        <button class="btn" id="loc-btn" type="button">Choose my city</button>
         <button class="btn ghost" id="loc-stop" type="button" hidden>Stop sharing my location</button>
       </div>
     </div>
@@ -1717,7 +1743,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
 
     <div class="set-card">
       <span class="set-k">Privacy</span>
-      <p class="set-note">No accounts, no ads, no tracking: only an anonymous count of how many people open it. What Sintonia sends, what stays on this phone and how to delete it.</p>
+      <p class="set-note">No accounts, no ads, no tracking: only anonymous counts of how many people open it and join the map. What Sintonia sends, what stays on this phone and how to delete it.</p>
       <a class="set-link" id="privacy-link" href="privacy.html">Read the privacy notice <span aria-hidden="true">›</span></a>
     </div>
 
@@ -1833,10 +1859,10 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     const on = locState === "ok" && !!me, n = $("loc-set-note");
     document.querySelectorAll("[data-loc]").forEach((b) => { b.setAttribute("aria-checked", String((b.dataset.loc === "on") === on)); b.removeAttribute("aria-busy"); });
     if (locState === "asking") { document.querySelector("[data-loc=on]").setAttribute("aria-busy", "true"); n.textContent = "Finding you…"; }
-    else if (on) n.textContent = "You’re a red dot on the map. " + SHARE_NOTE;
-    else if (locState === "denied") n.textContent = "Location is off for Sintonia on this iPhone. Allow it in Settings › Privacy & Security › Location Services › Safari Websites, then try again.";
-    else if (locState === "failed") n.textContent = "Couldn’t find you. Check that Location Services is on, then try again.";
-    else n.textContent = "Turn it on to appear as a red dot on the map, among everyone who’s listening. Rounded to about 50 km.";
+    else if (on) n.textContent = (me.city ? "You’re a red dot near " + me.city + ". " : "You’re a red dot on the map. ") + SHARE_NOTE;
+    else if (locState === "denied") n.textContent = "The phone didn’t share its location. Turn it on and just choose your city: no GPS needed.";
+    else if (locState === "failed") n.textContent = "Couldn’t find you. Turn it on and choose your city instead.";
+    else n.textContent = "Turn it on and choose your city: you appear as a red dot on the map, among everyone who’s listening. No GPS, rounded to about 50 km.";
   }
   function renderLocate() {
     renderLocSet();
@@ -1846,22 +1872,22 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     if (locState === "asking") { t.textContent = "Finding you…"; b.textContent = "Locating…"; b.disabled = true; return; }
     if (locState === "ok" && me) {
       t.textContent = "You’re on the map";
-      p.textContent = fmtCoord(me.lat, "N", "S", 1) + " " + fmtCoord(me.lon, "E", "W", 1) + ". " + SHARE_NOTE;
-      b.textContent = "Update my location"; b.className = "btn ghost"; return;
+      p.textContent = (me.city ? "Near " + me.city + (me.cc ? ", " + countryName(me.cc) : "") : fmtCoord(me.lat, "N", "S", 1) + " " + fmtCoord(me.lon, "E", "W", 1)) + ". " + SHARE_NOTE;
+      b.textContent = "Change city"; b.className = "btn ghost"; return;
     }
     if (locState === "denied") {
-      t.textContent = "Location is off for Sintonia";
-      p.textContent = "Allow it in Settings › Privacy & Security › Location Services › Safari Websites, then try again.";
-      b.textContent = "Try again"; return;
+      t.textContent = "The phone didn’t share its location";
+      p.textContent = "No problem: choose your city instead, no GPS needed.";
+      b.textContent = "Choose my city"; return;
     }
     if (locState === "failed") {
       t.textContent = "Couldn’t find you";
-      p.textContent = "Check that Location Services is on, then try again.";
-      b.textContent = "Try again"; return;
+      p.textContent = "Choose your city instead, no GPS needed.";
+      b.textContent = "Choose my city"; return;
     }
     t.textContent = "See yourself on the map";
-    p.textContent = "Sintonia puts a red dot where you are. " + SHARE_NOTE;
-    b.textContent = "Use my location";
+    p.textContent = "Choose your city and Sintonia puts a red dot there. " + SHARE_NOTE;
+    b.textContent = "Choose my city";
   }
 
   let locTok = 0; // a position that arrives after "Stop sharing" is thrown away
@@ -1872,18 +1898,21 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     navigator.geolocation.getCurrentPosition((pos) => {
       if (tok !== locTok) return;
       // keep it coarse: one decimal is about 10 km
-      me = { lat: Math.round(pos.coords.latitude * 10) / 10, lon: Math.round(pos.coords.longitude * 10) / 10 };
+      me = { lat: Math.round(pos.coords.latitude * 10) / 10, lon: Math.round(pos.coords.longitude * 10) / 10, via: "gps" };
       writeKey(POS_KEY, JSON.stringify(me));
       locState = "ok"; renderLocate();
+      if (gpsVia) { logWhere("gps-ok", gpsVia); gpsVia = ""; }
+      seenPing(true);
       if (!quiet) { if (W) flyTo(homeView(), 900); else viewReady = false; }
       renderMap();
     }, (err) => {
       if (tok !== locTok || (quiet && me)) return;
       locState = err && err.code === 1 ? "denied" : "failed"; renderLocate();
+      if (gpsVia) { logWhere(locState === "denied" ? "gps-refused" : "gps-failed", gpsVia); gpsVia = ""; }
     }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 30 * 60 * 1000 });
   }
   function refreshMyPosition() {
-    if (!me || !navigator.permissions || !navigator.permissions.query) return;
+    if (!me || me.via === "city" || !navigator.permissions || !navigator.permissions.query) return; // a chosen city stays where it was put
     navigator.permissions.query({ name: "geolocation" }).then((p) => { if (p.state === "granted") locate(true); }).catch(() => {});
   }
 
@@ -1892,9 +1921,10 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   const COMMUNITY = { url: "https://pmltyidirptltjndbbem.supabase.co", key: "sb_publishable_orrmTVOKXWuyY0euuJl7Dg_ZT5B7IRn" };
   const SHARING = !!(COMMUNITY.url && COMMUNITY.key);
   const SHARE_NOTE = SHARING
-    ? "Other listeners see an anonymous dot near you (rounded to about 50 km), only while Sintonia is open."
+    ? "Other listeners see an anonymous dot near you, rounded to about 50 km: bright while Sintonia is open, faint for a day after."
     : "Your position stays on this phone.";
   let channel = null, others = [];
+  let recent = [], recentAt = 0; // (citypick.py) places of the last 24 hours
   let myKey = "";
   function listenerKey() { // random, anonymous, kept on this phone so a reload doesn't count twice
     if (!myKey) {
@@ -1978,6 +2008,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     clearTimeout(trackTimer); sentSig = "";
     if (channel) channel.untrack().catch(() => {});
     renderLocate(); renderMap();
+    logWhere("stopped", "self");
     toast("Your location is no longer shared");
   }
   function renderOthers() {
@@ -2389,7 +2420,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     return pts;
   }
 
-  const shown = { lines: "", st: "", others: "" };
+  const shown = { lines: "", st: "", others: "", recent: "" };
   function setG(id, html) { if (shown[id] !== html) { shown[id] = html; $(id === "st" ? "m-stations" : "m-" + id).innerHTML = html; } }
   const f1 = (v) => v.toFixed(1);
   const onScreen = (x, y, pad) => x > -pad && x < W + pad && y > -pad && y < H + pad;
@@ -2463,6 +2494,18 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       if (g.n > 1) dots += '<text class="m-n" x="' + f1(g.x + 5) + '" y="' + f1(g.y - 4) + '">' + g.n + "</text>";
     });
     setG("others", dots);
+
+    // (citypick.py) places where someone listened in the last 24 hours, faint, unless a live dot or you are already there
+    const liveAt = new Set(others.map((o) => o.lat + "," + o.lon));
+    if (me) liveAt.add(coarse(me.lat) + "," + coarse(me.lon));
+    let rings = "";
+    recent.forEach((r) => {
+      if (liveAt.has(r.lat + "," + r.lon)) return;
+      const [x, y, z] = project(r.lat, r.lon);
+      if (z <= 0.02 || !onScreen(x, y, 8)) return;
+      rings += '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="3.4"/>';
+    });
+    setG("recent", rings);
 
     reacts.forEach(placeReaction);
 
@@ -2623,7 +2666,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     const st = current ? byId[current] : null;
     if (me) {
       const listening = st && (state === "live" || state === "loading") ? " · listening to " + st.name : "";
-      $("lg-you").textContent = "You · " + fmtCoord(me.lat, "N", "S", 1) + " " + fmtCoord(me.lon, "E", "W", 1) + listening;
+      $("lg-you").textContent = "You · " + (me.city ? "near " + me.city : fmtCoord(me.lat, "N", "S", 1) + " " + fmtCoord(me.lon, "E", "W", 1)) + listening;
     } else {
       $("lg-you").textContent = "You · location off";
     }
@@ -2657,7 +2700,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     view = v;
     document.documentElement.dataset.view = v; // the home's coloured background shows only on Stations
     window.scrollTo(0, scrollMem[v] || 0);
-    if (v === "map") { renderLocate(); renderMap(); refreshMyPosition(); }
+    if (v === "map") { renderLocate(); renderMap(); refreshMyPosition(); fetchRecent(); setTimeout(() => { if (view === "map") maybeAskWhere("map"); }, 1400); }
     else if (v === "settings") renderSettings();
     else fitNames();
   }
@@ -2665,11 +2708,11 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
     if (t.dataset.view === view) window.scrollTo({ top: 0, behavior: "smooth" }); else go(t.dataset.view);
   }));
-  $("loc-btn").addEventListener("click", () => locate(false));
+  $("loc-btn").addEventListener("click", () => openWhere("self"));
   $("loc-stop").addEventListener("click", stopSharing);
   document.querySelectorAll("[data-loc]").forEach((b) => b.addEventListener("click", () => { // (locset.py)
     const on = locState === "ok" && !!me;
-    if (b.dataset.loc === "on" && (!on || locState === "denied")) { try { localStorage.setItem("sintonia:whereasked", "1"); } catch (e) {} locate(false); }
+    if (b.dataset.loc === "on" && (!on || locState === "denied")) openWhere("self");
     else if (b.dataset.loc === "off" && on) stopSharing();
   }));
   $("privacy-link").addEventListener("click", (e) => { e.preventDefault(); openSheet("privacy"); });
@@ -3700,6 +3743,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     sheet.scrollTop = 0;
   }
   function closeSheet() {
+    if (sheetOpen === "where" && !whereDone) { whereDone = true; logWhere("closed", whereVia); } // (citypick.py) closed without answering
     sheetOpen = "";
     STORY.tok++; STORY.id = "";
     sheet.hidden = true; sheetBack.hidden = true;
@@ -3712,7 +3756,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     else if (sheetOpen === "privacy") renderPrivacy();
     else if (sheetOpen === "where") renderWhere();
   }
-  // (locask.py) the first time: would you like to be on the map? Asked once; the phone's own permission comes only after "Use my location"
+  // (citypick.py) would you like to be on the map? You choose a city: no GPS, no permission from the phone. Asked once, at a good moment.
   function renderWhere() {
     if (sheetBody.querySelector(".wh-map")) return;
     const cols = 26, rows = 5, gap = 12, w = (cols - 1) * gap + 8, h = (rows - 1) * gap + 8;
@@ -3726,22 +3770,140 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       `<path class="ln" d="M${mx} ${my} Q ${(mx + bx) / 2} ${my - 18} ${bx} ${by}" stroke="${b.dot}"/><circle cx="${ax}" cy="${ay}" r="3.2" fill="${a.dot}"/><circle cx="${bx}" cy="${by}" r="3.2" fill="${b.dot}"/>` +
       `<circle class="wh-ping" cx="${mx}" cy="${my}" r="3"/><circle class="wh-me" cx="${mx}" cy="${my}" r="3.6"/></svg>` +
       '<h2 class="sh-title" id="sheet-title">Where are you listening from?</h2>' +
-      '<p class="wh-lead">Every dot on the map is someone listening right now. Add yours: Sintonia is a community, and it grows one listener at a time <svg class="wh-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.8a4.2 4.2 0 0 1 7.5 2.5c0 5.6-7.5 10.2-7.5 10.2z"/></svg></p>' +
-      `<p class="wh-small">${esc(SHARE_NOTE)} You can stop sharing whenever you like, from the map.</p>` +
-      '<div class="wh-acts"><button class="wh-yes" type="button" data-act="where-yes">Use my location</button><button class="wh-no" type="button" data-act="where-no">Not now</button></div></div>';
+      '<p class="wh-lead">Every dot on the map is someone listening. Add yours: Sintonia is a community, and it grows one listener at a time <svg class="wh-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.8a4.2 4.2 0 0 1 7.5 2.5c0 5.6-7.5 10.2-7.5 10.2z"/></svg></p>' +
+      '<div class="wh-pick"><span class="wh-k" id="wh-k">Your city</span><div class="wh-chips" id="wh-chips"><span class="wh-wait">Finding cities…</span></div>' +
+      '<label class="wh-find"><span class="vh">Another city</span><input class="wh-q" id="wh-q" type="search" placeholder="Another city…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="search"></label>' +
+      '<div class="wh-res" id="wh-res"></div></div>' +
+      `<p class="wh-small">No GPS and nothing for the phone to allow: you just pick a city. ${esc(SHARE_NOTE)} You can stop whenever you like, from the map.</p>` +
+      '<div class="wh-acts"><button class="wh-no" type="button" data-act="where-no">Not now</button><button class="wh-gps" type="button" data-act="where-gps">Use my phone’s location instead</button></div></div>';
+    loadCities().then(fillWhere, () => { const c = $("wh-chips"); if (c) c.innerHTML = '<span class="wh-wait">Type your city below.</span>'; });
   }
+
+  /* ---------- (citypick.py) the cities: GeoNames, 50,000+ people and regional capitals, loaded only when the question opens ---------- */
+  let citiesP = null, CITY = null;
+  const cfold = (v) => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+  function loadCities() {
+    if (!citiesP) citiesP = fetch("towns.json?v=1").then((r) => { if (!r.ok) throw new Error("towns"); return r.json(); }).then((d) => {
+      d.c.forEach((e) => { e.k = cfold(e[0] + " " + (e[5] || "")); });
+      CITY = d; return d;
+    }).catch((e) => { citiesP = null; throw e; });
+    return citiesP;
+  }
+  let regionNames = null;
+  function countryName(cc) {
+    try { if (!regionNames) regionNames = new Intl.DisplayNames(["en"], { type: "region" }); return regionNames.of(cc) || cc; } catch (e) { return cc; }
+  }
+  let wherePick = []; // the cities on screen, so a tap can name one by its index
+  function cityBtn(e, cls) {
+    wherePick.push(e);
+    return '<button class="' + cls + '" type="button" data-act="where-city" data-i="' + (wherePick.length - 1) + '">' +
+      (cls === "wh-r" ? esc(e[0]) + "<span>" + esc(countryName(e[1])) + "</span>" : "<i></i>" + esc(e[0])) + "</button>";
+  }
+  function fillWhere() { // the guess: the phone's time zone city first, then the country's biggest cities
+    const box = $("wh-chips"); if (!box || !CITY) return;
+    let tz = ""; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+    const cc = CITY.tz[tz] || "";
+    const tzCity = cfold((tz.split("/").pop() || "").replace(/_/g, " "));
+    const list = [];
+    if (cc) {
+      const own = tzCity && CITY.c.find((e) => e[1] === cc && (cfold(e[0]) === tzCity || (" " + e.k + " ").includes(" " + tzCity + " ")));
+      if (own) list.push(own);
+      for (const e of CITY.c) { if (list.length >= 4) break; if (e[1] === cc && !list.includes(e)) list.push(e); }
+    }
+    wherePick = [];
+    box.innerHTML = list.length ? list.map((e, i) => cityBtn(e, "wh-chip" + (i ? " alt" : ""))).join("") : '<span class="wh-wait">Type your city below.</span>';
+    $("wh-k").textContent = list.length ? "Near one of these?" : "Your city";
+    searchWhere();
+  }
+  function searchWhere() {
+    const q = cfold(($("wh-q") || {}).value), res = $("wh-res");
+    if (!res) return;
+    if (!CITY || q.length < 2) { res.innerHTML = ""; return; }
+    wherePick = wherePick.slice(0, $("wh-chips").querySelectorAll("[data-act]").length);
+    let tz = ""; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+    const home = CITY.tz[tz] || "", hits = [];
+    for (const e of CITY.c) { // biggest first; the name's own start, and the phone's country, come before the rest
+      const head = e.k.startsWith(q), word = !head && e.k.includes(" " + q);
+      if (!head && !word) continue;
+      hits.push({ e, s: (head ? 0 : 2) + (e[1] === home ? 0 : 1) });
+      if (hits.length >= 80) break;
+    }
+    const out = hits.sort((x, y) => x.s - y.s).slice(0, 6).map((h) => h.e); // a stable sort keeps the biggest first within each group
+    res.innerHTML = out.length ? out.map((e) => cityBtn(e, "wh-r")).join("") : '<div class="wh-none">No city with that name here. Try the nearest big town.</div>';
+  }
+  sheetBody.addEventListener("input", (e) => { if (e.target && e.target.id === "wh-q") searchWhere(); });
+  sheetBody.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target && e.target.id === "wh-q") { e.preventDefault(); const first = $("wh-res").querySelector("[data-act]"); if (first) first.click(); }
+  });
+
+  let whereVia = "", whereDone = false, gpsVia = "";
+  function openWhere(via) { // the map card, Settings, or the right moment
+    whereVia = via; whereDone = false;
+    logWhere("shown", via);
+    openSheet("where");
+  }
+  function chooseCity(e) {
+    whereDone = true; locTok++;
+    me = { lat: e[2], lon: e[3], city: e[0], cc: e[1], via: "city" };
+    writeKey(POS_KEY, JSON.stringify(me));
+    locState = "ok";
+    logWhere("city", whereVia);
+    closeSheet(); go("map"); renderLocate();
+    if (W) flyTo(homeView(), 900); else viewReady = false;
+    renderMap(); seenPing(true);
+    toast("You’re on the map, near " + e[0]);
+  }
+
+  /* ---------- (citypick.py) how people answer: one anonymous line per answer, read only as totals ---------- */
+  const TESTCOPY = /\/prova/.test(location.pathname) || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  const inApp = () => !!((window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true);
+  function sb(path, body) {
+    if (!COMMUNITY.url || !window.fetch) return Promise.reject(new Error("off"));
+    return fetch(COMMUNITY.url + "/rest/v1/" + path, {
+      method: "POST", keepalive: true,
+      headers: { apikey: COMMUNITY.key, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify(body),
+    });
+  }
+  function logWhere(answer, via) { sb("where_log", { answer, via: via || "self", app: inApp(), test: TESTCOPY }).catch(() => {}); }
+
+  // a faint dot that stays a day: sent at most every three hours, only by people who are on the map
+  function seenPing(now) {
+    if (!me || !SHARING) return;
+    const last = +readKey("sintonia:seenat") || 0;
+    if (!now && Date.now() - last < 3 * 3600 * 1000) return;
+    writeKey("sintonia:seenat", String(Date.now()));
+    sb("seen", { lat: coarse(me.lat), lon: coarse(me.lon), test: TESTCOPY }).catch(() => {});
+  }
+  function fetchRecent() {
+    if (!SHARING || Date.now() - recentAt < 4 * 60000) return;
+    recentAt = Date.now();
+    fetch(COMMUNITY.url + "/rest/v1/rpc/seen_recent", {
+      method: "POST", headers: { apikey: COMMUNITY.key, "Content-Type": "application/json" },
+      body: JSON.stringify({ hours: 24, with_test: TESTCOPY }),
+    }).then((r) => (r.ok ? r.json() : [])).then((rows) => {
+      recent = (Array.isArray(rows) ? rows : []).filter((r) => isFinite(r.lat) && isFinite(r.lon)).map((r) => ({ lat: +r.lat, lon: +r.lon, n: +r.n || 1 }));
+      const n = recent.length;
+      $("lg-recent-row").hidden = !n;
+      $("lg-recent").textContent = n === 1 ? "1 place where someone listened in the last 24 hours" : n + " places where people listened in the last 24 hours";
+      queueDraw();
+    }).catch(() => { recentAt = 0; });
+  }
+  setInterval(() => { if (view === "map" && !document.hidden) fetchRecent(); }, 5 * 60000);
   const WHERE_KEY = "sintonia:whereasked";
-  function maybeAskWhere() {
-    if (me || !("geolocation" in navigator) || readKey(WHERE_KEY)) return;
-    if (!helloCard.hidden || !sheet.hidden || !$("fp").hidden || document.hidden) { setTimeout(maybeAskWhere, 1500); return; } // after the name card, never over anything else
-    const ask = () => { writeKey(WHERE_KEY, "1"); openSheet("where"); };
-    if (navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: "geolocation" }).then((q) => {
-        if (q.state !== "prompt") writeKey(WHERE_KEY, "1"); // already allowed or refused in the phone's settings: nothing to suggest (and never shared without a tap)
-        else ask();
-      }).catch(ask);
-    } else ask();
+  // (citypick.py) asked once, at a moment that explains it: after a minute of listening, or the first time the map opens
+  function maybeAskWhere(via) {
+    if (me || readKey(WHERE_KEY)) return;
+    if (via === "map" && view !== "map") return;
+    if (!helloCard.hidden || !sheet.hidden || !$("fp").hidden || document.hidden) { setTimeout(() => maybeAskWhere(via), 1500); return; } // never over anything else
+    writeKey(WHERE_KEY, "1");
+    openWhere(via);
   }
+  let heardSec = 0;
+  const heardTimer = setInterval(() => {
+    if (me || readKey(WHERE_KEY)) { clearInterval(heardTimer); return; }
+    if (state === "live" && !document.hidden) { heardSec += 5; if (heardSec >= 60) { clearInterval(heardTimer); maybeAskWhere("listen"); } }
+  }, 5000);
 
   // the privacy notice: read from privacy.html, the same page that opens on its own
   let policyHtml = "";
@@ -3837,8 +3999,9 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     else if (act === "link") { shareStation(id); return; }
     else if (act === "info") { openSheet("info", id); return; }
     else if (act === "copy") { copyText(a.dataset.q); return; }
-    else if (act === "where-yes") { closeSheet(); go("map"); locate(false); return; } // (locask.py)
-    else if (act === "where-no") { closeSheet(); return; }
+    else if (act === "where-city") { const e = wherePick[+a.dataset.i]; if (e) chooseCity(e); return; } // (citypick.py)
+    else if (act === "where-gps") { whereDone = true; gpsVia = whereVia; logWhere("gps", whereVia); closeSheet(); go("map"); locate(false); return; }
+    else if (act === "where-no") { whereDone = true; logWhere("not-now", whereVia); closeSheet(); return; }
     else if (act === "clear") { heard = []; writeKey(HEARD_KEY, "[]"); }
     renderSheet();
   });
@@ -5572,7 +5735,6 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     if (saved && byId[saved]) current = saved;
   } catch (e) {}
   if (fromHomeScreen && !readKey(NAME_KEY) && !readKey(ASKED_KEY)) openHello();
-  setTimeout(maybeAskWhere, 2500); // (locask.py)
   const deep = location.hash.match(/^#station=([a-z0-9-]+)$/i);
   if (deep && byId[deep[1]]) { current = deep[1]; try { localStorage.setItem(KEY, current); } catch (e) {} }
   setState(current ? "paused" : "idle");
@@ -5587,6 +5749,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   refreshLive();
   startPresence();
   setTimeout(countOpen, 1200); // (count.py)
+  setTimeout(() => seenPing(false), 3000); // (citypick.py)
   renderOthers();
   setInterval(tickClocks, 30000);
   setInterval(() => { if (!document.hidden || state === "live") refreshLive(); }, 60000);

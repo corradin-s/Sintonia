@@ -48,7 +48,7 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
 
 <article class="policy" id="policy">
   <h1>Privacy</h1>
-  <p class="pol-date">Last updated 19 November 2026</p>
+  <p class="pol-date">Last updated 20 November 2026</p>
   <p class="pol-lead">Sintonia is a small, independent app for listening to independent radio. It has no accounts, no advertising and no tracking cookies. It only counts, anonymously, how many people open it. This notice describes what the app’s code actually does with your data.</p>
 
   <section>
@@ -74,6 +74,7 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
       <li>your phone’s time zone (for example Europe/Rome).</li>
     </ul>
     <p>It holds no IP address, no random code and nothing that tells one person from another. A note on this phone (“already counted today”) keeps the same phone from being counted twice in a day. The count is only ever read as totals: per day, per kind of link, per time zone. Lines older than 13 months are deleted automatically.</p>
+    <p>In the same way, Sintonia counts how people answer when it asks whether they’d like to be on the map. Each answer adds one line that holds only the date and time, the answer (for example “chose a city” or “not now”), when the question came up (after a minute of listening, the first time the map opens, or from the map’s own button) and whether Sintonia is open from the Home Screen. It holds nothing that tells one person from another, is only read as totals, and is deleted after 13 months.</p>
   </section>
 
   <section>
@@ -87,16 +88,17 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
   <section>
     <h2>The map and other listeners</h2>
     <p>When Sintonia opens, it connects to Supabase, the service that shows on the map how many other people are listening and roughly where, and passes on reactions. Supabase receives your IP address. Supabase keeps a technical log of each connection, including your IP address, for one day. Sintonia’s Supabase project is hosted in the EU (Ireland).</p>
-    <p>Your own dot is shared only after you tap “Use my location” on the map and allow it. From then on, whenever Sintonia is open, it sends:</p>
+    <p>Your own dot is shared only after you choose your city when Sintonia asks “Where are you listening from?” (or from the map), or, if you prefer, after you let your phone share its location. Choosing a city needs no GPS and no permission from the phone. From then on, whenever Sintonia is open, it sends:</p>
     <ul>
       <li>your position, rounded to half a degree (about 50 km);</li>
       <li>the station you’re playing, if any;</li>
       <li>a random code, so that reopening the app doesn’t count you twice.</li>
     </ul>
     <p>Other people with Sintonia open see this as an anonymous dot. It isn’t written to any database: it exists only in Supabase’s live channel and disappears when you close the app.</p>
+    <p>So that the map also shows where people have been listening, Sintonia adds, at most once every three hours, one line to Sintonia’s Supabase project with only your position rounded to half a degree (about 50 km) and the time. The line holds no random code and nothing that tells one person from another or links one line to the next. For 24 hours, other people see that place as a faint ring, without a time or a number. The lines are deleted automatically after two days.</p>
     <p>While a station is playing, you can send a reaction: Love, Fire, Groove or Vibe. It goes through the same live channel with the station you’re playing and, only if you share your dot, the same rounded position. People with Sintonia open at that moment see it cross the map, without knowing who sent it. The station itself doesn’t receive it. Reactions aren’t written to any database: they disappear after a few seconds.</p>
-    <p>On your phone, Sintonia keeps your position rounded to about 10 km, so that the map can show where you are. While location access is allowed, it refreshes this position when you open the app.</p>
-    <p>To stop, tap “Stop sharing my location” on the map: your dot disappears for everyone and the saved position is deleted from this phone. You can share it again whenever you like.</p>
+    <p>On your phone, Sintonia keeps the city you chose, or, if you used the phone’s location, your position rounded to about 10 km, so that the map can show where you are. Only in that second case, while location access is allowed, it refreshes the position when you open the app.</p>
+    <p>To stop, tap “Stop sharing my location” on the map: your dot disappears for everyone and the saved position is deleted from this phone. A faint ring already sent fades within 24 hours and is deleted after two days. You can join the map again whenever you like.</p>
   </section>
 
   <section>
@@ -109,7 +111,8 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
       <li>your pinned stations;</li>
       <li>the songs you’ve heard, under Recently heard;</li>
       <li>how long you’ve listened to each station, to sort Most listened;</li>
-      <li>your rounded position, if you used “Use my location”, until you tap “Stop sharing my location”;</li>
+      <li>your city or rounded position, if you joined the map, until you tap “Stop sharing my location”, and when the last faint ring was sent;</li>
+      <li>whether Sintonia has already asked if you’d like to be on the map;</li>
       <li>the random code used on the map;</li>
       <li>your settings;</li>
       <li>the day Sintonia was last counted, and whether this phone has been counted yet;</li>
@@ -125,8 +128,8 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
 
   <section>
     <h2>Legal bases</h2>
-    <p>Sharing your dot on the map is based on your consent (Article 6(1)(a) GDPR), which you give by tapping “Use my location” and allowing it. You can withdraw it at any time with “Stop sharing my location” on the map. Withdrawing doesn’t affect what was shared before.</p>
-    <p>Everything else (delivering the app, showing what’s on air, playing stations and their past shows, counting how many people open it, showing how many people are listening, passing on the reactions you send) is based on the legitimate interest in running a working radio app (Article 6(1)(f) GDPR).</p>
+    <p>Sharing your dot on the map, live and as a faint ring, is based on your consent (Article 6(1)(a) GDPR), which you give by choosing your city or by letting your phone share its location. You can withdraw it at any time with “Stop sharing my location” on the map. Withdrawing doesn’t affect what was shared before.</p>
+    <p>Everything else (delivering the app, showing what’s on air, playing stations and their past shows, counting how many people open it and how they answer the map question, showing how many people are listening, passing on the reactions you send) is based on the legitimate interest in running a working radio app (Article 6(1)(f) GDPR).</p>
   </section>
 
   <section>
