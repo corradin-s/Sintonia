@@ -3816,13 +3816,18 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const nameH = nm.px * (0.72 + (nm.n - 1) * nm.lh);
     // the name's last line sits a little above the middle; the words above it, the mark at the foot
     const base = 1080, nameTop = base - nameH;
+    // (storyveil.py) under the name, in the free band above the mark: the name again on one line, huge and almost clear, running off the edge
+    c.save();
+    c.font = fBig(470); c.fillStyle = rgba(ink, 0.08); c.textBaseline = "alphabetic"; c.textAlign = "left";
+    c.fillText(d.words.join(" "), M - 22, 1452);
+    c.restore();
     // a short line and I'm listening to, small and spaced
-    c.fillStyle = ink; c.textBaseline = "alphabetic";
+    c.fillStyle = rgba(ink, 0.45); c.textBaseline = "alphabetic";
     c.fillRect(M, nameTop - 118, 56, 3);
-    c.font = fBody(500, 30); c.fillStyle = rgba(ink, 0.88);
+    c.font = fBody(500, 30); c.fillStyle = rgba(ink, 0.66);
     spaced(c, "I’M LISTENING TO", M, nameTop - 64, 8);
     // the name
-    c.font = fBig(nm.px); c.fillStyle = ink; c.textAlign = "left";
+    c.font = fBig(nm.px); c.fillStyle = rgba(ink, 0.94); c.textAlign = "left";
     let by = base;
     for (let j = nm.lines.length - 1; j >= 0; j--) { c.fillText(nm.lines[j], M - nm.px * 0.02, by); by -= nm.px * nm.lh; }
     // the foot: the cat reaching up beside Sintonìa, small, above Instagram's reply bar
@@ -3830,10 +3835,10 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     let x = M;
     if (CAT.path) {
       c.save(); c.translate(x, footY - catH); c.scale(catH / 1385, catH / 1385); c.translate(-400, -332);
-      c.fillStyle = ink; c.fill(CAT.path, "evenodd"); c.restore();
+      c.fillStyle = rgba(ink, 0.78); c.fill(CAT.path, "evenodd"); c.restore();
       x += catW + 20;
     }
-    c.font = fWord(42); c.fillStyle = ink; spaced(c, "Sintonìa", x, footY - 12, -1.5);
+    c.font = fWord(42); c.fillStyle = rgba(ink, 0.78); spaced(c, "Sintonìa", x, footY - 12, -1.5);
     return cv;
   }
 
