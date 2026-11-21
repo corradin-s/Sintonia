@@ -3084,13 +3084,14 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       localStorage.setItem(PLAN_KEY, JSON.stringify(o));
     } catch (e) {}
   }
+  let planBusy = false;
   function loadPlan() {
-    const jobs = [];
+    if (planBusy) return;
+    const jobs = []; // one at a time, a little apart (planqueue.py)
     const get = (id, url, read) => {
       if (!planDue(id)) return;
-      planTry[id] = Date.now();
-      jobs.push(fetch(url).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
-        .then((j) => { SCHED[id] = read(j); planOk[id] = Date.now(); }).catch(() => {}));
+      jobs.push(() => { planTry[id] = Date.now(); return fetch(url).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then((j) => { SCHED[id] = read(j); planOk[id] = Date.now(); }).catch(() => {}); });
     };
     [["nts1", 1], ["nts2", 2]].forEach(([id, ch]) => get(id, "https://www.nts.live/api/v2/radio/schedule/" + ch, (j) =>
       (j.results || []).flatMap((d) => d.broadcasts || []).map((b) => {
@@ -3105,7 +3106,11 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       }).filter((x) => isFinite(x.a) && isFinite(x.b)).sort((p, q) => p.a - q.a);
     }));
     Object.keys(HOURS).forEach((id) => { SCHED[id] = hoursAhead(HOURS[id]); });
-    if (jobs.length) Promise.all(jobs).then(() => { planKeep(); renderLive(); });
+    if (!jobs.length) return;
+    planBusy = true;
+    const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+    jobs.reduce((p, job) => p.then(() => pause(350)).then(job), pause(Object.keys(planOk).length ? 0 : 3000))
+      .then(() => { planBusy = false; planKeep(); renderLive(); });
   }
   function planNow(id) { // the show the schedule has on now, as the cards show what's on air
     const now = Date.now(), x = (SCHED[id] || []).find((y) => y.a <= now && y.b > now && y.t);
