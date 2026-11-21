@@ -1,13 +1,34 @@
 {
- "week": "2026-11-16",
+ "week": "2026-11-21",
  "note": "Three shows picked by hand each week. Times in UTC; the app shows them in the listener's own time.",
  "picks": [
   {
-   "id": "rbl",
-   "title": "Méditerranée w/ Peppe Fossi",
-   "start": "2026-11-19T15:00:00.000Z",
-   "end": "2026-11-19T16:00:00.000Z",
-   "why": "A Mediterranean port, one episode at a time: alternative, electronic and indietronica from around the sea. Third Thursday of every month."
+   "id": "kiosk",
+   "title": "Listen Festival w/ Kode9",
+   "start": "2026-11-21T18:00:00.000Z",
+   "end": "2026-11-21T19:00:00.000Z",
+   "why": "Brussels' Listen Festival takes over the kiosk in the Parc Royal this weekend. Kode9, the founder of Hyperdub, plays an hour on air before his b2b with Tim Reaper at the festival tonight."
+  },
+  {
+   "id": "nts2",
+   "title": "Bad Brains Day w/ H.R. and Darryl Jenifer",
+   "start": "2026-11-21T20:00:00.000Z",
+   "end": "2026-11-21T23:00:00.000Z",
+   "why": "A night on Bad Brains, the Washington DC band that joined hardcore punk and reggae: first H.R. and Darryl Jenifer on the music that shaped them, then two hours on their own records."
+  },
+  {
+   "id": "nts2",
+   "title": "Sweat Records Vice City Takeover",
+   "start": "2026-11-22T17:00:00.000Z",
+   "end": "2026-11-22T23:00:00.000Z",
+   "why": "Six hours live from Sweat Records, Miami's independent record shop: Hija del Sol, Arthur Baker (the producer behind Planet Rock), Danny Daze and more."
+  },
+  {
+   "id": "stegi",
+   "title": "Songlines • Sarolta Zalatnay w/ Jimmy Trash",
+   "start": "2026-11-23T17:00:00.000Z",
+   "end": "2026-11-23T18:00:00.000Z",
+   "why": "An hour on Sarolta Zalatnay, the voice of Hungarian beat and psychedelia in the late sixties and seventies."
   }
  ]
 }
