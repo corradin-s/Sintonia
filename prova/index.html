@@ -5658,6 +5658,12 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   const fromHomeScreen = window.navigator.standalone === true ||
     (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
 
+  if (/[?&]ua\b/.test(location.search)) { // test copy only: shows which browser the page thinks it is in
+    const d = document.createElement("div");
+    d.style.cssText = "position:fixed;left:0;right:0;bottom:0;z-index:60;background:#FFE14D;color:#000;font:12px/1.35 monospace;padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px);word-break:break-all";
+    d.textContent = "UA: " + navigator.userAgent + " | standalone: " + fromHomeScreen + " | hint closed: " + (readKey("sintonia:iabhint") || "no");
+    document.body.appendChild(d);
+  }
   (function iabHint() { // (iabhint.py) only inside Instagram's or Facebook's own browser, once per phone
     const ua = navigator.userAgent || "", IAB_KEY = "sintonia:iabhint";
     const where = /Instagram/i.test(ua) ? "Instagram" : /FBAN|FBAV|FB_IAB/i.test(ua) ? "Facebook" : "";
