@@ -659,6 +659,17 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 .sh-big:disabled, .sh-big[aria-disabled="true"] { opacity: .45; pointer-events: none; }
 .story-tip { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; max-width: 34ch; }
 .story .finds { justify-content: center; }
+/* (iabhint.py) inside Instagram's browser: how to keep listening once you leave the app */
+.iab { position: fixed; top: 0; left: 0; right: 0; z-index: 45; background: var(--bg-2); color: var(--ink); border-bottom: 1px solid var(--line);
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) max(16px, env(safe-area-inset-right, 0px)) 13px max(16px, env(safe-area-inset-left, 0px));
+  display: grid; grid-template-columns: minmax(0, 1fr) 32px; column-gap: 10px; align-items: start; font-family: var(--f-body); }
+.iab[hidden] { display: none; }
+.iab-t { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.25; }
+.iab-s { margin: 3px 0 0; font-size: 13px; line-height: 1.35; color: var(--muted); }
+.iab-x { appearance: none; -webkit-appearance: none; border: 0; padding: 0; margin: -4px -6px 0 0; width: 32px; height: 32px; border-radius: 50%;
+  background: none; color: var(--muted); font-size: 20px; line-height: 32px; cursor: pointer; }
+.iab-x:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+html.has-iab .wrap { padding-top: var(--iab-h, 0px); }
 .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); transform: translateX(-50%); z-index: 50; background: var(--ink); color: var(--bg); padding: 9px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 600; pointer-events: none; }
 
 /* ---------- Full-screen player ---------- */
@@ -1365,6 +1376,11 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   <span class="onair" aria-hidden="true"><svg class="sig" width="34" height="12" viewBox="0 0 34 12"><path class="sig-idle" d="M1 6 H33"/><path class="sig-noise" d="M-24 4.5 L-22 3.1 L-20 7.3 L-18 2.4 L-16 6.3 L-14 4.9 L-12 2.3 L-10 6.1 L-8 2.1 L-6 5.4 L-4 2.4 L-2 2.6 L0 4.5 L2 3.1 L4 7.3 L6 2.4 L8 6.3 L10 4.9 L12 2.3 L14 6.1 L16 2.1 L18 5.4 L20 2.4 L22 2.6 L24 4.5 L26 3.1 L28 7.3 L30 2.4 L32 6.3 L34 4.9 L36 2.3 L38 6.1 L40 2.1 L42 5.4 L44 2.4 L46 2.6 L48 4.5"/><path class="sig-live" d="M-24 6 C -21.5 6 -21.5 1.5 -18.5 1.5 S -15.5 10.5 -12.5 10.5 S -9.5 3 -6.5 3 S -3.5 9 0 6 C 2.5 6 2.5 1.5 5.5 1.5 S 8.5 10.5 11.5 10.5 S 14.5 3 17.5 3 S 20.5 9 24 6 C 26.5 6 26.5 1.5 29.5 1.5 S 32.5 10.5 35.5 10.5 S 38.5 3 41.5 3 S 44.5 9 48 6"/></svg></span>
 </button>
 
+<div class="iab" id="iab" role="note" hidden>
+  <div><p class="iab-t">Keep the music on outside Instagram</p>
+  <p class="iab-s" id="iab-s">In Instagram the sound stops when you leave the app. Tap the three dots at the top to open Sintonìa in your browser, or add it to your Home Screen.</p></div>
+  <button class="iab-x" id="iab-x" type="button" aria-label="Close">×</button>
+</div>
 <div class="wrap">
   <div class="topline">
     <button class="eyebrow greet" id="greet" type="button" aria-label="Change your name">Hello</button>
@@ -5567,6 +5583,24 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   // opened from the Home Screen icon rather than a browser tab
   const fromHomeScreen = window.navigator.standalone === true ||
     (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+
+  (function iabHint() { // (iabhint.py) only inside Instagram's or Facebook's own browser, once per phone
+    const ua = navigator.userAgent || "", IAB_KEY = "sintonia:iabhint";
+    const where = /Instagram/i.test(ua) ? "Instagram" : /FBAN|FBAV|FB_IAB/i.test(ua) ? "Facebook" : "";
+    if (!where || fromHomeScreen || readKey(IAB_KEY)) return;
+    const box = $("iab");
+    if (where !== "Instagram") {
+      box.querySelector(".iab-t").textContent = "Keep the music on outside " + where;
+      $("iab-s").textContent = "In " + where + " the sound stops when you leave the app. Tap the three dots at the top to open Sintonìa in your browser, or add it to your Home Screen.";
+    }
+    const fit = () => document.documentElement.style.setProperty("--iab-h", box.hidden ? "0px" : box.offsetHeight + "px");
+    box.hidden = false; document.documentElement.classList.add("has-iab"); fit();
+    window.addEventListener("resize", fit);
+    $("iab-x").addEventListener("click", () => {
+      box.hidden = true; document.documentElement.classList.remove("has-iab"); fit();
+      writeKey(IAB_KEY, "1");
+    });
+  })();
 
   function partOfDay(h) {
     if (h >= 5 && h < 12) return "Good morning";
