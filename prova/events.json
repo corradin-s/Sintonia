@@ -13,10 +13,39 @@
    "live": [
     {
      "id": "kiosk",
-     "title": "Listen Festival on Kiosk Radio",
+     "title": "Listen Festival w/ Lea Occhi",
      "start": "2026-11-21T14:00:00Z",
-     "end": "2026-11-21T20:00:00Z",
-     "why": "An afternoon of the festival's artists on air, Angel D'lite, Kode9 and Gabber Eleganza among them."
+     "end": "2026-11-21T15:00:00Z"
+    },
+    {
+     "id": "kiosk",
+     "title": "Listen Festival w/ Jorkes",
+     "start": "2026-11-21T15:00:00Z",
+     "end": "2026-11-21T16:00:00Z"
+    },
+    {
+     "id": "kiosk",
+     "title": "Listen Festival w/ Acidheaven",
+     "start": "2026-11-21T16:00:00Z",
+     "end": "2026-11-21T17:00:00Z"
+    },
+    {
+     "id": "kiosk",
+     "title": "Listen Festival w/ Angel D'lite",
+     "start": "2026-11-21T17:00:00Z",
+     "end": "2026-11-21T18:00:00Z"
+    },
+    {
+     "id": "kiosk",
+     "title": "Listen Festival w/ Kode9",
+     "start": "2026-11-21T18:00:00Z",
+     "end": "2026-11-21T19:00:00Z"
+    },
+    {
+     "id": "kiosk",
+     "title": "Listen Festival w/ Gabber Eleganza",
+     "start": "2026-11-21T19:00:00Z",
+     "end": "2026-11-21T20:00:00Z"
     },
     {
      "id": "kiosk",
