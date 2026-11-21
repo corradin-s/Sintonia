@@ -3,25 +3,11 @@
  "note": "Three shows picked by hand each week. Times in UTC; the app shows them in the listener's own time.",
  "picks": [
   {
-   "id": "kiosk",
-   "title": "Listen Festival w/ Kode9",
-   "start": "2026-11-21T18:00:00.000Z",
+   "id": "newtown",
+   "title": "Strangers Live w/ '89 the Brainchild & Fatboi Sharif",
+   "start": "2026-11-21T17:00:00.000Z",
    "end": "2026-11-21T19:00:00.000Z",
-   "why": "Brussels' Listen Festival takes over the kiosk in the Parc Royal this weekend. Kode9, the founder of Hyperdub, plays an hour on air before his b2b with Tim Reaper at the festival tonight."
-  },
-  {
-   "id": "nts2",
-   "title": "Bad Brains Day w/ H.R. and Darryl Jenifer",
-   "start": "2026-11-21T20:00:00.000Z",
-   "end": "2026-11-21T23:00:00.000Z",
-   "why": "A night on Bad Brains, the Washington DC band that joined hardcore punk and reggae: first H.R. and Darryl Jenifer on the music that shaped them, then two hours on their own records."
-  },
-  {
-   "id": "nts2",
-   "title": "Sweat Records Vice City Takeover",
-   "start": "2026-11-22T17:00:00.000Z",
-   "end": "2026-11-22T23:00:00.000Z",
-   "why": "Six hours live from Sweat Records, Miami's independent record shop: Hija del Sol, Arthur Baker (the producer behind Planet Rock), Danny Daze and more."
+   "why": "Underground hip hop from Bushwick: rapper Fatboi Sharif and '89 the Brainchild, with DJ Kohai and DJ Boogaveli, going from rap and soul to jungle and spoken word."
   },
   {
    "id": "stegi",
@@ -29,6 +15,13 @@
    "start": "2026-11-23T17:00:00.000Z",
    "end": "2026-11-23T18:00:00.000Z",
    "why": "An hour on Sarolta Zalatnay, the voice of Hungarian beat and psychedelia in the late sixties and seventies."
+  },
+  {
+   "id": "cashmere",
+   "title": "Elope w/ Eleni Poulou",
+   "start": "2026-11-24T18:30:00.000Z",
+   "end": "2026-11-24T20:00:00.000Z",
+   "why": "The show of Eleni Poulou, Berlin musician and poet who played keyboards in The Fall: records, voices and guests, wherever they lead."
   }
  ]
 }
