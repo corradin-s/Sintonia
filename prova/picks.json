@@ -1,27 +1,24 @@
 {
- "week": "2026-11-21",
+ "week": "2026-11-22",
  "note": "Three shows picked by hand each week. Times in UTC; the app shows them in the listener's own time.",
  "picks": [
   {
-   "id": "newtown",
-   "title": "Strangers Live w/ '89 the Brainchild & Fatboi Sharif",
-   "start": "2026-11-21T17:00:00.000Z",
-   "end": "2026-11-21T19:00:00.000Z",
-   "why": "Underground hip hop from Bushwick: rapper Fatboi Sharif and '89 the Brainchild, with DJ Kohai and DJ Boogaveli, going from rap and soul to jungle and spoken word."
-  },
-  {
-   "id": "stegi",
-   "title": "Songlines • Sarolta Zalatnay w/ Jimmy Trash",
-   "start": "2026-11-23T17:00:00.000Z",
-   "end": "2026-11-23T18:00:00.000Z",
-   "why": "An hour on Sarolta Zalatnay, the voice of Hungarian beat and psychedelia in the late sixties and seventies."
+   "id": "rbl",
+   "title": "Organic Poetry w/ Sasha Ko",
+   "start": "2026-11-23T16:00:00.000Z",
+   "end": "2026-11-23T17:00:00.000Z"
   },
   {
    "id": "cashmere",
-   "title": "Elope w/ Eleni Poulou",
-   "start": "2026-11-24T18:30:00.000Z",
-   "end": "2026-11-24T20:00:00.000Z",
-   "why": "The show of Eleni Poulou, Berlin musician and poet who played keyboards in The Fall: records, voices and guests, wherever they lead."
+   "title": "yalla listen!",
+   "start": "2026-11-26T18:30:00.000Z",
+   "end": "2026-11-26T20:00:00.000Z"
+  },
+  {
+   "id": "noods",
+   "title": "GTA San Andreas Special w/ Chloe Nelmes",
+   "start": "2026-11-29T18:00:00.000Z",
+   "end": "2026-11-29T20:00:00.000Z"
   }
  ]
 }
