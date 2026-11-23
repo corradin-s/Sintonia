@@ -6,8 +6,13 @@
    "dates": "25 Nov – 28 Nov",
    "url": "https://www.unsound.pl/",
    "until": "2026-11-29T21:00:00Z",
-   "note": "The Kraków festival of experimental and club music returns to London for four nights, at Milton Court, the ICA, Ormside Projects and EartH. claire rousay with Martyna Basta, RP Boo, Lorenzo Senni, Visible Cloaks, Giant Claw, Simo Cell with Abdullah Miniawy and Anz play.",
-   "stations": ["nts1", "nts2", "rinse", "wwfm"],
+   "note": "An amorphous, global-minded music and sound platform with related visual art, in Kraków, New York, Toronto, London, Adelaide and other places.",
+   "stations": [
+    "nts1",
+    "nts2",
+    "rinse",
+    "wwfm"
+   ],
    "live": [],
    "shows": [
     {
