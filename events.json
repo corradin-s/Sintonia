@@ -2,71 +2,32 @@
  "note": "Events shown in This week while they last. Times in UTC; the app shows them in the listener's own time.",
  "events": [
   {
-   "title": "Listen Festival, Brussels",
-   "dates": "21 Nov – 22 Nov",
-   "url": "https://www.listenfestival.be/",
-   "until": "2026-11-23T06:00:00Z",
-   "note": "The tenth edition of Brussels' club festival, in fifteen places across the city, from clubs like Fuse and C12 to train stations. Tiga, Avalon Emerson, Dillinja and Mala play, with Kode9 b2b Tim Reaper and Antal b2b Lefto Early Bird.",
+   "title": "Unsound London, London",
+   "dates": "25 Nov – 28 Nov",
+   "url": "https://www.unsound.pl/",
+   "until": "2026-11-29T21:00:00Z",
+   "note": "An amorphous, global-minded music and sound platform with related visual art, in Kraków, New York, Toronto, London, Adelaide and other places.",
    "stations": [
-    "kiosk"
+    "nts1",
+    "nts2",
+    "rinse",
+    "wwfm"
    ],
-   "live": [
-    {
-     "id": "kiosk",
-     "title": "Listen Festival w/ Lea Occhi",
-     "start": "2026-11-21T14:00:00Z",
-     "end": "2026-11-21T15:00:00Z"
-    },
-    {
-     "id": "kiosk",
-     "title": "Listen Festival w/ Jorkes",
-     "start": "2026-11-21T15:00:00Z",
-     "end": "2026-11-21T16:00:00Z"
-    },
-    {
-     "id": "kiosk",
-     "title": "Listen Festival w/ Acidheaven",
-     "start": "2026-11-21T16:00:00Z",
-     "end": "2026-11-21T17:00:00Z"
-    },
-    {
-     "id": "kiosk",
-     "title": "Listen Festival w/ Angel D'lite",
-     "start": "2026-11-21T17:00:00Z",
-     "end": "2026-11-21T18:00:00Z"
-    },
-    {
-     "id": "kiosk",
-     "title": "Listen Festival w/ Kode9",
-     "start": "2026-11-21T18:00:00Z",
-     "end": "2026-11-21T19:00:00Z"
-    },
-    {
-     "id": "kiosk",
-     "title": "Listen Festival w/ Gabber Eleganza",
-     "start": "2026-11-21T19:00:00Z",
-     "end": "2026-11-21T20:00:00Z"
-    },
-    {
-     "id": "kiosk",
-     "title": "Listen Festival w/ Virginia",
-     "start": "2026-11-22T13:00:00Z",
-     "end": "2026-11-22T14:00:00Z"
-    },
-    {
-     "id": "kiosk",
-     "title": "Listen Festival w/ Amelia Holt",
-     "start": "2026-11-22T19:00:00Z",
-     "end": "2026-11-22T20:00:00Z"
-    }
-   ],
+   "live": [],
    "shows": [
     {
-     "id": "kiosk",
-     "title": "Think Outside The Kiosk w/ Lefto Early Bird",
-     "start": "2026-11-22T17:00:00Z",
-     "end": "2026-11-22T19:00:00Z",
-     "why": "Lefto's own show on the station; at the festival he plays b2b with Antal."
+     "id": "nts1",
+     "title": "Space Afrika",
+     "start": "2026-11-24T22:00:00Z",
+     "end": "2026-11-25T00:00:00Z",
+     "why": "Space Afrika's own show on NTS; on Saturday they play EartH Theatre with soprano Nardus Williams."
+    },
+    {
+     "id": "nts2",
+     "title": "Fixed Abode w/ Rainy Miller",
+     "start": "2026-11-29T20:00:00Z",
+     "end": "2026-11-29T21:00:00Z",
+     "why": "Rainy Miller's own show on NTS; on Wednesday he opens the festival at Milton Court with 2K88 and Bianca Scout."
     }
    ]
   }
