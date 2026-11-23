@@ -3271,12 +3271,12 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       k.textContent = info.onAir ? "Live now" : "On now";
       k.classList.toggle("live", !!info.onAir);
       if (info.rerun) { const rr = document.createElement("span"); rr.className = "rr"; rr.textContent = info.tag || "Rerun"; k.appendChild(rr); }
-      const span = showSpan(info, st.tz);
+      const span = showSpan(info); // (localtimes.py) the listener's own time, like "live today" and Not to miss
       if (span) { const hs = document.createElement("span"); hs.className = "now-h"; hs.textContent = span; k.appendChild(hs); }
       box.querySelector(".now-t").textContent = info.title;
       const parts = [];
       if (info.sub) parts.push(info.sub);
-      if (isFinite(info.end)) parts.push("until " + hhmm(info.end, st.tz));
+      if (isFinite(info.end)) parts.push("until " + hhmm(info.end));
       if (nx) parts.push("live " + whenLive(nx.a)); // (liveplan.py)
       const s = box.querySelector(".now-s");
       s.textContent = parts.join(" · ");
@@ -4218,7 +4218,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   function renderSleep() {
     const st = current ? byId[current] : null, info = st ? live[st.id] : null, left = sleepLeft();
     const opts = [[15, "15 minutes"], [30, "30 minutes"], [45, "45 minutes"], [60, "1 hour"]];
-    if (info && isFinite(info.end) && info.end - Date.now() > 2 * 60000) opts.push([Math.round((info.end - Date.now()) / 60000), "When the show ends", hhmm(info.end, st.tz)]);
+    if (info && isFinite(info.end) && info.end - Date.now() > 2 * 60000) opts.push([Math.round((info.end - Date.now()) / 60000), "When the show ends", hhmm(info.end)]);
     let h = '<div class="sheet-in sheet-pad"><h2 class="sh-title" id="sheet-title">Sleep timer</h2>' +
       `<p class="empty">${left ? "The radio stops in " + left + " min." : "The radio stops by itself after:"}</p><div class="sh-opts">`;
     h += opts.map(([m, label, at]) => `<button class="sh-opt" type="button" data-act="sleepset" data-min="${m}">${label}<span>${at || ""}</span></button>`).join("");
@@ -4736,7 +4736,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const sub = [];
     if (info && info.sub && !(info.song && info.song.title && info.sub.toLowerCase().includes(info.song.title.toLowerCase())) &&
       !(info.song && info.sub === info.song.artist)) sub.push(esc(info.sub)); // the song has its own card below
-    if (info && isFinite(info.end)) sub.push("until " + hhmm(info.end, st.tz));
+    if (info && isFinite(info.end)) sub.push("until " + hhmm(info.end));
     if (A) sub.push(esc(st.name) + " · " + esc(A.date) + (A.loading && !A.playing ? " · loading…" : A.playing ? "" : " · paused"));
     else if (!info || !info.title) sub.push(esc(st.city) + ", " + esc(st.country));
     const pinned = favs.includes(st.id);
@@ -4749,7 +4749,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     } else if (info && isFinite(info.start) && isFinite(info.end) && info.end > info.start) {
       const pct = Math.min(100, Math.max(0, (now - info.start) / (info.end - info.start) * 100));
       h += `<div class="fp-bar"><div class="fp-line"><i style="width:${pct.toFixed(1)}%"></i></div>` +
-        `<div class="fp-times"><span>${hhmm(info.start, st.tz)}</span><span>${hhmm(now, st.tz)} in ${esc(st.city)}</span><span>${hhmm(info.end, st.tz)}</span></div></div>`;
+        `<div class="fp-times"><span>${hhmm(info.start)}</span><span>${hhmm(now, st.tz)} in ${esc(st.city)}</span><span>${hhmm(info.end)}</span></div></div>`; // (localtimes.py) the show in your time, the city's clock in the middle
     } else {
       h += `<div class="fp-times one"><span>${hhmm(now, st.tz)} in ${esc(st.city)}</span></div>`;
     }
