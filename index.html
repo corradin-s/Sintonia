@@ -1554,7 +1554,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       </button>
       <button class="sched" type="button" data-site="https://radiobatuta.com.br/">Info</button>
     </li>
-    <li class="tile" data-id="nopal" data-added="2026-10-26" data-country="Mexico" data-code="MEX" data-lat="19.439" data-lon="-99.163" data-region="Americas" data-city="Mexico City" data-tz="America/Mexico_City" data-src="https://radio.mensajito.mx/nopalA">
+    <li class="tile" data-id="nopal" data-added="2026-10-26" data-country="Mexico" data-code="MEX" data-lat="19.439" data-lon="-99.163" data-region="Americas" data-city="Mexico City" data-tz="America/Mexico_City" data-src="https://radio.mensajito.mx/nopalA" data-alt="https://radio.mensajito.mx/nopalVentana https://radio.mensajito.mx/2e6953be728b">
       <button class="tune" type="button" aria-label="Listen to Radio Nopal">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
         <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio Nopal</span><span class="meta"><span>P17 · Mexico City</span><span class="clock"></span></span></span>
@@ -1866,6 +1866,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       id: el.dataset.id, index, el,
       name: el.querySelector(".name").textContent,
       city: el.dataset.city, tz: el.dataset.tz, src: el.dataset.src,
+      srcs: [el.dataset.src].concat((el.dataset.alt || "").split(/\s+/).filter(Boolean)), srcI: 0, srcTried: 0, // (altsrc.py)
       country: el.dataset.country, code: el.dataset.code, region: el.dataset.region,
       lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon),
       c: cs.getPropertyValue("--c").trim(), t: cs.getPropertyValue("--t").trim(),
@@ -5284,6 +5285,17 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     return fetch(src, { mode: "no-cors", cache: "no-store", signal: ctl.signal })
       .then(() => { clearTimeout(t); ctl.abort(); return true; }, () => { clearTimeout(t); return false; });
   }
+  function nextSrc(failed) { // (altsrc.py) failed: the stream that just failed; an older one's late failure changes nothing
+    const st = current && byId[current];
+    if (!st || !st.srcs || st.srcs.length < 2) return false;
+    if (failed && failed.split("?")[0] !== st.src.split("?")[0]) return true;
+    if (st.srcTried >= st.srcs.length - 1) return false;
+    st.srcTried++; st.srcI = (st.srcI + 1) % st.srcs.length; st.src = st.srcs[st.srcI];
+    clearTimeout(retryTimer); retryPending = false;
+    if (bridging) bridgeOff();
+    toStation();
+    return true;
+  }
   function scheduleRetry() {
     if (!wanted || !current || retryPending) return; // the error event and the failed play() report the same failure once
     const justOn = hadPlayed && !bridging;
@@ -5341,14 +5353,15 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     dropHls();
     if (isHls(st.src) && (triedHls || !appleHls) && canMse()) { playWithHlsJs(current); return; }
     audio.src = isHls(st.src) ? st.src : fresh(st.src);
-    const p = audio.play();
-    if (p && typeof p.catch === "function") p.catch((err) => playFailed(current, err));
+    const p = audio.play(), s0 = audio.getAttribute("src"); // (altsrc.py) which stream this play was for
+    if (p && typeof p.catch === "function") p.catch((err) => playFailed(current, err, s0));
   }
   function stopStream() { bridgeOff(); dropHls(); audio.pause(); audio.removeAttribute("src"); audio.load(); }
   function dropHls() { if (hls) { try { hls.destroy(); } catch (e) {} hls = null; } }
-  function playFailed(id, err) {
+  function playFailed(id, err, src) {
     if (current !== id || (err && err.name === "AbortError")) return;
     if (err && err.name === "NotAllowedError") { bridgeOff(); wanted = false; retrying = false; setState("paused"); return; }
+    if (wanted && nextSrc(src)) return; // (altsrc.py)
     if (wanted) { scheduleRetry(); return; }
     setState("error");
   }
@@ -5373,6 +5386,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     if (!st) return;
     if (arch) archStop();
     current = id;
+    if (st.srcs && st.srcs.length > 1) { st.srcI = 0; st.srcTried = 0; st.src = st.srcs[0]; } // (altsrc.py)
     startedAt = Date.now();
     try { localStorage.setItem(KEY, id); } catch (e) {}
     clearTimeout(retryTimer); retryPending = false;
@@ -5388,8 +5402,8 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       return;
     }
     audio.src = st.src;
-    const p = audio.play();
-    if (p && typeof p.catch === "function") p.catch((err) => playFailed(id, err));
+    const p = audio.play(), s0 = audio.getAttribute("src"); // (altsrc.py)
+    if (p && typeof p.catch === "function") p.catch((err) => playFailed(id, err, s0));
   }
 
   function stop() {
@@ -5486,7 +5500,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     else start(current);
   });
 
-  audio.addEventListener("playing", () => { if (bridging) return; hadPlayed = true; retrying = false; waitingNet = false; retryN = 0; giveUpAt = 0; lastMove = Date.now(); setState("live"); });
+  audio.addEventListener("playing", () => { if (bridging) return; if (current && byId[current]) byId[current].srcTried = 0; hadPlayed = true; retrying = false; waitingNet = false; retryN = 0; giveUpAt = 0; lastMove = Date.now(); setState("live"); });
   audio.addEventListener("waiting", () => { if (!bridging && state === "live") setState("loading"); });
   audio.addEventListener("playing", () => { if (!bridging) flowing = true; });
   audio.addEventListener("waiting", () => { // (bridge2.py) screen locked and the sound ran dry: the silence at once, before the iPhone puts the app to sleep
@@ -5521,6 +5535,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     // the browser's own HLS player gave up: try once more with hls.js
     if (st && isHls(st.src) && !hls && !triedHls && canMse()) { playWithHlsJs(current); return; }
     if (hls) return;
+    if (wanted && nextSrc(audio.currentSrc || audio.getAttribute("src"))) return; // (altsrc.py)
     if (wanted) scheduleRetry(); else setState("error");
   });
 
