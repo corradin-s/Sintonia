@@ -2063,6 +2063,13 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       if (first) localStorage.setItem("sintonia:fresh", "1"); else first = localStorage.getItem("sintonia:fresh") === "1"; // new here, until it has been counted once
     } catch (e) { return; }
     if (last === today) return;
+    let since = "", visits = null; // (listenlog.py) known only for phones that arrive from now on
+    try {
+      since = localStorage.getItem(SINCE_KEY) || "";
+      if (!since && first) { since = today; localStorage.setItem(SINCE_KEY, today); }
+      if (since) visits = Math.min(10000, (+localStorage.getItem("sintonia:visits") || 0) + 1);
+    } catch (e) {}
+    const age = since ? ageDays() : null;
     const app = !!((window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true);
     const q = new URLSearchParams(location.search);
     let src = (q.get("from") || q.get("utm_source") || "").toLowerCase().replace(/[^a-z0-9.-]/g, "").slice(0, 24);
@@ -2081,8 +2088,11 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     fetch(COMMUNITY.url + "/rest/v1/hits", {
       method: "POST", keepalive: true,
       headers: { apikey: COMMUNITY.key, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ first, app, src, tz, test, age, visits }),
+    }).then((r) => r.status !== 400 ? r : fetch(COMMUNITY.url + "/rest/v1/hits", { // (listenlog.py) Supabase without the new columns yet: counted as before
+      method: "POST", keepalive: true, headers: { apikey: COMMUNITY.key, "Content-Type": "application/json", Prefer: "return=minimal" },
       body: JSON.stringify({ first, app, src, tz, test }),
-    }).then((r) => { if (r.ok) { try { localStorage.setItem("sintonia:counted", today); localStorage.removeItem("sintonia:fresh"); } catch (e) {} } }).catch(() => {});
+    })).then((r) => { if (r.ok) { try { localStorage.setItem("sintonia:counted", today); localStorage.removeItem("sintonia:fresh"); if (visits) localStorage.setItem("sintonia:visits", String(visits)); } catch (e) {} } }).catch(() => {});
   }
   function startPresence() {
     if (!SHARING || channel) return;
@@ -3375,11 +3385,32 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   const TIME_KEY = "sintonia:listened";
   var played = {};
   try { played = JSON.parse(localStorage.getItem(TIME_KEY) || "{}") || {}; } catch (e) { played = {}; }
+  /* ---------- (listenlog.py) each listen, one anonymous line when it ends: the station, how long, whether it started and how fast ---------- */
+  const SINCE_KEY = "sintonia:since", SESS_KEY = "sintonia:sess";
+  var sess = null;
+  function ageDays() { // days since this phone first opened Sintonìa, by the Italian calendar like the count; null for phones from before
+    try {
+      const a = Date.parse((localStorage.getItem(SINCE_KEY) || "x") + "T12:00:00Z"), b = Date.parse(new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Rome" }) + "T12:00:00Z");
+      return isFinite(a) && isFinite(b) ? Math.max(0, Math.min(3650, Math.round((b - a) / 864e5))) : null;
+    } catch (e) { return null; }
+  }
+  function sessSave() { try { if (sess) localStorage.setItem(SESS_KEY, JSON.stringify(sess)); else localStorage.removeItem(SESS_KEY); } catch (e) {} }
+  function sessSend(x, how) {
+    if (!x || !byId[x.st]) return;
+    const ok = x.wait !== null && x.wait !== undefined;
+    let first = false;
+    if (ok) { try { if (!localStorage.getItem("sintonia:played1")) { first = true; localStorage.setItem("sintonia:played1", "1"); } } catch (e) {} }
+    sb("listens", { st: x.st, ok, sec: Math.max(0, Math.min(86400, Math.round(x.sec || 0))), wait: Math.max(0, Math.min(600000, Math.round(ok ? x.wait : (x.end || x.last || Date.now()) - x.t0))),
+      how: ["stop", "switch", "close", "error", "blocked"].includes(how) ? how : "stop", first, age: ageDays(), app: inApp(), test: TESTCOPY }).catch(() => {});
+  }
+  function sessOpen(id) { sess = { st: id, t0: Date.now(), wait: null, sec: 0, last: Date.now() }; sessSave(); }
+  function sessClose(how) { if (!sess) return; const x = sess; x.end = Date.now(); sess = null; sessSave(); sessSend(x, x.how || how); }
   var tallyAt = 0, tallyId = "";
   function tally() { // adds the stretch just listened (at most half an hour at a time, in case the phone slept) and starts the next one
     const now = Date.now();
     if (tallyAt && tallyId && byId[tallyId]) {
       played[tallyId] = Math.round((+played[tallyId] || 0) + Math.min(now - tallyAt, 30 * 60000) / 1000);
+      if (sess && sess.st === tallyId) { sess.sec += Math.min(now - tallyAt, 30 * 60000) / 1000; sess.last = now; sessSave(); } // (listenlog.py)
       try { localStorage.setItem(TIME_KEY, JSON.stringify(played)); } catch (e) {}
     }
     const on = state === "live" && !!current;
@@ -5243,7 +5274,13 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const dur = (1.1 + rnd() * 1.3).toFixed(2) + "s";
     document.querySelectorAll(".onair .sig-live").forEach((p) => { p.setAttribute("d", d); p.style.setProperty("--sig-dur", dur); });
   }
-  function setState(s) { if (s !== state) dlog("bar: " + state + " -> " + s); state = s; document.body.dataset.state = s; document.documentElement.dataset.state = s; tally(); renderPlayer(); }
+  function setState(s) { if (s !== state) dlog("bar: " + state + " -> " + s); state = s; document.body.dataset.state = s; document.documentElement.dataset.state = s; tally();
+    if (sess) { // (listenlog.py) the sound arrived; or the listen is over
+      if (s === "live" && sess.wait === null && current === sess.st) { sess.wait = Date.now() - sess.t0; sess.last = Date.now(); sessSave(); }
+      else if (s === "error") sessClose("error");
+      else if (s === "paused" || s === "idle") sessClose("stop");
+    }
+    renderPlayer(); }
 
   function renderPlayer() {
     const st = current ? byId[current] : null;
@@ -5483,7 +5520,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   function playFailed(id, err, src) {
     dlog("play() refused: " + (err && err.name) + " " + ((err && err.message) || ""));
     if (current !== id || (err && err.name === "AbortError")) return;
-    if (err && err.name === "NotAllowedError") { bridgeOff(); wanted = false; retrying = false; setState("paused"); return; }
+    if (err && err.name === "NotAllowedError") { bridgeOff(); wanted = false; retrying = false; if (sess) sess.how = "blocked"; setState("paused"); return; }
     if (wanted && nextSrc(src)) return; // (altsrc.py)
     if (wanted) { scheduleRetry(); return; }
     setState("error");
@@ -5509,7 +5546,9 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const st = byId[id];
     if (!st) return;
     if (arch) archStop();
+    if (sess) { tally(); sessClose("switch"); } // (listenlog.py) the listen before this one ends here
     current = id;
+    sessOpen(id);
     if (st.srcs && st.srcs.length > 1) { st.srcI = 0; st.srcTried = 0; st.src = st.srcs[0]; } // (altsrc.py)
     startedAt = Date.now();
     try { localStorage.setItem(KEY, id); } catch (e) {}
@@ -6103,6 +6142,9 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   refreshLive();
   startPresence();
   setTimeout(countOpen, 1200); // (count.py)
+  // (listenlog.py) a listen left open when the app was closed in the background; and one open when the page goes away
+  try { const left = JSON.parse(localStorage.getItem(SESS_KEY) || "null"); localStorage.removeItem(SESS_KEY); if (left && left.st) setTimeout(() => sessSend(left, "close"), 2500); } catch (e) {}
+  window.addEventListener("pagehide", () => { if (sess) { tally(); sessClose("close"); } });
   setTimeout(() => seenPing(false), 3000); // (citypick.py)
   renderOthers();
   setInterval(tickClocks, 30000);
