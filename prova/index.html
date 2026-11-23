@@ -237,8 +237,9 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .lg-row .lg-st { border-radius: 2px; background: var(--bg-2); border: 1.5px solid var(--muted); width: 8px; height: 8px; margin: 0 .5px; }
 .m-others circle { fill: var(--ink); opacity: .85; }
 /* (citypick.py) where someone listened in the last 24 hours: a faint ring, never a live dot */
-.m-recent circle { fill: none; stroke: var(--ink); stroke-width: 1.2; opacity: .5; }
-.lg-recent { border: 1.2px solid var(--ink); opacity: .5; }
+.m-recent .rc { fill: color-mix(in srgb, var(--ink) 16%, transparent); stroke: var(--ink); stroke-width: 2; opacity: .9; }
+.m-recent .rh { fill: none; stroke: var(--ink); stroke-width: 1; opacity: .28; }
+.lg-recent { border: 2px solid var(--ink); background: color-mix(in srgb, var(--ink) 16%, transparent); opacity: .9; box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 14%, transparent); }
 .lg-row span { min-width: 0; color: var(--muted); overflow-wrap: anywhere; }
 .lg-row b { color: var(--ink); font-weight: 600; }
 
@@ -2610,8 +2611,9 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     recent.forEach((r) => {
       if (liveAt.has(r.lat + "," + r.lon)) return;
       const [x, y, z] = project(r.lat, r.lon);
-      if (z <= 0.02 || !onScreen(x, y, 8)) return;
-      rings += '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="3.4"/>';
+      if (z <= 0.02 || !onScreen(x, y, 16)) return;
+      const rr = 6 + Math.min(4, (r.n || 1) - 1) * 1.2; // (recentvis.py) a little bigger where more people listened
+      rings += '<circle class="rh" cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(rr + 5) + '"/><circle class="rc" cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(rr) + '"/>';
     });
     setG("recent", rings);
 
