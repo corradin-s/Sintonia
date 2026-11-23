@@ -3446,19 +3446,20 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     list.forEach((p) => box.appendChild(pickCard(p, now)));
     renderEvents();
   }
-  // (videopick.py) a live only on video: its own colours, "video" said plainly, and a tap opens it where it is
-  const isVideoPick = (p) => !!(p && p.video && /^https:\/\/[^\s"<>]+$/i.test(p.url || "") && p.name && /^#[0-9a-f]{6}$/i.test(p.c || "") && /^#[0-9a-f]{6}$/i.test(p.t || ""));
+  // (videopick.py) a live only on video, or only on the station's own player ("listen"): its own colours, said plainly, and a tap opens it where it is
+  const isVideoPick = (p) => !!(p && (p.video || p.listen) && /^https:\/\/[^\s"<>]+$/i.test(p.url || "") && p.name && /^#[0-9a-f]{6}$/i.test(p.c || "") && /^#[0-9a-f]{6}$/i.test(p.t || ""));
   function videoPickCard(p, now) {
     const start = new Date(p.start), end = new Date(p.end), on = start <= now && now < end;
     const hm = (d) => d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
     let site = "video"; try { site = /youtu/.test(new URL(p.url).hostname) ? "YouTube" : new URL(p.url).hostname.replace(/^www\./, ""); } catch (e) {}
+    const audio = !p.video && !!p.listen;
     const card = document.createElement("div");
     card.className = "pick vpick"; card.style.setProperty("--c", p.c); card.style.setProperty("--t", p.t);
     card.innerHTML = `<div class="when"><span>${esc(on ? "Now" : start.toLocaleDateString("en-GB", { weekday: "short" }))}</span><b>${esc(on ? "ON" : hm(start))}</b></div>` +
       `<div class="pt"><span class="pk">${esc(p.name)}${p.city ? " · " + esc(p.city) : ""} · ${esc(on ? "until " + hm(end) : start.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + ", your time")}</span>` +
       `<span class="pn">${esc(p.title || p.name)}</span>${p.why ? `<span class="pw">${esc(p.why)}</span>` : ""}` +
-      `<span class="vtag"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1.2v7.6L8.6 5z"/></svg>Video · opens ${esc(site)}</span></div>` +
-      `<button type="button" aria-label="${esc("Watch " + p.name + " on " + site)}"></button>`;
+      `<span class="vtag"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1.2v7.6L8.6 5z"/></svg>${audio ? "Live" : "Video"} · opens ${esc(site)}</span></div>` +
+      `<button type="button" aria-label="${esc((audio ? "Listen to " : "Watch ") + p.name + " on " + site)}"></button>`;
     card.querySelector("button").addEventListener("click", () => { window.open(p.url, "_blank", "noopener"); });
     return card;
   }
