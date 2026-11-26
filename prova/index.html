@@ -2625,7 +2625,11 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     const ink = css.getPropertyValue("--ink").trim() || "#F3EFE6";
 
     if (globeLook === "sint") { // D: the dots of now; around each station's city, in its colour
-      const base = css.getPropertyValue("--land").trim() || "#343947", near = 4 * RAD / Math.max(1, Math.sqrt(zoom)), r0 = S * 0.33;
+      const base = css.getPropertyValue("--land").trim() || "#343947", near = 3.4 * RAD / Math.max(1, Math.sqrt(zoom)), r0 = S * 0.33;
+      // (dlook2.py) the colour fades from the city out into the grey of the land, in a few steps
+      const rgb = (c) => { ctx.fillStyle = "#000"; ctx.fillStyle = c; const v = ctx.fillStyle; if (v[0] === "#") { const n = parseInt(v.slice(1, 7), 16); return [n >> 16, (n >> 8) & 255, n & 255]; } const m = v.match(/[\d.]+/g) || [0, 0, 0]; return m.slice(0, 3).map(Number); };
+      const b0 = rgb(base), STEPS = 6, shade = new Map();
+      const tone = (c, q) => { const k = c + q; let v = shade.get(k); if (!v) { const a = rgb(c); v = "rgb(" + a.map((x, i) => Math.round(b0[i] + (x - b0[i]) * q / STEPS)) + ")"; shade.set(k, v); } return v; };
       const pts = cities.map((c) => ({ f: c.lat * RAD, l: c.lon * RAD, c: cityTint(c.code) || base }));
       const groups = new Map();
       rows.forEach(({ f, dl, half }) => {
@@ -2636,8 +2640,9 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
           if (!landAt(lat, l)) continue;
           const [x, y, z] = project(lat, l / RAD);
           if (z <= 0 || x < -4 || x > W + 4 || y < -4 || y > H + 4) continue;
-          let col = base, best = near;
-          for (const p of rowPts) { const dd = Math.hypot(p.f - f, (((p.l - l) % TAU + TAU + Math.PI) % TAU - Math.PI) * cf); if (dd < best) { best = dd; col = p.c; } }
+          let col = base, best = near, hit = null;
+          for (const p of rowPts) { const dd = Math.hypot(p.f - f, (((p.l - l) % TAU + TAU + Math.PI) % TAU - Math.PI) * cf); if (dd < best) { best = dd; hit = p; } }
+          if (hit) { const t = 1 - best / near, q = Math.round(Math.pow(t, 1.3) * STEPS); if (q > 0) col = tone(hit.c, q); } // full colour only right at the city
           const r = r0 * (0.45 + 0.55 * z);
           let g = groups.get(col); if (!g) groups.set(col, (g = new Path2D()));
           g.moveTo(x + r, y); g.arc(x, y, r, 0, TAU);
