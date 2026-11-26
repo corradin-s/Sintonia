@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Visite · Sintonia</title>
+<title>Statistiche · Sintonia</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#0C0D11">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=7">
@@ -18,9 +18,9 @@
 })();
 </script>
 <style>
-:root { color-scheme: dark; --bg: #0C0D11; --bg-2: #15171E; --ink: #F3EFE6; --muted: #9B9BA8; --line: #2B2E39; --new: #FF4D3F;
+:root { color-scheme: dark; --bg: #0C0D11; --bg-2: #15171E; --ink: #F3EFE6; --muted: #9B9BA8; --line: #2B2E39; --new: #FF4D3F; --up: #6FE3A6;
   --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", sans-serif; --f-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
-:root[data-theme="light"] { color-scheme: light; --bg: #F1F2F4; --bg-2: #FFFFFF; --ink: #15171C; --muted: #5E6371; --line: #D9DCE2; --new: #E5352B; }
+:root[data-theme="light"] { color-scheme: light; --bg: #F1F2F4; --bg-2: #FFFFFF; --ink: #15171C; --muted: #5E6371; --line: #D9DCE2; --new: #E5352B; --up: #137A45; }
 * { box-sizing: border-box; }
 html { background: var(--bg); }
 body {
@@ -41,15 +41,17 @@ button { font: inherit; color: inherit; }
   font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .range button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 
-/* the three numbers: as big as the screen allows */
+/* the big numbers */
 .big { display: grid; gap: 22px; }
-.fig { display: grid; gap: 4px; }
+.fig { display: grid; gap: 4px; align-content: start; }
 .fig b { font-family: var(--f-display); font-weight: 900; font-stretch: 62%; font-size: clamp(96px, 34vw, 230px); line-height: .78; letter-spacing: -.02em; }
-.fig span { font-size: 13px; color: var(--muted); max-width: 30ch; }
+.fig span { font-size: 13px; color: var(--muted); max-width: 32ch; }
 .fig span strong { color: var(--ink); font-weight: 600; }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .pair .fig b { font-size: clamp(56px, 17vw, 120px); }
 .fig.new b { color: var(--new); }
+.delta { font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+.delta.up { color: var(--up); } .delta.down { color: var(--new); } .delta.flat { color: var(--muted); }
 
 /* each block: a small title and a rule, no boxes */
 .blk { display: grid; gap: 14px; }
@@ -57,36 +59,63 @@ button { font: inherit; color: inherit; }
   display: flex; justify-content: space-between; gap: 10px; }
 .blk h2 i { font-style: normal; letter-spacing: .06em; text-transform: none; font-weight: 500; }
 
+/* the path: out of 100 new people */
+.path { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.path li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; align-items: baseline; }
+.path .nm { font-size: 16px; font-weight: 600; }
+.path .nm em { display: block; font-style: normal; font-weight: 400; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.path .v { font-family: var(--f-display); font-weight: 900; font-stretch: 75%; font-size: 40px; line-height: .9; }
+.path .v small { font-size: 18px; font-weight: 700; margin-left: 1px; }
+.path .bar { grid-column: 1 / -1; height: 10px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.path .bar span { display: block; height: 100%; background: var(--ink); border-radius: 3px; }
+.path li.weak .v, .path li.weak .nm { color: var(--new); }
+.path li.weak .bar span { background: var(--new); }
+.path li.wait .v { color: var(--muted); font-size: 24px; }
+.hint { margin: 2px 0 0; padding: 12px 14px; border-left: 3px solid var(--new); background: color-mix(in srgb, var(--new) 9%, transparent); border-radius: 0 8px 8px 0; font-size: 14px; max-width: 62ch; }
+.hint b { font-weight: 600; }
+
 /* days: one column per day, the new people at its foot in red */
 .days { position: relative; }
 .days svg { display: block; width: 100%; height: 190px; overflow: visible; }
 .days .tip { position: absolute; top: -4px; transform: translateX(-50%); font-size: 12px; white-space: nowrap; pointer-events: none; padding: 3px 7px; border-radius: 6px;
-  background: var(--ink); color: var(--bg); font-weight: 600; opacity: 0; transition: opacity .12s; }
+  background: var(--ink); color: var(--bg); font-weight: 600; opacity: 0; transition: opacity .12s; z-index: 2; }
 .days .tip.on { opacity: 1; }
 .days .ax { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
-.key { display: flex; gap: 16px; font-size: 12px; color: var(--muted); }
+.key { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
 .key i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; background: var(--ink); }
 .key i.n { background: var(--new); }
+.key i.l { background: none; border-top: 2px solid var(--up); border-radius: 0; height: 0; width: 12px; vertical-align: 3px; }
 
 /* lists: name, a hairline bar, the number */
 .rows { display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
 .rows li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: baseline; }
 .rows .nm { font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
 .rows .nm em { font-style: normal; font-weight: 400; color: var(--muted); font-size: 12px; margin-left: 6px; }
+.rows .nm em.bad { color: var(--new); font-weight: 600; }
 .rows .n { font-family: var(--f-display); font-weight: 800; font-stretch: 75%; font-size: 22px; line-height: 1; }
 .rows .bar { grid-column: 1 / -1; height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
 .rows .bar span { display: block; height: 100%; background: var(--ink); border-radius: 2px; }
-.rows .bar span.n2 { background: var(--new); }
 
-/* hours: 24 thin columns */
-.hours svg { display: block; width: 100%; height: 90px; }
-.hours .ax { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+/* a bar split in parts, with its key */
+.sbar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--line); gap: 2px; }
+.sbar span { display: block; height: 100%; }
+.skey { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.skey li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; }
+.skey i { width: 10px; height: 10px; border-radius: 2px; align-self: center; }
+.skey .nm { font-size: 15px; }
+.skey .nm em { font-style: normal; color: var(--muted); font-size: 12px; margin-left: 6px; }
+.skey .v { font-family: var(--f-display); font-weight: 800; font-stretch: 75%; font-size: 22px; line-height: 1; }
+
+/* hours and weekdays: thin columns */
+.cols svg { display: block; width: 100%; height: 90px; }
+.cols .ax { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
 
 .split { display: grid; gap: 40px; }
 @media (min-width: 700px) { .split { grid-template-columns: 1fr 1fr; gap: 32px; } }
 
-.note { font-size: 13px; color: var(--muted); max-width: 60ch; }
+.note { font-size: 13px; color: var(--muted); max-width: 60ch; margin: 0; }
 .note b { color: var(--ink); font-weight: 600; }
+.soon { font-size: 14px; color: var(--muted); max-width: 52ch; margin: 0; }
 .msg { font-size: 17px; max-width: 40ch; }
 .msg small { display: block; margin-top: 8px; font-size: 13px; color: var(--muted); }
 .foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
@@ -98,30 +127,23 @@ button { font: inherit; color: inherit; }
 .lock input { flex: 1; min-width: 0; appearance: none; border: 0; background: none; color: var(--ink); font: inherit; font-size: 22px; padding: 6px 0 8px; outline: none; }
 .lock button { appearance: none; border: 0; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 8px 16px; margin-bottom: 8px; font-weight: 600; font-size: 13px; letter-spacing: .06em; cursor: pointer; }
 .lock .err { color: var(--new); font-size: 13px; font-weight: 600; }
-/* the map question: one bar split by answer, then the numbers */
-.wbar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--line); }
-.wbar span { display: block; height: 100%; }
+/* the map question */
 .w-y { background: var(--ink); }
 .w-g { background: color-mix(in srgb, var(--ink) 55%, var(--bg)); }
 .w-n { background: var(--new); }
 .w-c { background: color-mix(in srgb, var(--new) 55%, var(--bg)); }
 .w-r { background: color-mix(in srgb, var(--new) 28%, var(--bg)); }
-.wkey { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
-.wkey li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; }
-.wkey i { width: 10px; height: 10px; border-radius: 2px; align-self: center; }
-.wkey .nm { font-size: 15px; }
-.wkey .nm em { font-style: normal; color: var(--muted); font-size: 12px; margin-left: 6px; }
-.wkey .v { font-family: var(--f-display); font-weight: 800; font-stretch: 75%; font-size: 22px; line-height: 1; }
 .wmom { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.wmom .fig b { font-size: clamp(44px, 12vw, 84px); }
+.wmom .fig b, .mid .fig b { font-size: clamp(44px, 12vw, 84px); }
 .fig.no b { color: var(--new); }
+.mid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <main>
   <div class="top">
-    <a class="mark" href="./">Sintonìa<small>visite</small></a>
+    <a class="mark" href="./">Sintonìa<small>statistiche</small></a>
     <div class="range" role="group" aria-label="Periodo">
       <button type="button" data-d="7" aria-pressed="false">7 giorni</button>
       <button type="button" data-d="30" aria-pressed="true">30 giorni</button>
@@ -142,16 +164,45 @@ button { font: inherit; color: inherit; }
     <section class="big">
       <div class="fig"><b id="today">0</b><span><strong>persone oggi</strong>, ognuna contata una volta sola anche se apre Sintonìa più volte</span></div>
       <div class="pair">
-        <div class="fig new"><b id="newc">0</b><span><strong>persone nuove</strong> <span id="newc-l">negli ultimi 30 giorni</span>: aprono Sintonìa per la prima volta</span></div>
-        <div class="fig"><b id="avg">0</b><span><strong>al giorno</strong>, in media <span id="avg-l">negli ultimi 30 giorni</span></span></div>
+        <div class="fig new"><b id="newc">0</b><span><strong>persone nuove</strong> <span class="pl">negli ultimi 30 giorni</span> <span class="delta" id="newc-d"></span></span></div>
+        <div class="fig"><b id="hrs">0</b><span><strong>ore di ascolto</strong> <span class="pl">negli ultimi 30 giorni</span> <span class="delta" id="hrs-d"></span></span></div>
       </div>
+      <p class="note" id="avg-l"></p>
+    </section>
+
+    <section class="blk" style="margin-top:40px">
+      <h2><span>Dove si perde gente</span><i>su 100 persone nuove</i></h2>
+      <ul class="path" id="path"></ul>
+      <p class="hint" id="hint" hidden></p>
+      <p class="note" id="path-note"></p>
     </section>
 
     <section class="blk" style="margin-top:40px">
       <h2><span>Giorno per giorno</span><i id="sum"></i></h2>
       <div class="days" id="days"><div class="tip" id="tip"></div><svg id="days-svg" role="img" aria-label="Persone al giorno"></svg><div class="ax"><span id="ax-a"></span><span id="ax-b"></span></div></div>
-      <div class="key"><span><i></i>persone</span><span><i class="n"></i>di cui nuove</span></div>
+      <div class="key"><span><i></i>tornano</span><span><i class="n"></i>nuove</span><span><i class="l"></i>ore di ascolto</span></div>
     </section>
+
+    <section class="blk" style="margin-top:40px">
+      <h2><span>Le radio</span><i id="st-sum"></i></h2>
+      <ul class="rows" id="stations"></ul>
+      <p class="note" id="st-note"></p>
+    </section>
+
+    <div class="split" style="margin-top:40px">
+      <section class="blk">
+        <h2><span>Quanto restano</span><i>ascolti partiti</i></h2>
+        <div class="mid"><div class="fig"><b id="avgmin">–</b><span><strong>minuti</strong> in media per ascolto</span></div><div class="fig"><b id="long">–</b><span><strong>restano più di 15 minuti</strong></span></div></div>
+        <div class="sbar" id="sess-bar" aria-hidden="true"></div>
+        <ul class="skey" id="sess-key"></ul>
+      </section>
+      <section class="blk">
+        <h2><span>Chi torna</span><i>dopo quanto</i></h2>
+        <div class="sbar" id="age-bar" aria-hidden="true"></div>
+        <ul class="skey" id="age-key"></ul>
+        <p class="note" id="visits-note"></p>
+      </section>
+    </div>
 
     <div class="split" style="margin-top:40px">
       <section class="blk">
@@ -161,33 +212,41 @@ button { font: inherit; color: inherit; }
       </section>
       <section class="blk">
         <h2><span>Dove sono</span><i>dal fuso orario del telefono</i></h2>
-        <ul class="rows" id="places"></ul>
+        <ul class="rows" id="regions"></ul>
+        <ul class="rows" id="places" style="margin-top:10px"></ul>
       </section>
     </div>
 
     <div class="split" style="margin-top:40px">
-      <section class="blk hours">
+      <section class="blk cols">
         <h2><span>A che ora aprono</span><i>ora italiana</i></h2>
         <svg id="hours-svg" role="img" aria-label="Aperture per ora del giorno"></svg>
         <div class="ax"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>
       </section>
+      <section class="blk cols">
+        <h2><span>Che giorno</span><i>persone in media</i></h2>
+        <svg id="wd-svg" role="img" aria-label="Persone per giorno della settimana"></svg>
+        <div class="ax" id="wd-ax"></div>
+      </section>
+    </div>
+
+    <div class="split" style="margin-top:40px">
       <section class="blk">
         <h2><span>App installata</span></h2>
         <div class="fig"><b id="app" style="font-size:clamp(56px,17vw,120px)">0%</b><span>delle aperture arriva dall'icona sulla schermata Home, il resto dal browser</span></div>
       </section>
+      <section class="blk">
+        <h2><span>La mappa: chi si aggiunge</span><i id="w-sum"></i></h2>
+        <div class="fig no"><b id="w-no" style="font-size:clamp(56px,17vw,120px)">–</b><span><strong>dice di no</strong> quando gli chiediamo la città</span></div>
+        <div class="sbar" id="w-bar" aria-hidden="true"></div>
+        <ul class="skey" id="w-key"></ul>
+        <div class="wmom">
+          <div class="fig"><b id="w-listen">–</b><span><strong>dice sì</strong> se glielo chiediamo dopo un minuto di ascolto</span></div>
+          <div class="fig"><b id="w-map">–</b><span><strong>dice sì</strong> se glielo chiediamo sulla mappa</span></div>
+        </div>
+        <p class="note" id="w-self"></p>
+      </section>
     </div>
-
-    <section class="blk" style="margin-top:40px">
-      <h2><span>La mappa: chi si aggiunge</span><i id="w-sum"></i></h2>
-      <div class="fig no"><b id="w-no">–</b><span><strong>dice di no</strong> quando gli chiediamo la città: “Not now”, chiude senza rispondere, o il telefono rifiuta il GPS</span></div>
-      <div class="wbar" id="w-bar" aria-hidden="true"></div>
-      <ul class="wkey" id="w-key"></ul>
-      <div class="wmom">
-        <div class="fig"><b id="w-listen">–</b><span><strong>dice sì</strong> se glielo chiediamo dopo un minuto di ascolto</span></div>
-        <div class="fig"><b id="w-map">–</b><span><strong>dice sì</strong> se glielo chiediamo la prima volta che apre la mappa</span></div>
-      </div>
-      <p class="note" id="w-self"></p>
-    </section>
   </div>
 
   <div class="foot"><span id="since"></span><span><span id="upd"></span> · <button type="button" id="again">aggiorna</button> · <button type="button" id="forget">dimentica la parola</button></span></div>
@@ -201,35 +260,63 @@ button { font: inherit; color: inherit; }
   var $ = function (id) { return document.getElementById(id); };
   var days = 30;
   var demo = /[?&]demo\b/.test(location.search), lastJ = null;
-  var TEST = /\/prova\//.test(location.pathname); // the test copy also counts the test copy's own answers
+  var TEST = /\/prova\//.test(location.pathname); // the test copy also counts the test copy's own lines
   var PK = "sintonia:statspass", pass = "";
   try { pass = localStorage.getItem(PK) || ""; } catch (e) {}
+  var NAMES = {}; // the stations' names, read from the app itself
+  fetch("index.html", { cache: "no-cache" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (h) {
+    var d = new DOMParser().parseFromString(h, "text/html");
+    d.querySelectorAll("li.tile[data-id]").forEach(function (li) { var n = li.querySelector(".name"); NAMES[li.dataset.id] = { name: n ? n.textContent.trim() : li.dataset.id, city: li.dataset.city || "" }; });
+    if (lastJ) draw(lastJ);
+  }).catch(function () {});
+
   function showLock(err) {
     $("out").hidden = true; $("msg").hidden = true; $("lock").hidden = false; $("upd").textContent = "";
     $("lock-err").hidden = !err; $("lock-err").textContent = err || "";
     setTimeout(function () { $("pw").focus(); }, 50);
   }
   var fmt = function (n) { return Math.round(n).toLocaleString("it-IT"); };
+  var fmt1 = function (n) { return (Math.round(n * 10) / 10).toLocaleString("it-IT"); };
+  var pc = function (a, b) { return b ? Math.round(a / b * 100) : null; };
   var dayKey = function (d) { return d.toLocaleDateString("en-CA", { timeZone: "Europe/Rome" }); };
   var dayName = function (k) { var p = k.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString("it-IT", { day: "numeric", month: "short" }); };
   var SRC = { direct: "Link diretto", "home-screen": "Icona sulla Home", instagram: "Instagram", facebook: "Facebook", whatsapp: "WhatsApp", threads: "Threads",
     x: "X", bluesky: "Bluesky", tiktok: "TikTok", linkedin: "LinkedIn", email: "Email", google: "Google", telegram: "Telegram" };
   var place = function (tz) { var p = String(tz).split("/"); return p[p.length - 1].replace(/_/g, " "); };
-  var region = function (tz) { var r = String(tz).split("/")[0]; return { Europe: "Europa", America: "Americhe", Asia: "Asia", Africa: "Africa", Australia: "Oceania", Pacific: "Oceania", Atlantic: "Atlantico", Indian: "Oceano Indiano" }[r] || r; };
+  var REG = { Europe: "Europa", America: "Americhe", Asia: "Asia", Africa: "Africa", Australia: "Oceania", Pacific: "Oceania", Atlantic: "Atlantico", Indian: "Oceano Indiano" };
+  var stName = function (id) { return NAMES[id] ? NAMES[id].name : id; };
 
   function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
   function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  function delta(node, now, before) { // against the same number of days just before
+    if (!before && !now) { node.textContent = ""; return; }
+    if (!before) { node.className = "delta up"; node.textContent = "prima: 0"; return; }
+    var d = Math.round((now - before) / before * 100);
+    node.className = "delta " + (d > 2 ? "up" : d < -2 ? "down" : "flat");
+    node.textContent = (d > 0 ? "▲ +" : d < 0 ? "▼ " : "= ") + d + "% sui " + days + " giorni prima";
+  }
 
   function fakeData(n) { // ?demo: invented numbers, to see the page before real ones arrive
     var out = { daily: [], sources: [], places: [], hours: [], total: 1, people: 1840, since: new Date(Date.now() - 400 * 864e5).toISOString() }, seed = 7;
     var rnd = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
-    for (var i = n - 1; i >= 0; i--) { var o = Math.round(14 + 30 * rnd() + (i < 6 ? 25 * rnd() : 0)); out.daily.push({ day: dayKey(new Date(Date.now() - i * 864e5)), opens: o, newcomers: Math.round(o * (0.15 + 0.3 * rnd())), in_app: Math.round(o * 0.4) }); }
+    out.listen_daily = [];
+    for (var i = n - 1; i >= 0; i--) { var o = Math.round(14 + 30 * rnd() + (i < 6 ? 25 * rnd() : 0)), k = dayKey(new Date(Date.now() - i * 864e5)); out.daily.push({ day: k, opens: o, newcomers: Math.round(o * (0.15 + 0.3 * rnd())), in_app: Math.round(o * 0.4) }); out.listen_daily.push({ day: k, sec: Math.round(o * (600 + 1800 * rnd())), plays: Math.round(o * 1.6) }); }
     [["instagram", .42], ["direct", .25], ["home-screen", .17], ["whatsapp", .07], ["storia-mappa", .05], ["x", .02], ["google", .02]].forEach(function (s) { out.sources.push({ src: s[0], opens: Math.round(900 * s[1] * n / 30), newcomers: Math.round(300 * s[1] * n / 30) }); });
     [["Europe/Rome", 40], ["Europe/Berlin", 12], ["Europe/London", 10], ["America/New_York", 6], ["Europe/Athens", 4], ["Asia/Tokyo", 3], ["Africa/Lagos", 2]].forEach(function (p) { out.places.push({ tz: p[0], opens: Math.round(p[1] * n / 3) }); });
+    out.regions = [{ region: "Europe", opens: Math.round(66 * n / 3), newcomers: Math.round(20 * n / 3) }, { region: "America", opens: Math.round(8 * n / 3), newcomers: Math.round(4 * n / 3) }, { region: "Asia", opens: Math.round(4 * n / 3), newcomers: Math.round(2 * n / 3) }, { region: "Africa", opens: Math.round(2 * n / 3), newcomers: n / 3 | 0 }];
     out.where = [["listen", "shown", 60], ["listen", "city", 31], ["listen", "gps-ok", 4], ["listen", "not-now", 15], ["listen", "closed", 8], ["listen", "gps-refused", 2],
       ["map", "shown", 40], ["map", "city", 15], ["map", "gps-ok", 2], ["map", "not-now", 12], ["map", "closed", 9], ["map", "gps-failed", 1],
       ["self", "city", 7], ["self", "gps-ok", 1], ["self", "stopped", 3]].map(function (w) { return { via: w[0], answer: w[1], n: Math.round(w[2] * n / 30) }; });
     for (var h = 0; h < 24; h++) out.hours.push({ hour: h, opens: Math.round(40 * Math.max(0.05, Math.sin((h - 6) / 24 * Math.PI * 2) * 0.5 + 0.5 + (h > 20 ? 0.4 : 0))) });
+    out.listen = [["nts1", 90, 3, 9, 52000, 1500, 2], ["lake", 70, 1, 4, 41000, 1900, 1], ["pinata", 48, 2, 5, 23000, 2400, 3], ["rbl", 40, 0, 3, 19000, 1200, 0], ["nopal", 30, 9, 6, 8000, 6100, 7], ["mutant", 22, 1, 2, 9000, 2100, 1], ["kiosk", 18, 0, 1, 7000, 1300, 0]]
+      .map(function (s) { var k = n / 30; return { st: s[0], plays: Math.round((s[1] + s[2] + s[3]) * k), ok: Math.round(s[1] * k), fails: Math.round(s[2] * k), quits: Math.round(s[3] * k), sec: Math.round(s[4] * k), wait: s[5], slow: Math.round(s[6] * k) }; });
+    out.sessions = [{ b: "<1", n: 80 }, { b: "1-5", n: 120 }, { b: "5-15", n: 70 }, { b: "15-60", n: 45 }, { b: "60+", n: 15 }];
+    out.ages = [{ b: "1", n: 60 }, { b: "2-7", n: 90 }, { b: "8-30", n: 70 }, { b: "31+", n: 20 }, { b: "old", n: 40 }];
+    out.visits = [{ b: "1", n: 200 }, { b: "2", n: 60 }, { b: "3-5", n: 40 }, { b: "6-10", n: 15 }, { b: "11+", n: 6 }];
+    out.retention = [{ k: 1, people: 260, back: 47 }, { k: 7, people: 200, back: 18 }, { k: 30, people: 60, back: 3 }];
+    out.activation = { first_plays: 190, newcomers: 300 };
+    out.prev = { opens: Math.round(700 * n / 30), newcomers: Math.round(220 * n / 30), sec: Math.round(140000 * n / 30), plays: 300 };
+    out.listen_since = new Date(Date.now() - 20 * 864e5).toISOString();
     return out;
   }
 
@@ -247,7 +334,7 @@ button { font: inherit; color: inherit; }
       .catch(function (e) {
         $("out").hidden = true; $("msg").hidden = false;
         $("msg").innerHTML = e.message === "nokey"
-          ? "Su Supabase manca l'ultimo passo.<small>Incolla sintonia-mappa.sql nel SQL Editor e premi Run. Intanto puoi vedere la pagina con <a href=\"?demo\">dati inventati</a>.</small>"
+          ? "Su Supabase manca un passo.<small>Incolla sintonia-ascolti.sql nel SQL Editor e premi Run. Intanto puoi vedere la pagina con <a href=\"?demo\">dati inventati</a>.</small>"
           : "Non riesco a leggere i numeri adesso.<small>Controlla la connessione e premi aggiorna.</small>";
         $("upd").textContent = "";
       });
@@ -255,26 +342,175 @@ button { font: inherit; color: inherit; }
 
   function draw(j) {
     lastJ = j;
-    var daily = j.daily || [], byDay = {};
+    var hasListen = Array.isArray(j.listen); // false until sintonia-ascolti.sql has run
+    var daily = j.daily || [], byDay = {}, lByDay = {};
     daily.forEach(function (d) { byDay[String(d.day).slice(0, 10)] = d; });
+    (j.listen_daily || []).forEach(function (d) { lByDay[String(d.day).slice(0, 10)] = d; });
     // every day of the range, also the ones with nobody
     var list = [], now = Date.now();
-    for (var i = days - 1; i >= 0; i--) { var k = dayKey(new Date(now - i * 864e5)); var d = byDay[k] || { opens: 0, newcomers: 0, in_app: 0 }; list.push({ k: k, o: +d.opens || 0, n: +d.newcomers || 0, a: +d.in_app || 0 }); }
-    var tot = list.reduce(function (a, d) { return a + d.o; }, 0), totN = list.reduce(function (a, d) { return a + d.n; }, 0), totA = list.reduce(function (a, d) { return a + d.a; }, 0);
+    for (var i = days - 1; i >= 0; i--) { var k = dayKey(new Date(now - i * 864e5)); var d = byDay[k] || { opens: 0, newcomers: 0, in_app: 0 }, l = lByDay[k] || { sec: 0 }; list.push({ k: k, o: +d.opens || 0, n: +d.newcomers || 0, a: +d.in_app || 0, s: +l.sec || 0 }); }
+    var tot = list.reduce(function (a, d) { return a + d.o; }, 0), totN = list.reduce(function (a, d) { return a + d.n; }, 0), totA = list.reduce(function (a, d) { return a + d.a; }, 0), totS = list.reduce(function (a, d) { return a + d.s; }, 0);
+    var P = j.prev || null;
     $("msg").hidden = true; $("out").hidden = false;
     if (!j.total && !demo) { $("msg").hidden = false; $("msg").innerHTML = "Ancora nessuna apertura contata.<small>Il conteggio è attivo: i numeri compaiono appena qualcuno apre Sintonìa.</small>"; }
     var label = "negli ultimi " + days + " giorni";
+    document.querySelectorAll(".pl").forEach(function (x) { x.textContent = label; });
     $("today").textContent = fmt(list[list.length - 1].o);
-    $("newc").textContent = fmt(totN); $("newc-l").textContent = label;
-    $("avg").textContent = fmt(tot / days); $("avg-l").textContent = label;
+    $("newc").textContent = fmt(totN);
+    $("hrs").textContent = hasListen ? fmt1(totS / 3600) : "–";
+    if (P) { delta($("newc-d"), totN, +P.newcomers); if (hasListen) delta($("hrs-d"), totS, +P.sec); else $("hrs-d").textContent = ""; }
+    $("avg-l").innerHTML = "<b>" + fmt(tot / days) + "</b> persone al giorno in media" + (P && P.opens ? " (prima " + fmt(P.opens / days) + ")" : "") + " · <b>" + (tot ? pc(tot - totN, tot) : 0) + "%</b> di chi apre Sintonìa c'era già stato";
     $("sum").textContent = fmt(tot) + " in tutto";
-    $("app").textContent = tot ? Math.round(totA / tot * 100) + "%" : "–";
+    $("app").textContent = tot ? pc(totA, tot) + "%" : "–";
     $("since").textContent = j.since ? "Contiamo dal " + new Date(j.since).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" }) + " · " + fmt(j.people || 0) + " persone nuove in tutto" : "";
-    drawDays(list); drawRows($("src"), (j.sources || []).map(function (s) { return { name: SRC[s.src] || s.src, sub: SRC[s.src] ? "" : "link con ?from", v: +s.opens, n: +s.newcomers }; }));
-    var places = j.places || [];
-    drawRows($("places"), places.map(function (p) { return { name: place(p.tz), sub: region(p.tz), v: +p.opens }; }));
-    drawHours(j.hours || []);
+    drawPath(j, hasListen);
+    drawDays(list, hasListen);
+    drawStations(j.listen || [], hasListen);
+    drawSessions(j.sessions || [], j.listen || [], hasListen);
+    drawBack(j.ages || [], j.visits || [], hasListen);
+    drawRows($("src"), (j.sources || []).map(function (s) { return { name: SRC[s.src] || s.src, sub: SRC[s.src] ? "" : "link con ?from", v: +s.opens, n: +s.newcomers }; }));
+    var regions = j.regions || [];
+    if (!regions.length) { var R = {}; (j.places || []).forEach(function (p) { var r = String(p.tz).split("/")[0]; R[r] = (R[r] || 0) + (+p.opens || 0); }); regions = Object.keys(R).map(function (r) { return { region: r, opens: R[r] }; }); }
+    var rTot = regions.reduce(function (a, r) { return a + (+r.opens || 0); }, 0);
+    drawRows($("regions"), regions.sort(function (a, b) { return b.opens - a.opens; }).map(function (r) { return { name: REG[r.region] || r.region, sub: rTot ? pc(+r.opens, rTot) + "%" : "", v: +r.opens, n: +r.newcomers || 0 }; }));
+    drawRows($("places"), (j.places || []).slice(0, 8).map(function (p) { return { name: place(p.tz), sub: REG[String(p.tz).split("/")[0]] || "", v: +p.opens } }), true);
+    drawCols($("hours-svg"), (function () { var v = new Array(24).fill(0); (j.hours || []).forEach(function (h) { v[+h.hour] = +h.opens; }); return v; })());
+    drawWeekdays(list);
     drawWhere(j.where || []);
+  }
+
+  // out of 100 new people: who listens, who comes back the next day, after a week, after a month
+  var HINTS = {
+    act: "<b>Qui si perde di più: chi arriva non ascolta.</b> Nei post usa link che aprono direttamente una radio (sintonia.now/#station=…), e controlla che la prima schermata inviti subito a premere play.",
+    d1: "<b>Qui si perde di più: ascoltano, ma non tornano il giorno dopo.</b> Invita ad aggiungere Sintonìa alla schermata Home e dai un motivo per tornare domani: Not to miss, storie con gli orari.",
+    d7: "<b>Qui si perde di più: si perdono nella prima settimana.</b> Serve un appuntamento fisso: storie e post regolari con quello che non perdere nei giorni seguenti.",
+    d30: "<b>Qui si perde di più: tornano per un po', poi smettono.</b> Le radio nuove ogni settimana e il pop-up che le annuncia sono il motivo per riaprire: raccontale anche su Instagram."
+  };
+  function drawPath(j, hasListen) {
+    var ul = $("path"); ul.textContent = ""; $("hint").hidden = true;
+    var A = j.activation || {}, R = {}, MIN = 5;
+    (j.retention || []).forEach(function (r) { R[r.k] = r; });
+    var steps = [
+      { id: "new", nm: "Arrivano", em: "persone nuove " + (days === 7 ? "in 7 giorni" : "nel periodo") + ", da quando contiamo anche gli ascolti", v: +A.newcomers || 0, count: true },
+      { id: "act", nm: "Premono play e sentono una radio", em: "almeno una volta", v: pc(+A.first_plays || 0, +A.newcomers || 0), base: +A.newcomers || 0 },
+      { id: "d1", nm: "Tornano il giorno dopo", em: "chi è arrivato ieri o prima", v: R[1] ? pc(+R[1].back, +R[1].people) : null, base: R[1] ? +R[1].people : 0 },
+      { id: "d7", nm: "Tornano dopo una settimana", em: "esattamente 7 giorni dopo", v: R[7] ? pc(+R[7].back, +R[7].people) : null, base: R[7] ? +R[7].people : 0 },
+      { id: "d30", nm: "Tornano dopo un mese", em: "esattamente 30 giorni dopo", v: R[30] ? pc(+R[30].back, +R[30].people) : null, base: R[30] ? +R[30].people : 0 }
+    ];
+    if (!hasListen) { $("path-note").innerHTML = "Per vedere chi ascolta e chi torna manca un passo: incolla <b>sintonia-ascolti.sql</b> nel SQL Editor di Supabase e premi Run."; }
+    else $("path-note").textContent = "Contano solo i telefoni arrivati da quando Sintonìa conta anche ascolti e ritorni" + (j.listen_since ? " (dal " + new Date(j.listen_since).toLocaleDateString("it-IT", { day: "numeric", month: "long" }) + ")" : "") + ": i primi giorni i numeri sono piccoli e cambiano molto.";
+    // the weakest step: the biggest share lost from one step to the next, among those with enough people
+    var weak = null, worst = 2, prev = 100;
+    steps.slice(1).forEach(function (s) {
+      if (s.v === null || s.base < MIN) return;
+      var keep = prev ? Math.min(1, s.v / prev) : 1;
+      if (keep < worst) { worst = keep; weak = s.id; }
+      prev = Math.max(s.v, 0.0001);
+    });
+    steps.forEach(function (s) {
+      var li = document.createElement("li"), nm = document.createElement("span"), v = document.createElement("span"), bar = document.createElement("span"), b = document.createElement("span");
+      nm.className = "nm"; nm.textContent = s.nm;
+      var em = document.createElement("em"); em.textContent = s.em; nm.appendChild(em);
+      v.className = "v";
+      if (s.count) { v.textContent = fmt(s.v); b.style.width = s.v ? "100%" : "0"; }
+      else if (s.v === null || s.base < MIN) { li.className = "wait"; v.textContent = "presto"; em.textContent = s.em + " · servono più giorni di dati"; b.style.width = "0"; }
+      else { v.innerHTML = s.v + "<small>%</small>"; b.style.width = Math.max(1, s.v) + "%"; if (s.id === weak) li.classList.add("weak"); }
+      bar.className = "bar"; bar.appendChild(b);
+      li.append(nm, v, bar); ul.appendChild(li);
+    });
+    if (weak && HINTS[weak]) { $("hint").innerHTML = HINTS[weak]; $("hint").hidden = false; }
+  }
+
+  function drawDays(list, hasListen) {
+    var svg = $("days-svg"); svg.textContent = "";
+    var W = svg.clientWidth || 340, H = 190, n = list.length, gap = n > 40 ? 1 : 2, bw = Math.max(1, (W - gap * (n - 1)) / n);
+    var max = Math.max(4, Math.max.apply(null, list.map(function (d) { return d.o; })));
+    var maxS = Math.max(3600, Math.max.apply(null, list.map(function (d) { return d.s; })));
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    var ink = css("--ink"), red = css("--new"), line = css("--line"), up = css("--up");
+    el("line", { x1: 0, x2: W, y1: H - .5, y2: H - .5, stroke: line, "stroke-width": 1 }, svg);
+    var pts = [];
+    list.forEach(function (d, i) {
+      var x = i * (bw + gap), h = d.o / max * (H - 18), hn = d.n / max * (H - 18), g = el("g", {}, svg);
+      if (d.o) el("rect", { x: x, y: H - h, width: bw, height: h, rx: Math.min(2, bw / 3), fill: ink, opacity: i === n - 1 ? 1 : .82 }, g);
+      if (d.n) el("rect", { x: x, y: H - hn, width: bw, height: hn, rx: Math.min(2, bw / 3), fill: red }, g);
+      pts.push((x + bw / 2).toFixed(1) + "," + (H - d.s / maxS * (H - 18)).toFixed(1));
+      var hit = el("rect", { x: x - gap / 2, y: 0, width: bw + gap, height: H, fill: "transparent" }, g);
+      var show = function () { var t = $("tip"); t.textContent = dayName(d.k) + ": " + d.o + " persone" + (d.n ? ", " + d.n + " nuove" : "") + (hasListen ? " · " + fmt1(d.s / 3600) + " ore" : ""); t.style.left = Math.min(Math.max(x + bw / 2, 90), W - 90) + "px"; t.classList.add("on"); };
+      hit.addEventListener("mouseenter", show); hit.addEventListener("click", show); hit.addEventListener("touchstart", show, { passive: true });
+    });
+    if (hasListen) el("polyline", { points: pts.join(" "), fill: "none", stroke: up, "stroke-width": 2, "stroke-linejoin": "round", "pointer-events": "none" }, svg);
+    svg.addEventListener("mouseleave", function () { $("tip").classList.remove("on"); });
+    $("ax-a").textContent = dayName(list[0].k); $("ax-b").textContent = "oggi";
+  }
+
+  // the stations: hours heard, and the streams that don't start
+  function drawStations(rows, hasListen) {
+    var ul = $("stations"); ul.textContent = "";
+    if (!hasListen) { $("st-sum").textContent = ""; $("st-note").textContent = "Gli ascolti si vedranno dopo aver eseguito sintonia-ascolti.sql su Supabase."; return; }
+    var max = Math.max.apply(null, rows.map(function (r) { return +r.sec; }).concat([1]));
+    var plays = rows.reduce(function (a, r) { return a + (+r.plays || 0); }, 0), fails = rows.reduce(function (a, r) { return a + (+r.fails || 0); }, 0);
+    $("st-sum").textContent = rows.length ? fmt(plays) + " ascolti · " + (plays ? pc(fails, plays) : 0) + "% non partiti" : "";
+    var bad = [];
+    rows.forEach(function (r) {
+      var li = document.createElement("li"), nm = document.createElement("span"), n = document.createElement("span"), bar = document.createElement("span"), b = document.createElement("span");
+      nm.className = "nm"; nm.textContent = stName(r.st);
+      var failPc = +r.plays ? pc(+r.fails, +r.plays) : 0, waitS = r.wait ? Math.round(+r.wait / 100) / 10 : null;
+      var em = document.createElement("em");
+      em.textContent = fmt(+r.ok) + " ascolti" + (waitS !== null ? " · parte in " + waitS.toLocaleString("it-IT") + " s" : "");
+      nm.appendChild(em);
+      if (+r.fails && failPc >= 10) { var e2 = document.createElement("em"); e2.className = "bad"; e2.textContent = failPc + "% non parte"; nm.appendChild(e2); bad.push(stName(r.st)); }
+      else if (waitS !== null && waitS >= 5 && +r.ok >= 3) { var e3 = document.createElement("em"); e3.className = "bad"; e3.textContent = "lenta a partire"; nm.appendChild(e3); bad.push(stName(r.st)); }
+      n.className = "n"; n.textContent = fmt1(+r.sec / 3600) + " h";
+      bar.className = "bar"; b.style.width = (+r.sec / max * 100) + "%"; bar.appendChild(b);
+      li.append(nm, n, bar); ul.appendChild(li);
+    });
+    if (!rows.length) { var li0 = document.createElement("li"); li0.innerHTML = '<span class="nm" style="font-weight:400;color:var(--muted)">Ancora nessun ascolto contato</span>'; ul.appendChild(li0); }
+    var heard = {}; rows.forEach(function (r) { heard[r.st] = 1; });
+    var never = Object.keys(NAMES).filter(function (id) { return !heard[id]; }).map(stName);
+    var notes = [];
+    if (bad.length) notes.push("<b>Da controllare:</b> " + bad.join(", ") + ". Prova lo stream; se non va, scrivi alla radio per un indirizzo diretto.");
+    if (rows.length && never.length) notes.push("<b>Nessuno le ha ascoltate in questo periodo:</b> " + never.join(", ") + ".");
+    $("st-note").innerHTML = notes.join(" ");
+  }
+
+  function splitBar(bar, key, parts, total, colors) {
+    bar.textContent = ""; key.textContent = "";
+    parts.forEach(function (p, i) {
+      if (p[1] && total) { var sp = document.createElement("span"); sp.style.width = (p[1] / total * 100) + "%"; sp.style.background = colors[i]; bar.appendChild(sp); }
+      var li = document.createElement("li"), ic = document.createElement("i"), nm = document.createElement("span"), v = document.createElement("span");
+      ic.style.background = colors[i];
+      nm.className = "nm"; nm.textContent = p[0];
+      if (total) { var em = document.createElement("em"); em.textContent = pc(p[1], total) + "%"; nm.appendChild(em); }
+      v.className = "v"; v.textContent = fmt(p[1]);
+      li.append(ic, nm, v); key.appendChild(li);
+    });
+  }
+  function shades(n) { var out = []; for (var i = 0; i < n; i++) out.push("color-mix(in srgb, var(--ink) " + Math.round(100 - i * (75 / Math.max(1, n - 1))) + "%, var(--bg))"); return out; }
+
+  function drawSessions(rows, listen, hasListen) {
+    var B = {}; rows.forEach(function (r) { B[r.b] = +r.n || 0; });
+    var parts = [["Meno di un minuto", B["<1"] || 0], ["1–5 minuti", B["1-5"] || 0], ["5–15 minuti", B["5-15"] || 0], ["15–60 minuti", B["15-60"] || 0], ["Più di un'ora", B["60+"] || 0]];
+    var total = parts.reduce(function (a, p) { return a + p[1]; }, 0);
+    var sec = listen.reduce(function (a, r) { return a + (+r.sec || 0); }, 0), ok = listen.reduce(function (a, r) { return a + (+r.ok || 0); }, 0);
+    $("avgmin").textContent = hasListen && ok ? fmt1(sec / ok / 60) : "–";
+    $("long").textContent = hasListen && total ? pc((B["15-60"] || 0) + (B["60+"] || 0), total) + "%" : "–";
+    var c = shades(5).reverse(); c[0] = "var(--new)";
+    splitBar($("sess-bar"), $("sess-key"), parts, total, c);
+    $("sess-bar").hidden = $("sess-key").hidden = !hasListen;
+  }
+
+  function drawBack(ages, visits, hasListen) {
+    var A = {}; ages.forEach(function (r) { A[r.b] = +r.n || 0; });
+    var parts = [["Il giorno dopo", A["1"] || 0], ["Dopo 2–7 giorni", A["2-7"] || 0], ["Dopo 8–30 giorni", A["8-30"] || 0], ["Dopo più di un mese", A["31+"] || 0], ["C'erano già prima del conteggio", A.old || 0]];
+    var total = parts.reduce(function (a, p) { return a + p[1]; }, 0);
+    splitBar($("age-bar"), $("age-key"), parts, total, shades(4).concat(["var(--line)"]));
+    $("age-bar").hidden = $("age-key").hidden = !hasListen;
+    var V = {}; visits.forEach(function (r) { V[r.b] = +r.n || 0; });
+    var vt = Object.keys(V).reduce(function (a, k) { return a + V[k]; }, 0), loyal = (V["3-5"] || 0) + (V["6-10"] || 0) + (V["11+"] || 0);
+    $("visits-note").innerHTML = !hasListen ? "Si vedrà dopo aver eseguito sintonia-ascolti.sql su Supabase." : vt
+      ? "Di chi ha aperto Sintonìa nel periodo, <b>" + pc(loyal, vt) + "%</b> l'aveva già aperta in almeno 3 giorni diversi, <b>" + pc(V["11+"] || 0, vt) + "%</b> in più di 10."
+      : "Ancora pochi dati: si conta dai telefoni arrivati da oggi.";
   }
 
   function drawWhere(rows) {
@@ -283,57 +519,28 @@ button { font: inherit; color: inherit; }
     var g = function (via, a) { return W[via + ":" + a] || 0; };
     var auto = function (a) { return g("listen", a) + g("map", a); };
     var asked = auto("shown"), yc = auto("city"), yg = auto("gps-ok"), nn = auto("not-now"), cl = auto("closed"), gr = auto("gps-refused") + auto("gps-failed");
-    var no = nn + cl + gr, ans = yc + yg + no, pct = function (a, b) { return b ? Math.round(a / b * 100) + "%" : "–"; };
-    $("w-no").textContent = pct(no, ans);
-    $("w-sum").textContent = asked ? fmt(asked) + (asked === 1 ? " domanda" : " domande") + " in automatico" : "ancora nessuna domanda";
-    var parts = [["y", yc, "Sceglie la città"], ["g", yg, "Usa il GPS del telefono"], ["n", nn, "Not now"], ["c", cl, "Chiude senza rispondere"], ["r", gr, "Il telefono rifiuta il GPS"]];
-    var bar = $("w-bar"); bar.textContent = "";
-    parts.forEach(function (p) { if (!p[1]) return; var sp = document.createElement("span"); sp.className = "w-" + p[0]; sp.style.width = (p[1] / ans * 100) + "%"; bar.appendChild(sp); });
-    var key = $("w-key"); key.textContent = "";
-    parts.forEach(function (p) {
-      var li = document.createElement("li"), i = document.createElement("i"), nm = document.createElement("span"), v = document.createElement("span");
-      i.className = "w-" + p[0];
-      nm.className = "nm"; nm.textContent = p[2];
-      if (ans) { var em = document.createElement("em"); em.textContent = pct(p[1], ans); nm.appendChild(em); }
-      v.className = "v"; v.textContent = fmt(p[1]);
-      li.append(i, nm, v); key.appendChild(li);
-    });
-    var m = function (via) { var y = g(via, "city") + g(via, "gps-ok"), n = g(via, "not-now") + g(via, "closed") + g(via, "gps-refused") + g(via, "gps-failed"); return pct(y, y + n); };
+    var no = nn + cl + gr, ans = yc + yg + no, p = function (a, b) { return b ? Math.round(a / b * 100) + "%" : "–"; };
+    $("w-no").textContent = p(no, ans);
+    $("w-sum").textContent = asked ? fmt(asked) + (asked === 1 ? " domanda" : " domande") : "ancora nessuna domanda";
+    splitBar($("w-bar"), $("w-key"), [["Sceglie la città", yc], ["Usa il GPS del telefono", yg], ["Not now", nn], ["Chiude senza rispondere", cl], ["Il telefono rifiuta il GPS", gr]], ans,
+      ["var(--ink)", "color-mix(in srgb, var(--ink) 55%, var(--bg))", "var(--new)", "color-mix(in srgb, var(--new) 55%, var(--bg))", "color-mix(in srgb, var(--new) 28%, var(--bg))"]);
+    var m = function (via) { var y = g(via, "city") + g(via, "gps-ok"), n = g(via, "not-now") + g(via, "closed") + g(via, "gps-refused") + g(via, "gps-failed"); return p(y, y + n); };
     $("w-listen").textContent = m("listen"); $("w-map").textContent = m("map");
     var selfIn = g("self", "city") + g("self", "gps-ok"), out = g("self", "stopped");
     $("w-self").innerHTML = "Da soli, dal bottone sulla mappa o dalle impostazioni: <b>" + fmt(selfIn) + "</b> " + (selfIn === 1 ? "si è aggiunto" : "si sono aggiunti") +
-      " · <b>" + fmt(out) + "</b> " + (out === 1 ? "ha tolto" : "hanno tolto") + " il proprio puntino." +
-      (asked > ans ? " Alcune domande non hanno ancora una risposta registrata: chi chiude l'app con la domanda aperta non viene contato." : "");
+      " · <b>" + fmt(out) + "</b> " + (out === 1 ? "ha tolto" : "hanno tolto") + " il proprio puntino.";
   }
 
-  function drawDays(list) {
-    var svg = $("days-svg"); svg.textContent = "";
-    var W = svg.clientWidth || 340, H = 190, n = list.length, gap = n > 40 ? 1 : 2, bw = Math.max(1, (W - gap * (n - 1)) / n);
-    var max = Math.max(4, Math.max.apply(null, list.map(function (d) { return d.o; })));
-    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-    var ink = css("--ink"), red = css("--new"), line = css("--line");
-    el("line", { x1: 0, x2: W, y1: H - .5, y2: H - .5, stroke: line, "stroke-width": 1 }, svg);
-    list.forEach(function (d, i) {
-      var x = i * (bw + gap), h = d.o / max * (H - 18), hn = d.n / max * (H - 18), g = el("g", {}, svg);
-      if (d.o) el("rect", { x: x, y: H - h, width: bw, height: h, rx: Math.min(2, bw / 3), fill: ink, opacity: i === n - 1 ? 1 : .82 }, g);
-      if (d.n) el("rect", { x: x, y: H - hn, width: bw, height: hn, rx: Math.min(2, bw / 3), fill: red }, g);
-      var hit = el("rect", { x: x - gap / 2, y: 0, width: bw + gap, height: H, fill: "transparent" }, g);
-      var show = function () { var t = $("tip"); t.textContent = dayName(d.k) + ": " + d.o + (d.n ? " (" + d.n + " nuove)" : ""); t.style.left = Math.min(Math.max(x + bw / 2, 60), W - 60) + "px"; t.classList.add("on"); };
-      hit.addEventListener("mouseenter", show); hit.addEventListener("click", show); hit.addEventListener("touchstart", show, { passive: true });
-    });
-    svg.addEventListener("mouseleave", function () { $("tip").classList.remove("on"); });
-    $("ax-a").textContent = dayName(list[0].k); $("ax-b").textContent = "oggi";
-  }
-
-  function drawRows(ul, rows) {
+  function drawRows(ul, rows, quiet) {
     ul.textContent = "";
-    if (!rows.length) { var li0 = document.createElement("li"); li0.innerHTML = '<span class="nm" style="font-weight:400;color:var(--muted)">Ancora niente</span>'; ul.appendChild(li0); return; }
+    if (!rows.length) { if (quiet) return; var li0 = document.createElement("li"); li0.innerHTML = '<span class="nm" style="font-weight:400;color:var(--muted)">Ancora niente</span>'; ul.appendChild(li0); return; }
     var max = Math.max.apply(null, rows.map(function (r) { return r.v; })) || 1;
     rows.forEach(function (r) {
       var li = document.createElement("li");
       var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = r.name;
+      if (quiet) nm.style.fontWeight = "500";
       if (r.sub) { var em = document.createElement("em"); em.textContent = r.sub; nm.appendChild(em); }
-      var n = document.createElement("span"); n.className = "n"; n.textContent = fmt(r.v);
+      var n = document.createElement("span"); n.className = "n"; n.textContent = fmt(r.v); if (quiet) n.style.fontSize = "18px";
       var bar = document.createElement("span"); bar.className = "bar";
       var b1 = document.createElement("span"); b1.style.width = (r.v / max * 100) + "%"; bar.appendChild(b1);
       if (r.n) { b1.style.background = "linear-gradient(90deg, var(--new) " + (r.n / r.v * 100) + "%, var(--ink) " + (r.n / r.v * 100) + "%)"; }
@@ -341,13 +548,18 @@ button { font: inherit; color: inherit; }
     });
   }
 
-  function drawHours(hours) {
-    var svg = $("hours-svg"); svg.textContent = "";
-    var W = svg.clientWidth || 300, H = 90, v = new Array(24).fill(0);
-    hours.forEach(function (h) { v[+h.hour] = +h.opens; });
-    var max = Math.max(1, Math.max.apply(null, v)), bw = (W - 23 * 3) / 24, ink = css("--ink");
+  function drawCols(svg, v) {
+    svg.textContent = "";
+    var W = svg.clientWidth || 300, H = 90, n = v.length, gap = n > 12 ? 3 : 6;
+    var max = Math.max(1, Math.max.apply(null, v)), bw = (W - (n - 1) * gap) / n, ink = css("--ink");
     svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-    v.forEach(function (o, i) { var h = Math.max(o ? 2 : 1, o / max * H); el("rect", { x: i * (bw + 3), y: H - h, width: bw, height: h, rx: 1.5, fill: ink, opacity: o ? .85 : .2 }, svg); });
+    v.forEach(function (o, i) { var h = Math.max(o ? 2 : 1, o / max * H); el("rect", { x: i * (bw + gap), y: H - h, width: bw, height: h, rx: 1.5, fill: ink, opacity: o ? .85 : .2 }, svg); });
+  }
+  function drawWeekdays(list) { // Monday first: people per day, on average
+    var sum = [0, 0, 0, 0, 0, 0, 0], cnt = [0, 0, 0, 0, 0, 0, 0];
+    list.forEach(function (d) { var p = d.k.split("-"), w = (new Date(+p[0], +p[1] - 1, +p[2]).getDay() + 6) % 7; sum[w] += d.o; cnt[w]++; });
+    drawCols($("wd-svg"), sum.map(function (s, i) { return cnt[i] ? s / cnt[i] : 0; }));
+    $("wd-ax").innerHTML = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"].map(function (x) { return "<span>" + x + "</span>"; }).join("");
   }
 
   document.querySelectorAll(".range button").forEach(function (b) {

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Privacy · Sintonia</title>
-<meta name="description" content="What Sintonia does with your data: no accounts, no ads, no analytics.">
+<meta name="description" content="What Sintonia does with your data: no accounts, no ads, no tracking.">
 <meta name="theme-color" content="#0C0D11">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=7">
 <link rel="stylesheet" href="fonts.css">
@@ -48,8 +48,8 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
 
 <article class="policy" id="policy">
   <h1>Privacy</h1>
-  <p class="pol-date">Last updated 20 November 2026</p>
-  <p class="pol-lead">Sintonia is a small, independent app for listening to independent radio. It has no accounts, no advertising and no tracking cookies. It only counts, anonymously, how many people open it. This notice describes what the app’s code actually does with your data.</p>
+  <p class="pol-date">Last updated 26 November 2026</p>
+  <p class="pol-lead">Sintonia is a small, independent app for listening to independent radio. It has no accounts, no advertising and no tracking cookies. It only counts, anonymously, how many people open it and what they listen to. This notice describes what the app’s code actually does with your data.</p>
 
   <section>
     <h2>Who is responsible</h2>
@@ -71,10 +71,27 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
       <li>whether it’s the first time Sintonia is opened on this phone;</li>
       <li>whether it’s open from the Home Screen or in the browser;</li>
       <li>the kind of link you came from (for example instagram, or direct), never the full address;</li>
-      <li>your phone’s time zone (for example Europe/Rome).</li>
+      <li>your phone’s time zone (for example Europe/Rome);</li>
+      <li>how many days ago Sintonia was first opened on this phone, and on how many different days it has been opened since. Your phone counts these itself, and only from the day this count began: for phones that already had Sintonia, they stay empty.</li>
     </ul>
     <p>It holds no IP address, no random code and nothing that tells one person from another. A note on this phone (“already counted today”) keeps the same phone from being counted twice in a day. The count is only ever read as totals: per day, per kind of link, per time zone. Lines older than 13 months are deleted automatically.</p>
     <p>In the same way, Sintonia counts how people answer when it asks whether they’d like to be on the map. Each answer adds one line that holds only the date and time, the answer (for example “chose a city” or “not now”), when the question came up (after a minute of listening, the first time the map opens, or from the map’s own button) and whether Sintonia is open from the Home Screen. It holds nothing that tells one person from another, is only read as totals, and is deleted after 13 months.</p>
+  </section>
+
+  <section>
+    <h2>Counting what’s listened to</h2>
+    <p>When a listen ends (you stop, switch to another station, or close Sintonia), Sintonia adds one line to a second count in the same Supabase project. The line holds only:</p>
+    <ul>
+      <li>the date and time;</li>
+      <li>the station;</li>
+      <li>how many seconds it played;</li>
+      <li>whether the sound started, and how long it took, or how long you waited before stopping;</li>
+      <li>how the listen ended: stopped, switched, closed, or the stream couldn’t start;</li>
+      <li>whether it was the first listen on this phone;</li>
+      <li>how many days ago Sintonia was first opened on this phone;</li>
+      <li>whether it’s open from the Home Screen or in the browser.</li>
+    </ul>
+    <p>It holds no IP address, no random code and nothing that links one line to another or tells one person from another. It’s only read as totals, to see which stations are listened to and which streams have trouble starting. If Sintonia is closed while a station is still playing in the background, the line is sent the next time you open it. Lines older than 13 months are deleted automatically.</p>
   </section>
 
   <section>
@@ -117,6 +134,8 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
       <li>the stations’ published schedules, to show when they’re next live, kept for a day;</li>
       <li>your settings;</li>
       <li>the day Sintonia was last counted, and whether this phone has been counted yet;</li>
+      <li>the day Sintonia was first opened on this phone and on how many days it has been opened, for the count;</li>
+      <li>whether this phone has already played a station, and a listen not yet counted, until it’s sent;</li>
       <li>a short-lived note used when the app updates itself, cleared when you close it.</li>
     </ul>
     <p>To delete them one by one, clear Recently heard from its sheet, unpin stations, empty your name in Settings, or tap “Stop sharing my location” on the map. To delete everything at once, clear Sintonia’s website data in your browser’s settings, and if you added Sintonia to your Home Screen, delete it from there too.</p>
@@ -130,13 +149,13 @@ main { max-width: 640px; margin: 0 auto; display: grid; gap: 26px; }
   <section>
     <h2>Legal bases</h2>
     <p>Sharing your dot on the map, live and as a faint ring, is based on your consent (Article 6(1)(a) GDPR), which you give by choosing your city or by letting your phone share its location. You can withdraw it at any time with “Stop sharing my location” on the map. Withdrawing doesn’t affect what was shared before.</p>
-    <p>Everything else (delivering the app, showing what’s on air, playing stations and their past shows, counting how many people open it and how they answer the map question, showing how many people are listening, passing on the reactions you send) is based on the legitimate interest in running a working radio app (Article 6(1)(f) GDPR).</p>
+    <p>Everything else (delivering the app, showing what’s on air, playing stations and their past shows, counting how many people open it, what they listen to and how they answer the map question, showing how many people are listening, passing on the reactions you send) is based on the legitimate interest in running a working radio app (Article 6(1)(f) GDPR).</p>
   </section>
 
   <section>
     <h2>Providers outside the EU</h2>
     <p>GitHub and Supabase are providers based outside the European Union (GitHub, Inc. in the United States), so your IP address may be processed in the United States. They apply the safeguards set out in their data processing agreements. Their own privacy policies: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub</a>, <a href="https://supabase.com/privacy">Supabase</a>. Mixcloud, used only for past shows, is Mixcloud Ltd, based in the United Kingdom; its privacy policy is linked above.</p>
-    <p>Sintonia itself has no server and keeps no records about you: the count of opens holds nothing that identifies you.</p>
+    <p>Sintonia itself has no server and keeps no records about you: the counts of opens and listens hold nothing that identifies you.</p>
   </section>
 
   <section>

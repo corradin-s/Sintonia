@@ -263,9 +263,8 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .lg-row .lg-st { border-radius: 2px; background: var(--bg-2); border: 1.5px solid var(--muted); width: 8px; height: 8px; margin: 0 .5px; }
 .m-others circle { fill: var(--ink); opacity: .85; }
 /* (citypick.py) where someone listened in the last 24 hours: a faint ring, never a live dot */
-.m-recent .rc { fill: color-mix(in srgb, var(--ink) 16%, transparent); stroke: var(--ink); stroke-width: 2; opacity: .9; }
-.m-recent .rh { fill: none; stroke: var(--ink); stroke-width: 1; opacity: .28; }
-.lg-recent { border: 2px solid var(--ink); background: color-mix(in srgb, var(--ink) 16%, transparent); opacity: .9; box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 14%, transparent); }
+.m-recent circle { fill: none; stroke: #FF2EC4; stroke-width: 2; } /* (recentfuchsia.py) */
+.lg-row .lg-recent { width: 10px; height: 10px; border: 2px solid #FF2EC4; background: none; }
 .lg-row span { min-width: 0; color: var(--muted); overflow-wrap: anywhere; }
 .lg-row b { color: var(--ink); font-weight: 600; }
 
@@ -2024,6 +2023,13 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       if (first) localStorage.setItem("sintonia:fresh", "1"); else first = localStorage.getItem("sintonia:fresh") === "1"; // new here, until it has been counted once
     } catch (e) { return; }
     if (last === today) return;
+    let since = "", visits = null; // (listenlog.py) known only for phones that arrive from now on
+    try {
+      since = localStorage.getItem(SINCE_KEY) || "";
+      if (!since && first) { since = today; localStorage.setItem(SINCE_KEY, today); }
+      if (since) visits = Math.min(10000, (+localStorage.getItem("sintonia:visits") || 0) + 1);
+    } catch (e) {}
+    const age = since ? ageDays() : null;
     const app = !!((window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true);
     const q = new URLSearchParams(location.search);
     let src = (q.get("from") || q.get("utm_source") || "").toLowerCase().replace(/[^a-z0-9.-]/g, "").slice(0, 24);
@@ -2042,8 +2048,11 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     fetch(COMMUNITY.url + "/rest/v1/hits", {
       method: "POST", keepalive: true,
       headers: { apikey: COMMUNITY.key, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ first, app, src, tz, test, age, visits }),
+    }).then((r) => r.status !== 400 ? r : fetch(COMMUNITY.url + "/rest/v1/hits", { // (listenlog.py) Supabase without the new columns yet: counted as before
+      method: "POST", keepalive: true, headers: { apikey: COMMUNITY.key, "Content-Type": "application/json", Prefer: "return=minimal" },
       body: JSON.stringify({ first, app, src, tz, test }),
-    }).then((r) => { if (r.ok) { try { localStorage.setItem("sintonia:counted", today); localStorage.removeItem("sintonia:fresh"); } catch (e) {} } }).catch(() => {});
+    })).then((r) => { if (r.ok) { try { localStorage.setItem("sintonia:counted", today); localStorage.removeItem("sintonia:fresh"); if (visits) localStorage.setItem("sintonia:visits", String(visits)); } catch (e) {} } }).catch(() => {});
   }
   function startPresence() {
     if (!SHARING || channel) return;
@@ -2585,8 +2594,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       if (liveAt.has(r.lat + "," + r.lon)) return;
       const [x, y, z] = project(r.lat, r.lon);
       if (z <= 0.02 || !onScreen(x, y, 16)) return;
-      const rr = 6 + Math.min(4, (r.n || 1) - 1) * 1.2; // (recentvis.py) a little bigger where more people listened
-      rings += '<circle class="rh" cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(rr + 5) + '"/><circle class="rc" cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(rr) + '"/>';
+      rings += '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="4.5"/>'; // (recentfuchsia.py) small, empty, fuchsia
     });
     setG("recent", rings);
 
@@ -3233,12 +3241,12 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       k.textContent = info.onAir ? "Live now" : "On now";
       k.classList.toggle("live", !!info.onAir);
       if (info.rerun) { const rr = document.createElement("span"); rr.className = "rr"; rr.textContent = info.tag || "Rerun"; k.appendChild(rr); }
-      const span = showSpan(info, st.tz);
+      const span = showSpan(info); // (localtimes.py) the listener's own time, like "live today" and Not to miss
       if (span) { const hs = document.createElement("span"); hs.className = "now-h"; hs.textContent = span; k.appendChild(hs); }
       box.querySelector(".now-t").textContent = info.title;
       const parts = [];
       if (info.sub) parts.push(info.sub);
-      if (isFinite(info.end)) parts.push("until " + hhmm(info.end, st.tz));
+      if (isFinite(info.end)) parts.push("until " + hhmm(info.end));
       if (nx) parts.push("live " + whenLive(nx.a)); // (liveplan.py)
       const s = box.querySelector(".now-s");
       s.textContent = parts.join(" · ");
@@ -3337,11 +3345,32 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   const TIME_KEY = "sintonia:listened";
   var played = {};
   try { played = JSON.parse(localStorage.getItem(TIME_KEY) || "{}") || {}; } catch (e) { played = {}; }
+  /* ---------- (listenlog.py) each listen, one anonymous line when it ends: the station, how long, whether it started and how fast ---------- */
+  const SINCE_KEY = "sintonia:since", SESS_KEY = "sintonia:sess";
+  var sess = null;
+  function ageDays() { // days since this phone first opened Sintonìa, by the Italian calendar like the count; null for phones from before
+    try {
+      const a = Date.parse((localStorage.getItem(SINCE_KEY) || "x") + "T12:00:00Z"), b = Date.parse(new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Rome" }) + "T12:00:00Z");
+      return isFinite(a) && isFinite(b) ? Math.max(0, Math.min(3650, Math.round((b - a) / 864e5))) : null;
+    } catch (e) { return null; }
+  }
+  function sessSave() { try { if (sess) localStorage.setItem(SESS_KEY, JSON.stringify(sess)); else localStorage.removeItem(SESS_KEY); } catch (e) {} }
+  function sessSend(x, how) {
+    if (!x || !byId[x.st]) return;
+    const ok = x.wait !== null && x.wait !== undefined;
+    let first = false;
+    if (ok) { try { if (!localStorage.getItem("sintonia:played1")) { first = true; localStorage.setItem("sintonia:played1", "1"); } } catch (e) {} }
+    sb("listens", { st: x.st, ok, sec: Math.max(0, Math.min(86400, Math.round(x.sec || 0))), wait: Math.max(0, Math.min(600000, Math.round(ok ? x.wait : (x.end || x.last || Date.now()) - x.t0))),
+      how: ["stop", "switch", "close", "error", "blocked"].includes(how) ? how : "stop", first, age: ageDays(), app: inApp(), test: TESTCOPY }).catch(() => {});
+  }
+  function sessOpen(id) { sess = { st: id, t0: Date.now(), wait: null, sec: 0, last: Date.now() }; sessSave(); }
+  function sessClose(how) { if (!sess) return; const x = sess; x.end = Date.now(); sess = null; sessSave(); sessSend(x, x.how || how); }
   var tallyAt = 0, tallyId = "";
   function tally() { // adds the stretch just listened (at most half an hour at a time, in case the phone slept) and starts the next one
     const now = Date.now();
     if (tallyAt && tallyId && byId[tallyId]) {
       played[tallyId] = Math.round((+played[tallyId] || 0) + Math.min(now - tallyAt, 30 * 60000) / 1000);
+      if (sess && sess.st === tallyId) { sess.sec += Math.min(now - tallyAt, 30 * 60000) / 1000; sess.last = now; sessSave(); } // (listenlog.py)
       try { localStorage.setItem(TIME_KEY, JSON.stringify(played)); } catch (e) {}
     }
     const on = state === "live" && !!current;
@@ -4193,7 +4222,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   function renderSleep() {
     const st = current ? byId[current] : null, info = st ? live[st.id] : null, left = sleepLeft();
     const opts = [[15, "15 minutes"], [30, "30 minutes"], [45, "45 minutes"], [60, "1 hour"]];
-    if (info && isFinite(info.end) && info.end - Date.now() > 2 * 60000) opts.push([Math.round((info.end - Date.now()) / 60000), "When the show ends", hhmm(info.end, st.tz)]);
+    if (info && isFinite(info.end) && info.end - Date.now() > 2 * 60000) opts.push([Math.round((info.end - Date.now()) / 60000), "When the show ends", hhmm(info.end)]);
     let h = '<div class="sheet-in sheet-pad"><h2 class="sh-title" id="sheet-title">Sleep timer</h2>' +
       `<p class="empty">${left ? "The radio stops in " + left + " min." : "The radio stops by itself after:"}</p><div class="sh-opts">`;
     h += opts.map(([m, label, at]) => `<button class="sh-opt" type="button" data-act="sleepset" data-min="${m}">${label}<span>${at || ""}</span></button>`).join("");
@@ -4711,7 +4740,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     const sub = [];
     if (info && info.sub && !(info.song && info.song.title && info.sub.toLowerCase().includes(info.song.title.toLowerCase())) &&
       !(info.song && info.sub === info.song.artist)) sub.push(esc(info.sub)); // the song has its own card below
-    if (info && isFinite(info.end)) sub.push("until " + hhmm(info.end, st.tz));
+    if (info && isFinite(info.end)) sub.push("until " + hhmm(info.end));
     if (A) sub.push(esc(st.name) + " · " + esc(A.date) + (A.loading && !A.playing ? " · loading…" : A.playing ? "" : " · paused"));
     else if (!info || !info.title) sub.push(esc(st.city) + ", " + esc(st.country));
     const pinned = favs.includes(st.id);
@@ -4724,7 +4753,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     } else if (info && isFinite(info.start) && isFinite(info.end) && info.end > info.start) {
       const pct = Math.min(100, Math.max(0, (now - info.start) / (info.end - info.start) * 100));
       h += `<div class="fp-bar"><div class="fp-line"><i style="width:${pct.toFixed(1)}%"></i></div>` +
-        `<div class="fp-times"><span>${hhmm(info.start, st.tz)}</span><span>${hhmm(now, st.tz)} in ${esc(st.city)}</span><span>${hhmm(info.end, st.tz)}</span></div></div>`;
+        `<div class="fp-times"><span>${hhmm(info.start)}</span><span>${hhmm(now, st.tz)} in ${esc(st.city)}</span><span>${hhmm(info.end)}</span></div></div>`; // (localtimes.py) the show in your time, the city's clock in the middle
     } else {
       h += `<div class="fp-times one"><span>${hhmm(now, st.tz)} in ${esc(st.city)}</span></div>`;
     }
@@ -5218,7 +5247,13 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     const dur = (1.1 + rnd() * 1.3).toFixed(2) + "s";
     document.querySelectorAll(".onair .sig-live").forEach((p) => { p.setAttribute("d", d); p.style.setProperty("--sig-dur", dur); });
   }
-  function setState(s) { state = s; document.body.dataset.state = s; document.documentElement.dataset.state = s; tally(); renderPlayer(); }
+  function setState(s) { state = s; document.body.dataset.state = s; document.documentElement.dataset.state = s; tally();
+    if (sess) { // (listenlog.py) the sound arrived; or the listen is over
+      if (s === "live" && sess.wait === null && current === sess.st) { sess.wait = Date.now() - sess.t0; sess.last = Date.now(); sessSave(); }
+      else if (s === "error") sessClose("error");
+      else if (s === "paused" || s === "idle") sessClose("stop");
+    }
+    renderPlayer(); }
 
   function renderPlayer() {
     const st = current ? byId[current] : null;
@@ -5453,7 +5488,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   function dropHls() { if (hls) { try { hls.destroy(); } catch (e) {} hls = null; } }
   function playFailed(id, err, src) {
     if (current !== id || (err && err.name === "AbortError")) return;
-    if (err && err.name === "NotAllowedError") { bridgeOff(); wanted = false; retrying = false; setState("paused"); return; }
+    if (err && err.name === "NotAllowedError") { bridgeOff(); wanted = false; retrying = false; if (sess) sess.how = "blocked"; setState("paused"); return; }
     if (wanted && nextSrc(src)) return; // (altsrc.py)
     if (wanted) { scheduleRetry(); return; }
     setState("error");
@@ -5478,7 +5513,9 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     const st = byId[id];
     if (!st) return;
     if (arch) archStop();
+    if (sess) { tally(); sessClose("switch"); } // (listenlog.py) the listen before this one ends here
     current = id;
+    sessOpen(id);
     if (st.srcs && st.srcs.length > 1) { st.srcI = 0; st.srcTried = 0; st.src = st.srcs[0]; } // (altsrc.py)
     startedAt = Date.now();
     try { localStorage.setItem(KEY, id); } catch (e) {}
@@ -6061,6 +6098,9 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
   refreshLive();
   startPresence();
   setTimeout(countOpen, 1200); // (count.py)
+  // (listenlog.py) a listen left open when the app was closed in the background; and one open when the page goes away
+  try { const left = JSON.parse(localStorage.getItem(SESS_KEY) || "null"); localStorage.removeItem(SESS_KEY); if (left && left.st) setTimeout(() => sessSend(left, "close"), 2500); } catch (e) {}
+  window.addEventListener("pagehide", () => { if (sess) { tally(); sessClose("close"); } });
   setTimeout(() => seenPing(false), 3000); // (citypick.py)
   renderOthers();
   setInterval(tickClocks, 30000);
