@@ -5309,7 +5309,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       if (typeof spinA === "function" && spinOn) spinA(st.id);
       root.setProperty("--dock-glow", "color-mix(in srgb, " + st.dot + " 20%, var(--dock))");
       root.setProperty("--chip", st.dot);
-      root.setProperty("--chip-t", st.dot === st.c ? st.t : "#fff");
+      root.setProperty("--chip-t", lumOf(st.dot) > 0.4 ? (lumOf(st.c) < 0.12 ? st.c : lumOf(st.t) < 0.12 ? st.t : "#0C0D11") : (st.dot === st.c ? st.t : "#fff")); // (chipcontrast.py) dark writing on a light colour
       swatch.style.setProperty("--pc", st.c);
       swatch.style.setProperty("--pt", st.t);
       swatch.classList.remove("idle"); npName.classList.remove("brand"); // (polish.py)
