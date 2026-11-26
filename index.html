@@ -385,6 +385,8 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .pick .vtag svg { width: 8px; height: 8px; fill: currentColor; }
 .pick button { appearance: none; -webkit-appearance: none; position: absolute; inset: 0; border: 0; background: none; border-radius: 16px; cursor: pointer; }
 .tile .meta .newtag { margin-right: 2px; }
+.newtag.wk { background: none; color: var(--t); box-shadow: inset 0 0 0 1px currentColor; } /* (weekend.py) live only at the weekend */
+.meta .wk-br { flex-basis: 100%; height: 0; margin-top: -5px; } /* the tags on their own line, the place and the clock under them */
 .tile .meta { padding-right: 28px; }
 .pin:focus-visible { outline: 2px solid var(--t); outline-offset: -2px; }
 
@@ -3079,6 +3081,27 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       .finally(() => clearTimeout(timer));
   }
 
+  // (archivefix.py) a source can say "live" while the station plays its archive or its repeats: the show's own name decides
+  const AR_W = /[\s\-–·|:*]*[\[(]?\s*(?:(?:picks )?(?:from|of) the )?\barchiv\w*\s*[\])]?[\s\-–·|:*]*/gi;
+  const RR_W = /[\s\-–·|:*]*[\[(]?\s*\b(?:repeats?|re-?runs?|restream(?:ed)?|replay)\b\s*[\])]?(?:\s*\(master list\))?[\s\-–·|:*]*|\s*\((?:r)\)\s*/gi;
+  function notLive(x, id) {
+    if (!x || x.fromPlan) return x;
+    let txt = (x.title || "") + " \n " + (x.sub || "");
+    if (x.song) [x.song.title, x.song.artist].forEach((w) => { if (w) txt = txt.split(w).join(" "); }); // a song called "Replay" is still a song
+    const ar = /\barchiv/i.test(txt), rr = !ar && /\b(repeats?|re-?runs?|restream(ed)?|replay)\b|\(r\)/i.test(txt);
+    if (!ar && !rr) return x;
+    const st = byId[id], own = st ? st.name.toLowerCase() : "";
+    const cut = (t) => {
+      if (!t || (x.song && (t === x.song.title || t === x.song.artist))) return t || "";
+      const c = t.replace(AR_W, " ").replace(RR_W, " ").replace(/\s+/g, " ").replace(/^[\s\-–·|:*]+|[\s\-–·|:*]+$/g, "").trim();
+      return c.toLowerCase() === own ? "" : c;
+    };
+    let title = cut(x.title), sub = cut(x.sub);
+    if (!title) { title = sub; sub = ""; }
+    if (!title) return Object.assign({}, x, { title: "From the archive", sub: "", song: null, onAir: false, rerun: false, tag: "", auto: true });
+    return Object.assign({}, x, { title, sub, onAir: false, rerun: true, tag: ar ? "Archive" : x.tag && x.tag !== "Playlist" ? x.tag : "Rerun" });
+  }
+
   let refreshing = false;
   function refreshLive() {
     loadPlan(); // (liveplan.py) at most every half hour
@@ -3087,7 +3110,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     Promise.all(SOURCES.map((s) =>
       getJSON(s.url).then((j) => {
         const r = s.parse(j) || {};
-        Object.keys(r).forEach((k) => { live[k] = r[k]; });
+        Object.keys(r).forEach((k) => { live[k] = notLive(r[k], k); }); // (archivefix.py)
       }).catch(() => {})
     )).then(() => { refreshing = false; renderLive(); });
   }
@@ -3281,6 +3304,16 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     renderPlayer();
   }
 
+  // (weekend.py) the weekend radios: live shows only at the weekend, the rest of the week their archive or playlists
+  const WEEKEND = { rotation: "Saturday and Sunday", hanoi: "Friday to Sunday" };
+  stations.forEach((st) => {
+    if (!WEEKEND[st.id]) return;
+    const t = document.createElement("span"); t.className = "newtag wk"; t.textContent = "Weekend";
+    t.title = "Live " + WEEKEND[st.id].replace(/^\w/, (c) => c.toLowerCase());
+    const br = document.createElement("i"); br.className = "wk-br"; br.setAttribute("aria-hidden", "true");
+    st.el.querySelector(".meta").prepend(t, br);
+  });
+
   // stations that arrived in the last week: their own row in This week, and a small tag on their tile
   const NEW_DAYS = 7;
   const isNew = (st) => { const d = Date.parse(st.el.dataset.added || ""); return d > 0 && Date.now() - d < NEW_DAYS * 864e5; };
@@ -3289,7 +3322,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
     $("sec-new").hidden = !fresh.length;
     fillMinis($("newin"), fresh.map((st) => st.id), false); // all of them are new: no tag needed
     stations.forEach((st) => {
-      const meta = st.el.querySelector(".meta"), tag = meta.querySelector(".newtag");
+      const meta = st.el.querySelector(".meta"), tag = meta.querySelector(".newtag:not(.wk)");
       if (isNew(st) && !tag) { const t = document.createElement("span"); t.className = "newtag"; t.textContent = "New"; meta.prepend(t); }
       else if (!isNew(st) && tag) tag.remove();
     });
@@ -4269,6 +4302,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       `<button class="sh-btn ghost" type="button" data-act="share" data-id="${id}">Share</button>`);
     const info = live[id];
     const facts = [["On now", info && info.title ? info.title + (info.rerun ? " (" + (info.tag || "rerun").toLowerCase() + ")" : "") : ""], ["Local time", hhmm(Date.now(), st.tz)],
+      ["Live", WEEKEND[id] || ""], // (weekend.py)
       ["Since", I.since], ["Plays", I.plays], ["How alternative", ALT[id] ? ALT_W[ALT[id] - 1] : ""], ["Languages", I.lang], ["Run by", I.by]].filter((f) => f[1]);
     const up = (SCHED[id] || []).filter((x) => x.live && x.b > Date.now()).slice(0, 5); // (liveplan.py)
     if (up.length) facts.splice(1, 0, ["Next live", up.map((x) => (x.a <= Date.now() ? "Now" : cap1(whenLive(x.a))) + (x.t ? " · " + x.t : "")).join("\n")]);
