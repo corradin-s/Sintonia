@@ -194,22 +194,6 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .map.grabbing { cursor: grabbing; }
 .map canvas, .map > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .map-ctl { position: absolute; top: 10px; right: 10px; display: grid; gap: 6px; }
-/* (globelook.py) test copy: the switch between the ways of drawing the globe */
-.gl-pick { position: absolute; left: 10px; top: 10px; z-index: 3; display: flex; gap: 2px; padding: 3px; border-radius: 999px;
-  background: color-mix(in srgb, var(--bg) 82%, transparent); border: 1px solid var(--line); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.gl-pick button { appearance: none; -webkit-appearance: none; border: 0; margin: 0; cursor: pointer; min-width: 30px; height: 28px; padding: 0 9px;
-  border-radius: 999px; background: none; color: var(--muted); font-family: var(--f-body); font-size: 12px; font-weight: 600; line-height: 1; }
-.gl-pick button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-.map[data-globe="colore"] .m-st { fill: var(--gl-ink); stroke: var(--gl-c); stroke-width: 1; }
-.map[data-globe="colore"] .m-code, .map[data-globe="colore"] .m-n { fill: var(--gl-ink); stroke: var(--gl-c); }
-.map[data-globe="colore"] .m-code.on { fill: var(--gl-ink); }
-.map[data-globe="colore"] .m-others circle { fill: var(--gl-ink); }
-.map[data-globe="colore"] .m-under { stroke: var(--gl-ink); stroke-opacity: .3; }
-/* (dlook.py) D: the stations in their own colour, the codes in the type of the cards */
-.map[data-globe="sint"] .m-st { fill: var(--sc, var(--bg-2)); stroke: var(--bg-2); stroke-width: 1.2; }
-.map[data-globe="sint"] .m-st.on { stroke: var(--ink); stroke-width: 1.6; }
-.map[data-globe="sint"] .m-code, .map[data-globe="sint"] .m-n { font-family: var(--f-display); font-weight: 800; font-stretch: 75%; font-size: 11px; letter-spacing: .03em; fill: var(--ink); fill-opacity: .82; }
-.map[data-globe="sint"] .m-code.on { fill-opacity: 1; }
 /* (polish.py) the question on the map: small, at the bottom, after the dots have been seen */
 .wh-card { position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 2; display: flex; align-items: center; gap: 10px;
   padding: 8px 6px 8px 14px; border-radius: 14px; border: 1px solid var(--line); cursor: default;
@@ -237,13 +221,13 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 #z-home[data-to="me"] .i-me { display: block; }
 .m-under { fill: none; stroke: var(--ink); stroke-opacity: .16; stroke-width: 1; }
 .m-line { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: .01 5; }
-.m-st { fill: var(--bg-2); stroke: var(--muted); stroke-width: 1.4; }
-.m-st.on { stroke: var(--ink); }
+.m-st { fill: var(--sc, var(--bg-2)); stroke: var(--bg-2); stroke-width: 1.2; } /* (globesint.py) each in its station's colour */
+.m-st.on { stroke: var(--ink); stroke-width: 1.6; }
 .m-code, .m-n {
-  font-family: var(--f-mono); font-size: 9px; font-weight: 500; letter-spacing: .08em; fill: var(--muted);
+  font-family: var(--f-display); font-size: 11px; font-weight: 800; font-stretch: 75%; letter-spacing: .03em; fill: var(--ink); fill-opacity: .82;
   paint-order: stroke; stroke: var(--bg-2); stroke-width: 3px; stroke-linejoin: round;
 }
-.m-code.on, .m-n { fill: var(--ink); }
+.m-code.on, .m-n { fill-opacity: 1; }
 
 /* reactions: four symbols to send while a station plays; they cross the map for whoever has Sintonia open */
 .react { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
@@ -278,7 +262,7 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .lg-row i { flex: none; width: 9px; height: 9px; border-radius: 50%; box-sizing: border-box; }
 .lg-you { background: var(--live); }
 .lg-others { background: var(--ink); opacity: .85; }
-.lg-row .lg-st { border-radius: 2px; background: var(--bg-2); border: 1.5px solid var(--muted); width: 8px; height: 8px; margin: 0 .5px; }
+.lg-row .lg-st { border-radius: 2px; background: linear-gradient(135deg, #DCC8D7 0 33%, #FFE136 33% 66%, #48D2C5 66%); width: 9px; height: 9px; margin: 0 .5px; } /* (globesint.py) the stations in their colours */
 .m-others circle { fill: var(--ink); opacity: .85; }
 /* (citypick.py) where someone listened in the last 24 hours: a faint ring, never a live dot */
 .m-recent circle { fill: none; stroke: #FF2EC4; stroke-width: 2; } /* (recentfuchsia.py) */
@@ -1740,7 +1724,6 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
             <svg class="i-me" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4"/><circle class="dot" cx="8" cy="8" r="1.4"/><path d="M8 1.5v2.5M8 12v2.5M1.5 8H4M12 8h2.5"/></svg>
           </button>
         </div>
-        <div class="gl-pick" id="gl-pick" role="group" aria-label="Globe, test copy"><button type="button" data-gl="dots">Now</button><button type="button" data-gl="righe">A</button><button type="button" data-gl="colore">B</button><button type="button" data-gl="tessere">C</button><button type="button" data-gl="sint">D</button></div>
         <div class="wh-card" id="wh-card" role="group" aria-label="Your dot on the map" hidden><!-- (polish.py) -->
           <i class="wh-card-me" aria-hidden="true"></i>
           <span class="wh-card-t">Where are you listening from?</span>
@@ -2399,7 +2382,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     setRot();
     setSun();
     drawLand();
-    if (globeLook === "dots" || globeLook === "sint") drawNight(); // (globelook.py) the others show the night in their own way, or not at all
+    drawNight();
     drawOver();
   }
 
@@ -2434,6 +2417,12 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   }
 
   let maskKey = "", mask = null, maskFor = {};
+  // (globesint.py) a station's colour that shows on the page: its card colour, or its accent when the card is near black (dark) or near white (light)
+  const lumOf = (h) => { const m = /^#([0-9a-f]{6})$/i.exec(h || ""); if (!m) return 0.5; const v = parseInt(m[1], 16);
+    const c = [v >> 16, (v >> 8) & 255, v & 255].map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const stTint = (st) => { const light = document.documentElement.getAttribute("data-theme") === "light", L = lumOf(st.c); return (light ? L < 0.75 : L > 0.06) ? st.c : (st.dot || st.c); };
+  const cityTint = (code) => { const st = stations.find((x) => x.code === code); return st ? stTint(st) : ""; };
   function drawLand() {
     const ctx = landCv.getContext("2d");
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2441,48 +2430,10 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     const css = getComputedStyle(document.documentElement), light = document.documentElement.getAttribute("data-theme") === "light";
     const R = cam.R, cx = W / 2, cy = H / 2;
-    // the sea: a sphere lit from the side of the sun, with a faint halo in the colour of the station on air
-    const glow = css.getPropertyValue("--glow").trim();
-    const GL = globeLook, glSt = GL === "colore" ? (byId[current] || null) : null; // (globelook.py)
-    if (GL !== "dots") {
-      const hx = (h, f) => { const m = /^#([0-9a-f]{6})$/i.exec(h || ""); if (!m) return f; const v = parseInt(m[1], 16); return [v >> 16, (v >> 8) & 255, v & 255]; };
-      const ink = css.getPropertyValue("--ink").trim() || "#F3EFE6";
-      ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU);
-      if (GL === "colore") {
-        const c1 = hx(glSt && glSt.c, [243, 239, 230]), c2 = hx(glSt && glSt.t, [12, 13, 17]);
-        globeCol = { sea: c1, land: c1.map((v, i) => Math.round(v + (c2[i] - v) * 0.16)), coast: c1.map((v, i) => Math.round(v + (c2[i] - v) * 0.7)) };
-        mapBox.style.setProperty("--gl-c", "rgb(" + c1 + ")"); mapBox.style.setProperty("--gl-ink", "rgb(" + c2 + ")");
-        ctx.fillStyle = "rgb(" + c1 + ")"; ctx.fill();
-      } else {
-        ctx.fillStyle = css.getPropertyValue("--bg").trim() || "#0C0D11"; ctx.fill();
-        ctx.globalAlpha = 0.16; ctx.lineWidth = 1; ctx.strokeStyle = ink; ctx.stroke(); ctx.globalAlpha = 1;
-      }
-    }
-    if (GL === "dots" && glow && R < Math.hypot(W, H)) {
-      const halo = ctx.createRadialGradient(cx, cy, R * 0.96, cx, cy, R * 1.12);
-      halo.addColorStop(0, glow); halo.addColorStop(1, "transparent");
-      ctx.globalAlpha = light ? 0.18 : 0.22; ctx.fillStyle = halo; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
-    }
-    if (GL === "dots") {
+    // (globesint.py) the sea: flat, the colour of the page, with a faint edge; no lit sphere, no halo, no grid: only the dots and the night
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU);
     ctx.fillStyle = css.getPropertyValue("--bg").trim() || "#0C0D11"; ctx.fill();
-    const sxy = Math.hypot(sun[0], sun[1]) || 1, far = sun[2] < 0 ? 0.85 / sxy : 0.5; // sun behind the globe: the light is at its edge
-    const lit = ctx.createRadialGradient(cx + sun[0] * far * R, cy - sun[1] * far * R, R * 0.05, cx, cy, R);
-    lit.addColorStop(0, light ? "rgba(255,255,255,.75)" : "rgba(255,255,255,.07)");
-    lit.addColorStop(0.7, "rgba(255,255,255,0)");
-    lit.addColorStop(1, light ? "rgba(0,0,0,.07)" : "rgba(0,0,0,.35)");
-    ctx.fillStyle = lit; ctx.fill();
-    ctx.lineWidth = 1; ctx.strokeStyle = css.getPropertyValue("--line").trim() || "rgba(255,255,255,.1)"; ctx.stroke();
-    }
-
-    // the grid of meridians and parallels, very faint, while the whole globe is in view
-    if (GL === "dots" && R < rMin() * 3) {
-      ctx.beginPath();
-      const line = (pts) => { let on = false; pts.forEach(([la, lo]) => { const [x, y, z] = project(la, lo); if (z > 0) { if (on) ctx.lineTo(x, y); else ctx.moveTo(x, y); on = true; } else on = false; }); };
-      for (let lo = -180; lo < 180; lo += 30) { const p = []; for (let la = -80; la <= 80; la += 4) p.push([la, lo]); line(p); }
-      for (let la = -60; la <= 60; la += 30) { const p = []; for (let lo = -180; lo <= 180; lo += 4) p.push([la, lo]); line(p); }
-      ctx.strokeStyle = light ? "rgba(0,0,0,.06)" : "rgba(255,255,255,.05)"; ctx.stroke();
-    }
+    ctx.globalAlpha = light ? 0.2 : 0.16; ctx.lineWidth = 1; ctx.strokeStyle = css.getPropertyValue("--ink").trim() || "#F3EFE6"; ctx.stroke(); ctx.globalAlpha = 1;
     if (!landPath) return;
 
     // the dots sit on the globe itself, on a grid of latitude and longitude, so they turn with it
@@ -2515,8 +2466,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       maskFor = { d, full, xA: nA - mx, xB: nB + mx, yA: Math.max(mercY(84), nYA - my), yB: Math.min(mercY(-80), nYB + my) };
     }
     const { xA, xB, yA, yB } = maskFor;
-    const fine = GL === "colore" ? 3 : 1; // (globelook.py) B draws a coast: a finer mask
-    const sc = Math.min(2 * fine / d, 2400 * Math.min(fine, 1.5) / (xB - xA), 2400 * Math.min(fine, 1.5) / Math.max(0.01, yB - yA));
+    const sc = Math.min(2 / d, 2400 / (xB - xA), 2400 / Math.max(0.01, yB - yA));
     const mw = Math.max(1, Math.ceil((xB - xA) * sc)), mh = Math.max(1, Math.ceil((yB - yA) * sc));
     const key = [xA, xB, yA, yB, sc].map((v) => v.toFixed(4)).join();
     if (key !== maskKey) {
@@ -2526,14 +2476,18 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       for (let m = -1; m <= 1; m++) { cellCtx.setTransform(k, 0, 0, k, (m * TAU - xA) * sc, -yA * sc); cellCtx.fill(landPath, "evenodd"); }
       mask = cellCtx.getImageData(0, 0, mw, mh).data; maskKey = key;
     }
-    if (GL !== "dots") { drawLook(ctx, css, { rows, d, S, zoom, full, xA, xB, yA, mw, mh, sc, lc, R, cx, cy }); return; } // (globelook.py)
-    ctx.fillStyle = css.getPropertyValue("--land").trim() || "#343947";
-    ctx.beginPath();
-    const r0 = S * 0.33;
+    // (globesint.py) around each station's city the dots take its colour: full right at the city, fading into the grey of the land
+    const base = css.getPropertyValue("--land").trim() || "#343947", near = 3.4 * RAD / Math.max(1, Math.sqrt(zoom)), r0 = S * 0.33;
+    const rgb = (c) => { ctx.fillStyle = "#000"; ctx.fillStyle = c; const v = ctx.fillStyle; if (v[0] === "#") { const n = parseInt(v.slice(1, 7), 16); return [n >> 16, (n >> 8) & 255, n & 255]; } const m = v.match(/[\d.]+/g) || [0, 0, 0]; return m.slice(0, 3).map(Number); };
+    const b0 = rgb(base), STEPS = 6, shade = new Map();
+    const tone = (c, q) => { const k = c + q; let v = shade.get(k); if (!v) { const a = rgb(c); v = "rgb(" + a.map((x, i) => Math.round(b0[i] + (x - b0[i]) * q / STEPS)) + ")"; shade.set(k, v); } return v; };
+    const pts = cities.map((c) => ({ f: c.lat * RAD, l: c.lon * RAD, c: cityTint(c.code) || base }));
+    const groups = new Map();
     rows.forEach(({ f, dl, half, my }) => {
       const py = Math.floor((my - yA) * sc);
       if (py < 0 || py >= mh) return;
-      const j0 = Math.ceil((lc - half) / dl), j1 = Math.floor((lc + half) / dl);
+      const cf = Math.cos(f), j0 = Math.ceil((lc - half) / dl), j1 = Math.floor((lc + half) / dl);
+      const rowPts = pts.filter((p) => Math.abs(p.f - f) < near);
       for (let j = j0; j <= j1; j++) {
         let l = j * dl;
         let lx = full ? ((l + Math.PI) % TAU + TAU) % TAU - Math.PI : l + TAU * Math.round(((xA + xB) / 2 - l) / TAU);
@@ -2541,11 +2495,15 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
         if (px < 0 || px >= mw || mask[(py * mw + px) * 4 + 3] < 90) continue;
         const [x, y, z] = project(f / RAD, l / RAD);
         if (z <= 0 || x < -4 || x > W + 4 || y < -4 || y > H + 4) continue;
+        let col = base, best = near, hit = null;
+        for (const p of rowPts) { const dd = Math.hypot(p.f - f, (((p.l - l) % TAU + TAU + Math.PI) % TAU - Math.PI) * cf); if (dd < best) { best = dd; hit = p; } }
+        if (hit) { const t = 1 - best / near, q = Math.round(Math.pow(t, 1.3) * STEPS); if (q > 0) col = tone(hit.c, q); }
         const r = r0 * (0.45 + 0.55 * z); // smaller towards the edge of the globe
-        ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, TAU);
+        let g = groups.get(col); if (!g) groups.set(col, (g = new Path2D()));
+        g.moveTo(x + r, y); g.arc(x, y, r, 0, TAU);
       }
     });
-    ctx.fill();
+    groups.forEach((g, c) => { ctx.fillStyle = c; ctx.fill(g); });
   }
 
   // day and night: the side of the Earth away from the sun in shade, the twilight in between (the sun up to 18° below
@@ -2562,10 +2520,8 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     // three layers, one over the other: a little light on the day side, the night, the warm of dusk and dawn
     const DAY = light ? [255, 255, 255, 0.10] : [255, 246, 228, 0.07];
     const NIGHT = light ? [28, 32, 64, 0.36] : [3, 4, 14, 0.66];
-    const SINT = globeLook === "sint", duskSt = SINT ? byId[current] : null; // (dlook.py) D: dusk in the colour of the station on air
-    const duskC = duskSt ? stTint(duskSt) : "", dv = /^#[0-9a-f]{6}$/i.test(duskC) ? parseInt(duskC.slice(1), 16) : -1;
-    const DUSK = SINT ? (dv >= 0 ? [dv >> 16, (dv >> 8) & 255, dv & 255, light ? 0.24 : 0.32] : [243, 239, 230, light ? 0.06 : 0.09]) : [255, 128, 58, light ? 0.16 : 0.2];
-    const DW = SINT ? 0.03 : 0.06, NA = SINT ? 0.01 : 0.02, NB = SINT ? -0.08 : -0.31; // D: a narrower dusk and a crisper night
+    const duskSt = byId[current] || null, duskC = duskSt ? stTint(duskSt) : "", dv = /^#[0-9a-f]{6}$/i.test(duskC) ? parseInt(duskC.slice(1), 16) : -1; // (globesint.py)
+    const DUSK = dv >= 0 ? [dv >> 16, (dv >> 8) & 255, dv & 255, light ? 0.24 : 0.32] : [243, 239, 230, light ? 0.06 : 0.09];
     const step = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
     for (let j = 0; j < h; j++) {
       const v0 = (H / 2 - (j + 0.5) * k) / R;
@@ -2573,9 +2529,9 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
         let u = ((i + 0.5) * k - W / 2) / R, v = v0, r2 = u * u + v * v;
         if (r2 > 1) { const r = Math.sqrt(r2); u /= r; v /= r; r2 = 1; } // past the edge: as at the edge, so the shade doesn't fade there
         const e = u * sx + v * sy + Math.sqrt(1 - r2) * sz; // the sine of the sun's height above the horizon at that point
-        const x = 0.02 - e, dusk = x > 0 ? (x / DW) * Math.exp(1 - x / DW) : 0;
+        const x = 0.02 - e, dusk = x > 0 ? (x / 0.03) * Math.exp(1 - x / 0.03) : 0; // (globesint.py) a narrower dusk
         let r = DAY[0], g = DAY[1], b = DAY[2], a = DAY[3] * step(-0.02, 0.2, e), la, na;
-        la = NIGHT[3] * step(NA, NB, e); na = la + a * (1 - la); // the night over the day...
+        la = NIGHT[3] * step(0.01, -0.08, e); na = la + a * (1 - la); // the night over the day... (globesint.py: a crisper edge)
         if (na > 0) { r = (NIGHT[0] * la + r * a * (1 - la)) / na; g = (NIGHT[1] * la + g * a * (1 - la)) / na; b = (NIGHT[2] * la + b * a * (1 - la)) / na; }
         a = na;
         la = DUSK[3] * dusk; na = la + a * (1 - la); // ...and the warm of dusk over both
@@ -2592,143 +2548,6 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(shadeCv, 0, 0, w * k, h * k);
     ctx.restore();
-  }
-
-  /* ---------- (globelook.py) test copy: the globe drawn as lines (A), in the station's colour (B), as tiles (C) ---------- */
-  let globeLook = "dots", globeCol = null;
-  try { globeLook = localStorage.getItem("sintonia:globe") || "dots"; } catch (e) {}
-  if (!/^(dots|righe|colore|tessere|sint)$/.test(globeLook)) globeLook = "dots";
-  // (dlook.py) a station's colour that shows on the page: its card colour, or its accent when the card is near black (dark) or near white (light)
-  const lumOf = (h) => { const m = /^#([0-9a-f]{6})$/i.exec(h || ""); if (!m) return 0.5; const v = parseInt(m[1], 16);
-    const c = [v >> 16, (v >> 8) & 255, v & 255].map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); });
-    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
-  const stTint = (st) => { const light = document.documentElement.getAttribute("data-theme") === "light", L = lumOf(st.c); return (light ? L < 0.75 : L > 0.06) ? st.c : (st.dot || st.c); };
-  const cityTint = (code) => { const st = stations.find((x) => x.code === code); return st ? stTint(st) : ""; };
-  function setGlobe(v) {
-    globeLook = v; maskKey = "";
-    try { localStorage.setItem("sintonia:globe", v); } catch (e) {}
-    mapBox.dataset.globe = v;
-    document.querySelectorAll("#gl-pick [data-gl]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.gl === v ? "true" : "false"));
-    queueDraw();
-  }
-  $("gl-pick").addEventListener("click", (e) => { const b = e.target.closest("[data-gl]"); if (b) setGlobe(b.dataset.gl); });
-  setGlobe(globeLook);
-  const globeCv = document.createElement("canvas"), globeCtx = globeCv.getContext("2d");
-  function drawLook(ctx, css, m) {
-    const { rows, d, S, zoom, full, xA, xB, yA, mw, mh, sc, lc, R, cx, cy } = m;
-    const landAt = (lat, l) => { // lat in degrees, longitude in radians
-      const py = Math.floor((mercY(lat) - yA) * sc); if (py < 0 || py >= mh) return false;
-      const lx = full ? ((l + Math.PI) % TAU + TAU) % TAU - Math.PI : l + TAU * Math.round(((xA + xB) / 2 - l) / TAU);
-      const px = Math.floor((lx - xA) * sc); return px >= 0 && px < mw && mask[(py * mw + px) * 4 + 3] >= 90;
-    };
-    const sunUp = (x, y, z) => ((x - cx) / R) * sun[0] + ((cy - y) / R) * sun[1] + z * sun[2]; // above 0: day
-    const ink = css.getPropertyValue("--ink").trim() || "#F3EFE6";
-
-    if (globeLook === "sint") { // D: the dots of now; around each station's city, in its colour
-      const base = css.getPropertyValue("--land").trim() || "#343947", near = 3.4 * RAD / Math.max(1, Math.sqrt(zoom)), r0 = S * 0.33;
-      // (dlook2.py) the colour fades from the city out into the grey of the land, in a few steps
-      const rgb = (c) => { ctx.fillStyle = "#000"; ctx.fillStyle = c; const v = ctx.fillStyle; if (v[0] === "#") { const n = parseInt(v.slice(1, 7), 16); return [n >> 16, (n >> 8) & 255, n & 255]; } const m = v.match(/[\d.]+/g) || [0, 0, 0]; return m.slice(0, 3).map(Number); };
-      const b0 = rgb(base), STEPS = 6, shade = new Map();
-      const tone = (c, q) => { const k = c + q; let v = shade.get(k); if (!v) { const a = rgb(c); v = "rgb(" + a.map((x, i) => Math.round(b0[i] + (x - b0[i]) * q / STEPS)) + ")"; shade.set(k, v); } return v; };
-      const pts = cities.map((c) => ({ f: c.lat * RAD, l: c.lon * RAD, c: cityTint(c.code) || base }));
-      const groups = new Map();
-      rows.forEach(({ f, dl, half }) => {
-        const lat = f / RAD, cf = Math.cos(f), j0 = Math.ceil((lc - half) / dl), j1 = Math.floor((lc + half) / dl);
-        const rowPts = pts.filter((p) => Math.abs(p.f - f) < near);
-        for (let j = j0; j <= j1; j++) {
-          const l = j * dl;
-          if (!landAt(lat, l)) continue;
-          const [x, y, z] = project(lat, l / RAD);
-          if (z <= 0 || x < -4 || x > W + 4 || y < -4 || y > H + 4) continue;
-          let col = base, best = near, hit = null;
-          for (const p of rowPts) { const dd = Math.hypot(p.f - f, (((p.l - l) % TAU + TAU + Math.PI) % TAU - Math.PI) * cf); if (dd < best) { best = dd; hit = p; } }
-          if (hit) { const t = 1 - best / near, q = Math.round(Math.pow(t, 1.3) * STEPS); if (q > 0) col = tone(hit.c, q); } // full colour only right at the city
-          const r = r0 * (0.45 + 0.55 * z);
-          let g = groups.get(col); if (!g) groups.set(col, (g = new Path2D()));
-          g.moveTo(x + r, y); g.arc(x, y, r, 0, TAU);
-        }
-      });
-      groups.forEach((g, c) => { ctx.fillStyle = c; ctx.fill(g); });
-      return;
-    }
-
-    if (globeLook === "righe") { // A: every other row of the dots becomes a line where it crosses land
-      const P = { sea: new Path2D(), day: new Path2D(), night: new Path2D() };
-      rows.forEach(({ f, dl, half }) => {
-        if (Math.round(f / d) % 2) return;
-        const lat = f / RAD, j0 = Math.ceil((lc - half) / dl), j1 = Math.floor((lc + half) / dl);
-        let prev = null;
-        for (let j = j0; j <= j1; j++) {
-          const l = j * dl, [x, y, z] = project(lat, l / RAD);
-          const k = z <= 0 ? null : !landAt(lat, l) ? "sea" : sunUp(x, y, z) > -0.04 ? "day" : "night";
-          if (k) { if (prev && prev.k) { P[k].moveTo(prev.x, prev.y); P[k].lineTo(x, y); } else P[k].moveTo(x, y); }
-          prev = { x, y, k };
-        }
-      });
-      ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = ink;
-      ctx.globalAlpha = 0.07; ctx.lineWidth = 0.7; ctx.stroke(P.sea);
-      const lw = Math.max(1.2, S * 0.36);
-      ctx.globalAlpha = 0.36; ctx.lineWidth = lw; ctx.stroke(P.night);
-      ctx.globalAlpha = 0.9; ctx.stroke(P.day);
-      ctx.globalAlpha = 1;
-      return;
-    }
-
-    if (globeLook === "tessere") { // C: a tile every third dot; near a station's city, its colour
-      const K = 3, near = 5 * RAD / Math.max(1, Math.sqrt(zoom)), base = css.getPropertyValue("--land").trim() || "#343947";
-      const cols = {}; stations.forEach((s) => { if (!cols[s.code]) cols[s.code] = s.c; });
-      const pts = cities.map((c) => ({ f: c.lat * RAD, l: c.lon * RAD, c: cols[c.code] || base }));
-      const groups = new Map(), add = (key, fn) => { let p = groups.get(key); if (!p) groups.set(key, (p = new Path2D())); fn(p); };
-      rows.forEach(({ f, half }) => {
-        if (Math.round(f / d) % K) return;
-        const cf = Math.cos(f), n = Math.max(1, Math.round(TAU * cf / (d * K))), dl = TAU / n, lat = f / RAD;
-        const j0 = Math.ceil((lc - half) / dl), j1 = Math.floor((lc + half) / dl);
-        for (let j = j0; j <= j1; j++) {
-          const l = j * dl, [x, y, z] = project(lat, l / RAD);
-          if (z <= 0.04 || x < -20 || x > W + 20 || y < -20 || y > H + 20) continue;
-          let hits = 0; const a = d * K * 0.3 / RAD, b = dl * 0.3;
-          for (const [u, v] of [[0, 0], [-a, -b], [a, -b], [-a, b], [a, b]]) if (landAt(lat + u, l + v)) hits++;
-          if (hits < 2) continue;
-          let col = base, best = near;
-          pts.forEach((p) => { const dd = Math.hypot(p.f - f, (((p.l - l) % TAU + TAU + Math.PI) % TAU - Math.PI) * cf); if (dd < best) { best = dd; col = p.c; } });
-          const s = S * K * 0.8 * (0.4 + 0.6 * z), night = sunUp(x, y, z) < -0.04;
-          add(col + (night ? "|n" : ""), (p) => { if (p.roundRect) p.roundRect(x - s / 2, y - s / 2, s, s, s * 0.28); else p.rect(x - s / 2, y - s / 2, s, s); });
-        }
-      });
-      groups.forEach((p, key) => { const [c, n] = key.split("|"); ctx.fillStyle = c; ctx.globalAlpha = n ? 0.42 : 1; ctx.fill(p); });
-      ctx.globalAlpha = 1;
-      return;
-    }
-
-    if (globeLook === "colore" && globeCol) { // B: worked out point by point, about one and a half to a pixel, and laid over the sphere
-      const Q = DPR >= 2 ? 1.25 : 1, w = Math.ceil(W * Q), h = Math.ceil(H * Q);
-      if (globeCv.width !== w || globeCv.height !== h) { globeCv.width = w; globeCv.height = h; }
-      const img = globeCtx.createImageData(w, h), px = img.data, L = new Uint8Array(w * h);
-      const x0 = Math.max(0, Math.floor((cx - R) * Q)), x1 = Math.min(w, Math.ceil((cx + R) * Q)), y0 = Math.max(0, Math.floor((cy - R) * Q)), y1 = Math.min(h, Math.ceil((cy + R) * Q));
-      const lon0 = cam.lon * RAD;
-      for (let j = y0; j < y1; j++) {
-        const y = (cy - (j + 0.5) / Q) / R;
-        for (let i = x0; i < x1; i++) {
-          const x = ((i + 0.5) / Q - cx) / R, r = Math.hypot(x, y);
-          if (r > 1) continue;
-          const c = Math.asin(r), sn = Math.sin(c), cs = Math.cos(c);
-          const f = r < 1e-9 ? cam.lat * RAD : Math.asin(cs * s0 + y * sn * c0 / r);
-          const l = r < 1e-9 ? lon0 : lon0 + Math.atan2(x * sn, r * c0 * cs - y * s0 * sn);
-          L[j * w + i] = landAt(f / RAD, l) ? 2 : 1;
-        }
-      }
-      const { land, coast } = globeCol;
-      for (let j = y0; j < y1; j++) for (let i = x0; i < x1; i++) {
-        const o = j * w + i; if (L[o] !== 2) continue;
-        const edge = L[o - 1] === 1 || L[o + 1] === 1 || L[o - w] === 1 || L[o + w] === 1;
-        const col = edge ? coast : land, k = o * 4;
-        px[k] = col[0]; px[k + 1] = col[1]; px[k + 2] = col[2]; px[k + 3] = 255;
-      }
-      globeCtx.putImageData(img, 0, 0);
-      ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.clip();
-      ctx.imageSmoothingEnabled = true; ctx.drawImage(globeCv, 0, 0, W, H);
-      ctx.restore();
-    }
   }
 
   const arcs = new Map();
@@ -2806,7 +2625,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     }).filter((p) => p.z > 0.08 && onScreen(p.x, p.y, 12));
     placed.forEach((p) => {
       marks += '<rect class="m-st' + (p.top ? " on" : "") + '" x="' + f1(p.x - 3.5) + '" y="' + f1(p.y - 3.5) + '" width="7" height="7" rx="1.5"' +
-        ' style="--sc:' + cityTint(p.c.code) + (p.top ? ";fill:" + byId[p.top].dot : "") + '"' + "/>"; // (dlook.py) --sc: the station's colour, used by D
+        ' style="--sc:' + cityTint(p.c.code) + (p.top ? ";fill:" + byId[p.top].dot : "") + '"' + "/>"; // (globesint.py) --sc: the station's colour
       boxes.push({ x0: p.x - 5, x1: p.x + 5, y0: p.y - 5, y1: p.y + 5 });
     });
     placed.sort((p, q) => (q.top ? 1 : 0) - (p.top ? 1 : 0)).forEach((p) => {
