@@ -205,6 +205,11 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 .map[data-globe="colore"] .m-code.on { fill: var(--gl-ink); }
 .map[data-globe="colore"] .m-others circle { fill: var(--gl-ink); }
 .map[data-globe="colore"] .m-under { stroke: var(--gl-ink); stroke-opacity: .3; }
+/* (dlook.py) D: the stations in their own colour, the codes in the type of the cards */
+.map[data-globe="sint"] .m-st { fill: var(--sc, var(--bg-2)); stroke: var(--bg-2); stroke-width: 1.2; }
+.map[data-globe="sint"] .m-st.on { stroke: var(--ink); stroke-width: 1.6; }
+.map[data-globe="sint"] .m-code, .map[data-globe="sint"] .m-n { font-family: var(--f-display); font-weight: 800; font-stretch: 75%; font-size: 11px; letter-spacing: .03em; fill: var(--ink); fill-opacity: .82; }
+.map[data-globe="sint"] .m-code.on { fill-opacity: 1; }
 /* (polish.py) the question on the map: small, at the bottom, after the dots have been seen */
 .wh-card { position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 2; display: flex; align-items: center; gap: 10px;
   padding: 8px 6px 8px 14px; border-radius: 14px; border: 1px solid var(--line); cursor: default;
@@ -1735,7 +1740,7 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
             <svg class="i-me" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4"/><circle class="dot" cx="8" cy="8" r="1.4"/><path d="M8 1.5v2.5M8 12v2.5M1.5 8H4M12 8h2.5"/></svg>
           </button>
         </div>
-        <div class="gl-pick" id="gl-pick" role="group" aria-label="Globe, test copy"><button type="button" data-gl="dots">Now</button><button type="button" data-gl="righe">A</button><button type="button" data-gl="colore">B</button><button type="button" data-gl="tessere">C</button></div>
+        <div class="gl-pick" id="gl-pick" role="group" aria-label="Globe, test copy"><button type="button" data-gl="dots">Now</button><button type="button" data-gl="righe">A</button><button type="button" data-gl="colore">B</button><button type="button" data-gl="tessere">C</button><button type="button" data-gl="sint">D</button></div>
         <div class="wh-card" id="wh-card" role="group" aria-label="Your dot on the map" hidden><!-- (polish.py) -->
           <i class="wh-card-me" aria-hidden="true"></i>
           <span class="wh-card-t">Where are you listening from?</span>
@@ -2394,7 +2399,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     setRot();
     setSun();
     drawLand();
-    if (globeLook === "dots") drawNight(); // (globelook.py) the others show the night in their own way, or not at all
+    if (globeLook === "dots" || globeLook === "sint") drawNight(); // (globelook.py) the others show the night in their own way, or not at all
     drawOver();
   }
 
@@ -2557,7 +2562,10 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     // three layers, one over the other: a little light on the day side, the night, the warm of dusk and dawn
     const DAY = light ? [255, 255, 255, 0.10] : [255, 246, 228, 0.07];
     const NIGHT = light ? [28, 32, 64, 0.36] : [3, 4, 14, 0.66];
-    const DUSK = [255, 128, 58, light ? 0.16 : 0.2];
+    const SINT = globeLook === "sint", duskSt = SINT ? byId[current] : null; // (dlook.py) D: dusk in the colour of the station on air
+    const duskC = duskSt ? stTint(duskSt) : "", dv = /^#[0-9a-f]{6}$/i.test(duskC) ? parseInt(duskC.slice(1), 16) : -1;
+    const DUSK = SINT ? (dv >= 0 ? [dv >> 16, (dv >> 8) & 255, dv & 255, light ? 0.24 : 0.32] : [243, 239, 230, light ? 0.06 : 0.09]) : [255, 128, 58, light ? 0.16 : 0.2];
+    const DW = SINT ? 0.03 : 0.06, NA = SINT ? 0.01 : 0.02, NB = SINT ? -0.08 : -0.31; // D: a narrower dusk and a crisper night
     const step = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
     for (let j = 0; j < h; j++) {
       const v0 = (H / 2 - (j + 0.5) * k) / R;
@@ -2565,9 +2573,9 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
         let u = ((i + 0.5) * k - W / 2) / R, v = v0, r2 = u * u + v * v;
         if (r2 > 1) { const r = Math.sqrt(r2); u /= r; v /= r; r2 = 1; } // past the edge: as at the edge, so the shade doesn't fade there
         const e = u * sx + v * sy + Math.sqrt(1 - r2) * sz; // the sine of the sun's height above the horizon at that point
-        const x = 0.02 - e, dusk = x > 0 ? (x / 0.06) * Math.exp(1 - x / 0.06) : 0;
+        const x = 0.02 - e, dusk = x > 0 ? (x / DW) * Math.exp(1 - x / DW) : 0;
         let r = DAY[0], g = DAY[1], b = DAY[2], a = DAY[3] * step(-0.02, 0.2, e), la, na;
-        la = NIGHT[3] * step(0.02, -0.31, e); na = la + a * (1 - la); // the night over the day...
+        la = NIGHT[3] * step(NA, NB, e); na = la + a * (1 - la); // the night over the day...
         if (na > 0) { r = (NIGHT[0] * la + r * a * (1 - la)) / na; g = (NIGHT[1] * la + g * a * (1 - la)) / na; b = (NIGHT[2] * la + b * a * (1 - la)) / na; }
         a = na;
         la = DUSK[3] * dusk; na = la + a * (1 - la); // ...and the warm of dusk over both
@@ -2589,7 +2597,13 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   /* ---------- (globelook.py) test copy: the globe drawn as lines (A), in the station's colour (B), as tiles (C) ---------- */
   let globeLook = "dots", globeCol = null;
   try { globeLook = localStorage.getItem("sintonia:globe") || "dots"; } catch (e) {}
-  if (!/^(dots|righe|colore|tessere)$/.test(globeLook)) globeLook = "dots";
+  if (!/^(dots|righe|colore|tessere|sint)$/.test(globeLook)) globeLook = "dots";
+  // (dlook.py) a station's colour that shows on the page: its card colour, or its accent when the card is near black (dark) or near white (light)
+  const lumOf = (h) => { const m = /^#([0-9a-f]{6})$/i.exec(h || ""); if (!m) return 0.5; const v = parseInt(m[1], 16);
+    const c = [v >> 16, (v >> 8) & 255, v & 255].map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const stTint = (st) => { const light = document.documentElement.getAttribute("data-theme") === "light", L = lumOf(st.c); return (light ? L < 0.75 : L > 0.06) ? st.c : (st.dot || st.c); };
+  const cityTint = (code) => { const st = stations.find((x) => x.code === code); return st ? stTint(st) : ""; };
   function setGlobe(v) {
     globeLook = v; maskKey = "";
     try { localStorage.setItem("sintonia:globe", v); } catch (e) {}
@@ -2609,6 +2623,29 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     };
     const sunUp = (x, y, z) => ((x - cx) / R) * sun[0] + ((cy - y) / R) * sun[1] + z * sun[2]; // above 0: day
     const ink = css.getPropertyValue("--ink").trim() || "#F3EFE6";
+
+    if (globeLook === "sint") { // D: the dots of now; around each station's city, in its colour
+      const base = css.getPropertyValue("--land").trim() || "#343947", near = 4 * RAD / Math.max(1, Math.sqrt(zoom)), r0 = S * 0.33;
+      const pts = cities.map((c) => ({ f: c.lat * RAD, l: c.lon * RAD, c: cityTint(c.code) || base }));
+      const groups = new Map();
+      rows.forEach(({ f, dl, half }) => {
+        const lat = f / RAD, cf = Math.cos(f), j0 = Math.ceil((lc - half) / dl), j1 = Math.floor((lc + half) / dl);
+        const rowPts = pts.filter((p) => Math.abs(p.f - f) < near);
+        for (let j = j0; j <= j1; j++) {
+          const l = j * dl;
+          if (!landAt(lat, l)) continue;
+          const [x, y, z] = project(lat, l / RAD);
+          if (z <= 0 || x < -4 || x > W + 4 || y < -4 || y > H + 4) continue;
+          let col = base, best = near;
+          for (const p of rowPts) { const dd = Math.hypot(p.f - f, (((p.l - l) % TAU + TAU + Math.PI) % TAU - Math.PI) * cf); if (dd < best) { best = dd; col = p.c; } }
+          const r = r0 * (0.45 + 0.55 * z);
+          let g = groups.get(col); if (!g) groups.set(col, (g = new Path2D()));
+          g.moveTo(x + r, y); g.arc(x, y, r, 0, TAU);
+        }
+      });
+      groups.forEach((g, c) => { ctx.fillStyle = c; ctx.fill(g); });
+      return;
+    }
 
     if (globeLook === "righe") { // A: every other row of the dots becomes a line where it crosses land
       const P = { sea: new Path2D(), day: new Path2D(), night: new Path2D() };
@@ -2764,7 +2801,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     }).filter((p) => p.z > 0.08 && onScreen(p.x, p.y, 12));
     placed.forEach((p) => {
       marks += '<rect class="m-st' + (p.top ? " on" : "") + '" x="' + f1(p.x - 3.5) + '" y="' + f1(p.y - 3.5) + '" width="7" height="7" rx="1.5"' +
-        (p.top ? ' style="fill:' + byId[p.top].dot + '"' : "") + "/>";
+        ' style="--sc:' + cityTint(p.c.code) + (p.top ? ";fill:" + byId[p.top].dot : "") + '"' + "/>"; // (dlook.py) --sc: the station's colour, used by D
       boxes.push({ x0: p.x - 5, x1: p.x + 5, y0: p.y - 5, y1: p.y + 5 });
     });
     placed.sort((p, q) => (q.top ? 1 : 0) - (p.top ? 1 : 0)).forEach((p) => {
