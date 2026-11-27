@@ -499,7 +499,7 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 [data-id="hanoi"]    { --c:#000C05; --t:#FFFA5B; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:90%; --oy:80%; --gap:12px; --dot:#FFFA5B; }
 [data-id="lithium"]  { --c:#FFFFFF; --t:#000000; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:85%; --oy:-15%; --gap:12px; --dot:#FF0000; }
 [data-id="mutant"]   { --c:#FFE136; --t:#0F0F10; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:25%; --oy:115%; --gap:13px; --dot:#FFE136; }
-[data-id="r80k"]     { --c:#6775F6; --t:#000000; --ring:rgba(0,0,0,.14); --pill:rgba(0,0,0,.16); --ox:80%; --oy:-12%; --gap:12px; --dot:#8E99FF; }
+[data-id="parea"]    { --c:#E8E8E8; --t:#0A0A0A; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:20%; --oy:110%; --gap:12px; --dot:#2B2B2B; }
 [data-id="satellite"]{ --c:#FE0000; --t:#000000; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:92%; --oy:88%; --gap:14px; --dot:#FE0000; }
 [data-id="pass"]     { --c:#990000; --t:#FFFFFF; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:85%; --oy:-10%; --gap:12px; --dot:#E04646; }
 [data-id="sonic"]    { --c:#0B0810; --t:#FC853D; --ring:rgba(255,255,255,.16); --pill:rgba(255,255,255,.2); --ox:10%; --oy:110%; --gap:10px; --dot:#FC853D; }
@@ -518,7 +518,7 @@ body[data-state="loading"] .onair .sig-noise { display: inline; stroke: var(--ba
 [data-id="ehfm"]     { --c:#00B398; --t:#001427; --ring:rgba(0,0,0,.12); --pill:rgba(0,0,0,.15); --ox:-10%; --oy:50%; --gap:11px; --dot:#00B398; }
 .name.keepcase { text-transform: none; }
 /* (bwedge.py) black and white stations keep a thin edge where they would melt into the page */
-:root[data-theme="light"] :is([data-id="nts2"],[data-id="lithium"],[data-id="noods"],[data-id="raheem"]):is(.tile, .mini):not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(0,0,0,.14); }
+:root[data-theme="light"] :is([data-id="parea"],[data-id="nts2"],[data-id="lithium"],[data-id="noods"],[data-id="raheem"]):is(.tile, .mini):not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(0,0,0,.14); }
 :root:not([data-theme="light"]) :is([data-id="nts1"],[data-id="alhara"],[data-id="tirkultura"],[data-id="pinata"],[data-id="wwfm"],[data-id="kiosk"],[data-id="hanoi"],[data-id="ida"],[data-id="sonic"],[data-id="nopal"],[data-id="super45"],[data-id="rinse"]):is(.tile, .mini):not(.on):not(.hot) { box-shadow: inset 0 0 0 1px rgba(255,255,255,.13); }
 
 /* ---------- Glass and glow: stations are tinted glass; the one you play lights up and colours the app ---------- */
@@ -1517,12 +1517,12 @@ html[data-look="a"] .tile:not([data-alt]) .name::after { content: none; }
       </button>
       <button class="sched" type="button" data-site="https://www.mutantradio.net/">Info</button>
     </li>
-    <li class="tile" data-id="r80k" data-added="2026-11-26" data-country="Germany" data-code="MUC" data-lat="48.157" data-lon="11.553" data-region="Europe" data-city="Munich" data-tz="Europe/Berlin" data-src="https://radio80k.out.airtime.pro/radio80k_a">
-      <button class="tune" type="button" aria-label="Listen to Radio 80000">
+    <li class="tile" data-id="parea" data-added="2026-11-30" data-country="Greece" data-code="ATH" data-lat="37.98" data-lon="23.73" data-region="Europe" data-city="Athens" data-tz="Europe/Athens" data-src="https://parea-radio-b7474105.radiocult.fm/stream">
+      <button class="tune" type="button" aria-label="Listen to Parea Radio">
         <span class="knob"><svg class="i-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 10 6 0 12z"/></svg><svg class="i-stop" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" rx="1.5"/></svg><span class="eq"><i></i><i></i><i></i></span></span>
-        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Radio 80000</span><span class="meta"><span>P1 · Munich</span><span class="clock"></span></span></span>
+        <span class="label"><span class="now" hidden><span class="now-k">On now</span><span class="now-t"></span><span class="now-s"></span></span><span class="name">Parea Radio</span><span class="meta"><span>P1 · Athens</span><span class="clock"></span></span></span>
       </button>
-      <button class="sched" type="button" data-site="https://www.radio80k.de/">Info</button>
+      <button class="sched" type="button" data-site="https://parearadio.com/">Info</button>
     </li>
     <li class="tile" data-id="newtown" data-country="United States" data-code="NYC" data-lat="40.71" data-lon="-73.94" data-region="Americas" data-city="Brooklyn" data-tz="America/New_York" data-src="https://streaming.radio.co/s0d090ee43/listen">
       <button class="tune" type="button" aria-label="Listen to Newtown Radio">
@@ -3141,6 +3141,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     { url: "https://api.radiocult.fm/api/station/bcr/schedule/live", parse: (j) => ({ bcr: fromRadioCult(j) }) },
     { url: "https://thelakeradio.radioca.st/stats?json=1", parse: (j) => ({ lake: fromShoutcast(j) }) },
     { url: "https://api.radiocult.fm/api/station/rotation-radio-befbc736/schedule/live", parse: (j) => ({ rotation: fromRadioCult(j) }) },
+    { url: "https://api.radiocult.fm/api/station/parea-radio-b7474105/schedule/live", parse: (j) => ({ parea: fromRadioCult(j) }) }, // (parea.py)
     { url: "https://api.radiocult.fm/api/station/sonicradio/schedule/live", parse: (j) => ({ sonic: fromRadioCult(j) }) },
     { url: "https://api.radiocult.fm/api/station/rblmedia-a4a44e62/schedule/live", parse: (j) => ({ rbl: fromRadioCult(j) }) },
     { url: "https://api.radiocult.fm/api/station/rough-radio-9a2b1da0/schedule/live", parse: (j) => ({ rough: fromRadioCult(j) }) },
@@ -3149,7 +3150,6 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     { url: "https://api.radiocult.fm/api/station/vers-libre/schedule/live", parse: (j) => ({ verslibre: fromRadioCult(j) }) },
     { url: "https://public.radio.co/stations/s216811754/status", parse: (j) => ({ tirkultura: fromRadioCo(j, "track") }) },
     { url: "https://ehfm.airtime.pro/api/live-info-v2", parse: (j) => ({ ehfm: fromAirtime(j) }) },
-    { url: "https://radio80k.airtime.pro/api/live-info-v2", parse: (j) => ({ r80k: fromAirtime(j) }) }, // (r80k.py)
     { url: "https://api.radioking.io/widget/radio/pinata-radio/track/current", parse: (j) => ({ pinata: fromRadioKing(j) }) },
     { url: "https://api.radioking.io/widget/radio/mutant-radio/track/current", parse: (j) => ({ mutant: fromRadioKing(j) }) }
   ];
@@ -3200,7 +3200,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   const SCHED = {};
   // reruns, archive blocks and all-night playlists are not live
   const NOT_LIVE = /\((r|rerun|repeat|restream|replay)\)|\b(restream|rerun|repeat|replay|archive|archivi|rotazione|night music|all day|playlist|auto ?dj|best of|staff picks)\b/i;
-  const AIRTIME_PLAN = { r80k: "radio80k", kiosk: "kioskradiobxl", raheem: "radioraheem", cashmere: "cashmereradio", stegi: "movementathens", ehfm: "ehfm", pass: "pass", retreat: "retreatradio" };
+  const AIRTIME_PLAN = { kiosk: "kioskradiobxl", raheem: "radioraheem", cashmere: "cashmereradio", stegi: "movementathens", ehfm: "ehfm", pass: "pass", retreat: "retreatradio" };
   // set hours, in the station's own time: [weekday 0 = Sunday … 6 = Saturday, from, to]; a "to" earlier than "from" ends after midnight
   const HOURS = {
     pinata: { tz: "Europe/Paris", t: "Live from the bar", w: [[1, "16:00", "23:00"], [2, "16:00", "23:00"], [3, "16:00", "23:00"], [4, "16:00", "01:00"], [5, "16:00", "01:00"], [6, "16:00", "01:00"]] },
@@ -3672,7 +3672,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     deepspace: { desc: "Founded by Juan Atkins, one of the inventors of techno, with hosts such as DJ Minx and Stacey “Hotwaxx” Hale.", since: "2014", plays: "Detroit techno, house, electro and the soul and funk behind them", lang: "English", by: "Deep Space Radio, Detroit", support: "https://www.patreon.com/deepspaceradio" },
     newtown: { desc: "Independent internet radio from Bushwick, Brooklyn: mostly live two-hour shows by local DJs, musicians and artists.", since: "2009", plays: "Open format: indie, rap, electronic, live sessions", lang: "English", by: "Newtown Radio, Brooklyn" },
     hanoi: { desc: "Community radio from Hanoi, giving space to the city’s DJs, musicians and creative scene.", plays: "Electronic, experimental, Vietnamese sounds", lang: "Vietnamese, English", by: "Hà Nội Community Radio" },
-    r80k: { desc: "Non-commercial community radio from Munich, founded in 2015, live every day from 8am to midnight from ZIRKA, in the north of the city. The studio is open to everyone to listen and hang out, and the radio has a code of conduct against every form of discrimination.", since: "2015", plays: "Munich’s own scenes and guests from around the world: DJs, musicians, producers and talk, beyond algorithms and playlists", lang: "German, English", by: "A team of more than 30 people, Munich" },
+    parea: { desc: "An independent, community-oriented radio and studio in Athens, run as a non-profit by a parea: a circle of friends gathered around sound. Residents record their shows and spend time in the studio, which anyone can book to practise.", plays: "Techno, UK garage, jungle, house, ambient, hip-hop and experimental, plus talk", lang: "Greek, English", by: "A parea of friends, Athens", support: "https://www.buymeacoffee.com/parearadio" },
     mutant: { desc: "Community radio from Tbilisi, on air since 2019 from a fully equipped studio caravan inside a former power station by the river, which is also a bar and a venue for events, exhibitions and workshops. More than 90 residents and 50 guests a week, with a small studio in Berlin since 2025.", since: "2019", plays: "Experimental, electronic and techno, dub, new wave and post-punk, folk: mixes, live sets and talks", lang: "Georgian, English", by: "Tata Janashia and Nina Botchorishvili" },
     lithium: { desc: "A radio and café/bar in Paris’s 20th arrondissement, broadcasting DJ sets and shows from its own room.", plays: "Electronic, club, bass and more", lang: "French, English", by: "Lithium, Paris" },
     pass: { desc: "The radio of Chimurenga, the pan-African magazine from Cape Town: live every night from 9 to midnight Cape Town time, with musicians, DJs, poets and artists in residence, and the Chimurenga archive the rest of the day.", plays: "Music from across Africa and its diaspora, live performances, readings, sound art and interviews", lang: "English and more", by: "Chimurenga, curated by Ntone Edjabe and Neo Muyanga" },
@@ -6141,7 +6141,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!fp.hidden) renderFP(); });
   lookTick(); lookOnPlayer();
 
-  var ALT = { r80k: 2, mutant: 2, rough: 2, pinata: 2, batuta: 1, wwfm: 1, super45: 1, rinse: 1, deepspace: 1, newtown: 1, bcr: 2, hanoi: 2, ida: 2, kiosk: 2, lithium: 2, noods: 2, nts1: 2, nts2: 2, alhara: 2, rbl: 2, nopal: 2, raheem: 2, relativa: 2, refuge: 2, rotation: 2, satellite: 2, sonic: 2, verslibre: 2, ehfm: 2, cashmere: 3, lake: 3, tirkultura: 3, pass: 3, stegi: 3, retreat: 3 }, ALT_W = ["Easy way in", "Adventurous", "Way out there"];
+  var ALT = { parea: 2, mutant: 2, rough: 2, pinata: 2, batuta: 1, wwfm: 1, super45: 1, rinse: 1, deepspace: 1, newtown: 1, bcr: 2, hanoi: 2, ida: 2, kiosk: 2, lithium: 2, noods: 2, nts1: 2, nts2: 2, alhara: 2, rbl: 2, nopal: 2, raheem: 2, relativa: 2, refuge: 2, rotation: 2, satellite: 2, sonic: 2, verslibre: 2, ehfm: 2, cashmere: 3, lake: 3, tirkultura: 3, pass: 3, stegi: 3, retreat: 3 }, ALT_W = ["Easy way in", "Adventurous", "Way out there"];
   tiles.forEach((el) => { const n = ALT[el.dataset.id]; if (n) el.dataset.alt = n; });
   /* ---------- the turning "a" ----------
      Once when the app opens, and each time a different station comes on. */
