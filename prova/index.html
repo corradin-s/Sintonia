@@ -557,6 +557,8 @@ html[data-state="live"] .wrap::before, html[data-state="loading"] .wrap::before 
 /* (the tinted glass of before is off: the cards keep their stations' full colours) */
 .tile, .mini { --hue: var(--t); }
 .tile.out { display: none !important; }
+.crate-sep { grid-column: 1 / -1; margin: 18px 0 2px; list-style: none; } /* (others.py) the title over the radios that are not independent */
+.crate-sep[hidden] { display: none; }
 
 /* ---------- Where it's… (local time of day at each station) ---------- */
 .moods { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
@@ -1963,9 +1965,14 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
   const pp = $("pp"), prog = $("prog");
   // every station in alphabetical order, so that no one comes first by choice; P is its place in the list
   const ABC = new Intl.Collator("en", { sensitivity: "base", numeric: true });
+  // (others.py) the radios that are not independent come after all the others, under their own title
+  const OTHERS = ["nts1", "nts2", "stegi", "batuta"], isOther = (el) => OTHERS.includes(el.dataset.id);
   const tiles = Array.from(crate.querySelectorAll(".tile"))
-    .sort((a, b) => ABC.compare(a.querySelector(".name").textContent, b.querySelector(".name").textContent));
+    .sort((a, b) => (isOther(a) - isOther(b)) || ABC.compare(a.querySelector(".name").textContent, b.querySelector(".name").textContent));
+  const otherSep = document.createElement("li"); otherSep.className = "crate-sep"; otherSep.setAttribute("role", "presentation");
+  otherSep.innerHTML = '<h3 class="sec-h"><span>Other radios we love</span></h3>';
   tiles.forEach((el, i) => {
+    if (isOther(el) && !otherSep.parentNode) crate.appendChild(otherSep);
     crate.appendChild(el);
     const p = el.querySelector(".meta > span:not(.newtag)");
     if (p) p.textContent = p.textContent.replace(/^P\d+/, "P" + (i + 1));
@@ -3522,6 +3529,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       st.el.style.order = most || fresh ? String(shown.indexOf(st)) : ""; // Most listened, Recently added: in their own order
     });
     $("sec-more").hidden = !shown.length;
+    otherSep.hidden = most || fresh || !shown.some((st) => isOther(st.el) && !st.el.hidden); // (others.py)
     $("more-h").textContent = searching ? "Found" : kind === "live" ? "Live now" : most ? "Most listened" : fresh ? "Recently added" : band !== "all" ? "Where it’s " + band : "All stations";
     $("more-n").textContent = shown.length === 1 ? "1 station" : shown.length + " stations";
     $("chips").classList.toggle("off", searching);
