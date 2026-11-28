@@ -3385,12 +3385,12 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
     renderPlayer();
   }
 
-  // (weekend.py) the weekend radios: live shows only at the weekend, the rest of the week their archive or playlists
+  // (weekend.py) the weekend radios: new shows only at the weekend (scheduled mixes, not live DJs), the rest of the week their archive or playlists
   const WEEKEND = { rotation: "Saturday and Sunday", hanoi: "Friday to Sunday" };
   stations.forEach((st) => {
     if (!WEEKEND[st.id]) return;
     const t = document.createElement("span"); t.className = "newtag wk"; t.textContent = "Weekend";
-    t.title = "Live " + WEEKEND[st.id].replace(/^\w/, (c) => c.toLowerCase());
+    t.title = "New shows " + WEEKEND[st.id].replace(/^\w/, (c) => c.toLowerCase());
     const br = document.createElement("i"); br.className = "wk-br"; br.setAttribute("aria-hidden", "true");
     st.el.querySelector(".meta").prepend(t, br);
   });
@@ -4385,7 +4385,7 @@ function dlog(m) { diagTick = 0; diagLines.push(diagNow() + "  " + m); diagSave(
       `<button class="sh-btn ghost" type="button" data-act="share" data-id="${id}">Share</button>`);
     const info = live[id];
     const facts = [["On now", info && info.title ? info.title + (info.rerun ? " (" + (info.tag || "rerun").toLowerCase() + ")" : "") : ""], ["Local time", hhmm(Date.now(), st.tz)],
-      ["Live", WEEKEND[id] || ""], // (weekend.py)
+      ["New shows", WEEKEND[id] || ""], // (weekend.py)
       ["Since", I.since], ["Plays", I.plays], ["How alternative", ALT[id] ? ALT_W[ALT[id] - 1] : ""], ["Languages", I.lang], ["Run by", I.by]].filter((f) => f[1]);
     const up = (SCHED[id] || []).filter((x) => x.live && x.b > Date.now()).slice(0, 5); // (liveplan.py)
     if (up.length) facts.splice(1, 0, ["Next live", up.map((x) => (x.a <= Date.now() ? "Now" : cap1(whenLive(x.a))) + (x.t ? " · " + x.t : "")).join("\n")]);
